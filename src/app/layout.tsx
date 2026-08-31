@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     default: "Peter Island Resort and Spa IT Service Desk",
     template: "%s | Peter Island Resort and Spa IT Service Desk",
   },
-  description: "The application shell for the Peter Island Resort and Spa IT Service Desk.",
+  description: "Report and track technology issues at Peter Island Resort and Spa.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

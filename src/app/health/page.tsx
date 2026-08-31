@@ -1,10 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-
-import { HealthPanel } from "@/components/site/health-panel";
-import { ResortHeader } from "@/components/site/resort-header";
-import { SiteFooter } from "@/components/site/site-footer";
 
 export const metadata: Metadata = {
   title: "System health",
@@ -13,19 +8,37 @@ export const metadata: Metadata = {
 
 export default function HealthPage() {
   return (
-    <div className="site-shell health-route">
-      <div className="ambient-orb" aria-hidden="true" />
-      <ResortHeader context="System health" />
-
-      <main className="health-route__main site-frame" id="main-content">
+    <div className="utility-route">
+      <main className="utility-card" id="main-content">
         <Link className="back-link" href="/">
-          <ArrowLeft aria-hidden="true" />
-          Return to Service Desk
+          <span aria-hidden="true">←</span>Return to Service Desk
         </Link>
-        <HealthPanel headingLevel={1} titleId="health-title" />
+        <div className="utility-topline">
+          <p className="overline">Peter Island Resort and Spa</p>
+          <span className="status-pill progress">
+            <span className="status-light" aria-hidden="true" />
+            Operational
+          </span>
+        </div>
+        <p className="overline">System check</p>
+        <h1>All calm on the digital shoreline.</h1>
+        <div className="utility-checks" aria-label="Application checks">
+          <div>
+            <span aria-hidden="true">✓</span>
+            <strong>Application shell</strong>
+            <small>Responding</small>
+          </div>
+          <div>
+            <span aria-hidden="true">✓</span>
+            <strong>Runtime boundary</strong>
+            <small>Ready</small>
+          </div>
+        </div>
+        <p className="utility-note">
+          This page verifies the web application only. External services are intentionally not
+          queried in this foundation release.
+        </p>
       </main>
-
-      <SiteFooter />
     </div>
   );
 }

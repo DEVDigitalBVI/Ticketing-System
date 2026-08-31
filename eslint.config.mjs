@@ -8,5 +8,5 @@ export default defineConfig([
     ...nextPlugin.configs["core-web-vitals"],
     files: ["**/*.{js,mjs,cjs,ts,tsx}"],
   },
-  globalIgnores([".next/**", "coverage/**", "next-env.d.ts"]),
+  globalIgnores([".next/**", "coverage/**", "design-prototype 2/**", "next-env.d.ts"]),
 ]);

@@ -1,6 +1,6 @@
 # Peter Island Resort and Spa IT Service Desk — Decision Log
 
-Last updated: 2026-08-30
+Last updated: 2026-08-31
 
 ## How to use this log
 
@@ -50,3 +50,14 @@ These identifiers are working context rather than architecture choices:
 - Resort: `Peter Island Resort and Spa`
 - Git repository: `Ticketing System`
 - Supabase project: `Ticketing system`
+
+## ADR-003: Approved frontend design source
+
+- **Status:** Accepted
+- **Date:** 2026-08-31
+- **Owners:** Product / Engineering
+- **Context:** The owner supplied the Warp Codex handoff and its complete four-view service desk reference, and directed implementation without redesign.
+- **Decision:** Treat the supplied graphite-rail, warm-neutral Resort IT Service Desk interface as the visual source of truth. Implement it through reusable App Router routes and domain components, substituting Peter Island Resort and Spa product/property naming while preserving typography, spacing, layouts, responsive behavior, accessibility treatments, and the display-only Level.io context panel.
+- **Consequences:** Future frontend work must extend the accepted token system and interaction patterns rather than introducing a new dashboard aesthetic. The current data and integrations remain mock-only until separately approved backend steps.
+- **Evidence:** Supplied `WARP_CODEX_HANDOFF.md`; routes and components under `src/app/(service-desk)` and `src/modules/service-desk`; responsive and interaction tests under `tests/`.
+- **Supersedes:** The earlier coastal foundation composition as the production application interface; its delivery-control history remains valid.
