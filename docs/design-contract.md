@@ -1,0 +1,89 @@
+# Peter Island Resort and Spa IT Service Desk — Design Contract
+
+Last verified: 2026-08-31  
+Status: Approved frontend baseline for future implementation
+
+## Authority and change control
+
+The existing interface is the product design, not an exploratory prototype. Future work must preserve it while replacing mock data and local-only behavior behind reusable Next.js and React components.
+
+When sources appear to conflict, use this order:
+
+1. the owner-approved instructions in `design-prototype 2/WARP_CODEX_HANDOFF.md`;
+2. the layouts, states, and copy demonstrated by `design-prototype 2/index.html`, `styles.css`, and `app.js`;
+3. the production implementation under `src/app` and `src/modules/service-desk` as verified in Step 3;
+4. this document as the concise regression contract.
+
+Changing a material layout, token, responsive transition, interaction pattern, or route purpose requires explicit Product approval, a decision-log entry, updated tests, and desktop/mobile comparison evidence.
+
+## Route and layout contract
+
+| Route         | Audience   | Required layout and purpose                                                                                                                                                     |
+| ------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`           | Staff      | Staff overview with greeting, primary report-issue action, three help-category cards, active-request summary, service status, and shared navigation shell.                      |
+| `/new-ticket` | Staff      | Guided three-section issue form with a desktop process/privacy aside; the form becomes one column with sticky actions on mobile.                                                |
+| `/my-tickets` | Staff      | Ticket-list workspace with status tabs, search, readable status/SLA treatment, and links into the matching technician context.                                                  |
+| `/technician` | Technician | Service metrics, priority queue, selected-ticket context, and Level.io device panel in a desktop master-detail layout; context and secondary columns simplify at smaller sizes. |
+| `/health`     | Operations | Branded application-shell health view. It does not claim that external services are healthy.                                                                                    |
+
+All four service-desk routes share the same resort identity, navigation model, desktop rail, mobile header/drawer, service-status treatment, and profile affordance. The 404 and health routes retain the same visual language without pretending to be ticketing workflows.
+
+## Visual system
+
+- Identity: `Peter Island Resort and Spa` and `IT Service Desk` remain the product labels.
+- Typography: use the existing Avenir-style stack led by `Avenir Next`, with display/body hierarchy, compact uppercase overlines, and restrained weight changes already defined in `globals.css`.
+- Frame: a 264-pixel graphite navigation rail sits beside a warm-neutral `#f4f1eb` canvas on desktop. Content uses white surfaces, subtle borders/shadows, and the established spacing and corner-radius scale.
+- Accent: resort green `#176b5b` is the primary interactive and positive-status color. Risk and urgency use the existing amber/red treatments.
+- Information cannot rely on color alone: status, priority, SLA, and selection states retain text, shape, icon, border, or weight cues.
+- Icons remain subordinate to text and are hidden from assistive technology when decorative.
+
+## Responsive behavior
+
+| Range        | Contract                                                                                                                                                                                     |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Above 1100px | Persistent 264px rail; three-card staff grid; four technician metrics; new-ticket form plus 280px aside; technician queue plus 326px selected-ticket context.                                |
+| 781–1100px   | Staff cards reduce to two columns with the featured card spanning; technician metrics reduce to two columns; context panel is hidden and queue columns simplify as defined in the reference. |
+| 431–780px    | Rail becomes an off-canvas drawer with scrim and 60px mobile header; page padding becomes 18px; forms/cards stack; ticket and queue rows simplify; mobile form actions remain sticky.        |
+| 320–430px    | Single-column technician metrics and the narrowest supported wrapping behavior.                                                                                                              |
+
+Safe-area padding, `min-width: 0`, wrapping rules, and the 320-pixel viewport floor must be retained. New content must not introduce horizontal page overflow at supported sizes.
+
+## Interaction and accessibility contract
+
+- Every interactive element has a visible text label or accessible name. Form controls use programmatic labels or fieldset legends.
+- Keyboard focus remains clearly visible with the existing three-pixel focus treatment. The skip link and `#main-content` target remain available.
+- Interactive hit areas are at least 44 by 44 pixels. A visually smaller switch is acceptable only while its full labelled row remains the hit area.
+- The mobile drawer exposes its expanded state, closes by its control, scrim, route change, and Escape key, and does not become a second navigation system.
+- Selected tabs and queue rows expose state semantically as well as visually. Status announcements and form feedback retain appropriate live-region behavior.
+- Reduced-motion and increased-contrast preferences remain supported.
+- The new-ticket form continues to provide character count, required fields, choice states, and local review feedback until persistence is implemented.
+- Placeholder technician actions and the Level.io button must not imply successful external work. Live behavior must add pending, success, empty, permission, and failure states in the same visual language.
+
+## Component conventions
+
+- Route files compose domain components; ticketing UI and mock domain data remain under `src/modules/service-desk` until server boundaries are introduced.
+- Reuse the shared shell, page header, ticket/status treatments, button classes, fields, cards, queues, and context panels. Do not duplicate whole pages or paste the standalone reference into production.
+- Keep server components as the default. Add client boundaries only for interaction, navigation state, or browser APIs.
+- Backend adapters must supply typed view data to the existing component hierarchy; they must not couple provider SDK objects directly to presentation components.
+- Preserve semantic HTML landmarks, heading order, lists, tables/row semantics, labels, and status regions when decomposing components.
+
+## Implementation status at the Step 3 boundary
+
+| Capability               | Status      | Evidence and boundary                                                                                                                             |
+| ------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend routes/design   | Implemented | Four approved service-desk routes, shared shell, local interactions, responsive rules, and tests are present and pass.                            |
+| Database                 | Missing     | Supabase project name `Ticketing system` is known; no client, schema, migration, generated type, table, policy, or persistence code exists.       |
+| Authentication           | Missing     | No provider, session, middleware, route protection, role mapping, or sign-in UI exists.                                                           |
+| File storage             | Undecided   | No storage SDK, bucket, upload flow, retention rule, or malware/type/size policy exists.                                                          |
+| Queue                    | Undecided   | No queue technology, producer, consumer, retry policy, or dead-letter behavior is implemented.                                                    |
+| Hosting                  | Undecided   | No production hosting target or deployment pipeline is configured.                                                                                |
+| Microsoft 365 / Entra ID | Undecided   | No tenant approach, application registration, identity flow, Graph integration, or notification integration is implemented.                       |
+| Level.io                 | Missing     | The selected-ticket device panel is display-only mock context. No API client, credential, live device lookup, deep link, or remote action exists. |
+| Property model           | Undecided   | The UI currently names only Peter Island Resort and Spa; single- versus multi-property authorization/data design is not approved.                 |
+
+## Step 3 verification baseline
+
+- Prettier, ESLint, strict TypeScript, 4 Vitest files/9 tests, and the Next.js 16.3.3 production webpack build pass.
+- `/`, `/new-ticket`, `/my-tickets`, `/technician`, and `/health` return HTTP 200 locally; the production build statically prerenders the routes and branded not-found state.
+- Navigation targets, accessible names, focus rules, responsive breakpoints, minimum target sizing, and overflow-prevention rules were inspected with no defect requiring a source change.
+- A connected browser was unavailable during this verification session, so fresh live console capture and screenshot comparison at 1440×900 and 390×844 were not possible. Direct reference/source comparison and automated responsive assertions found no divergence; repeat visual comparison when a browser connection is available.

@@ -72,3 +72,14 @@ These identifiers are working context rather than architecture choices:
 - **Consequences:** The install graph and maintained source surface are smaller. If a future feature genuinely needs shadcn or one of the removed utilities, it must add the specific dependency with an active use case rather than retaining speculative scaffolding.
 - **Evidence:** Repository-wide import search, passing lint/type/test/build gates, and the cleanup record in `docs/implementation-status.md`.
 - **Supersedes:** The shadcn-specific portion of ADR-002; its framework, TypeScript, Tailwind, and quality-gate decisions remain accepted.
+
+## ADR-005: Freeze the verified frontend as the backend integration contract
+
+- **Status:** Accepted
+- **Date:** 2026-08-31
+- **Owners:** Product / Engineering
+- **Context:** The approved four-view interface is complete, and Step 3 must establish a stable baseline before authentication, persistence, or external integrations alter its behavior.
+- **Decision:** Treat `docs/design-contract.md`, the production components and styles under `src/`, and the retained files in `design-prototype 2/` as the ordered frontend contract. Backend steps may replace mock data and local-only handlers behind the existing components, but must preserve the accepted route purposes, hierarchy, typography, tokens, spacing, responsive transitions, control names, focus treatment, interaction feedback, and display-only Level.io panel unless Product explicitly approves a design change.
+- **Consequences:** Backend implementation has a clear compatibility boundary and cannot quietly redesign the product. Material visual or interaction changes require an explicit decision-log entry, updated contract evidence, and desktop/mobile regression verification. Current placeholder actions do not imply that authentication, persistence, Microsoft 365, or Level.io behavior exists.
+- **Evidence:** Step 3 audit and passing checks in `docs/implementation-status.md`; `docs/design-contract.md`; ADR-003; retained design handoff and prototype files.
+- **Supersedes:** None.
