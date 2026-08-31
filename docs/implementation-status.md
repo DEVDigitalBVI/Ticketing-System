@@ -56,15 +56,15 @@ The repository previously contained a default Swift/Xcode project named `TEST`, 
 
 - Runtime: Node.js 24+, Next.js 16.3.3, React 19.2.8, and React DOM 19.2.8.
 - Language: strict TypeScript 6.0.3. TypeScript 7 was not selected because the supported TypeScript ESLint 8.68.0 peer range ends below TypeScript 6.1.
-- Styling and components: Tailwind CSS 4.3.3 with shadcn/ui 4.19.0 conventions and a shared `StatusBadge` component.
+- Styling: Tailwind CSS 4.3.3 provides the CSS pipeline and baseline; the approved interface uses explicit design tokens and purpose-built service-desk components.
 - Package management: pnpm 11.24.0 with exact dependency versions and `pnpm-lock.yaml`.
-- Structure: App Router routes in `src/app`, future domain modules in `src/modules`, shared UI in `src/components`, shared utilities in `src/lib`, future server infrastructure in `src/server`, tests in `tests`, and delivery controls in `docs`.
+- Structure: App Router routes in `src/app`, service-desk domain code in `src/modules/service-desk`, future server infrastructure in `src/server`, tests in `tests`, and delivery controls in `docs`.
 - Developer controls: Prettier formatting, ESLint 10 with TypeScript and Next.js Core Web Vitals rules, strict type checking, Vitest/Testing Library unit testing, and a production build gate.
 - Runtime configuration: `.env.example` contains only a descriptive public application URL placeholder. No secrets, authentication settings, or backend credentials were added.
 - Developer documentation: root `README.md` contains prerequisites, local setup, checks, and project structure.
 - Repository guidance: Next.js-generated `AGENTS.md` and `CLAUDE.md` keep future work aligned with the installed framework documentation.
 - Production design: the full foundation experience now includes a shared resort frame, multi-section home page, reusable health panel, dedicated health route, and branded not-found state.
-- Design handoff: `outputs/design-prototype/` contains a portable `index.html`, dependency-free progressive enhancements, and detailed design notes.
+- Design handoff: the supplied `design-prototype 2/` reference is retained unchanged; the superseded coastal artifact has been removed.
 
 ### Verification results
 
@@ -86,9 +86,19 @@ No ticketing feature, authentication flow, database model, Supabase configuratio
 - Added a shared responsive navigation shell, staff overview, guided ticket form, staff ticket filters, typed mock ticket data, technician priority queue, dynamic selected-ticket context, and a display-only Level.io device panel.
 - Added local-only interactions for the mobile drawer, ticket form selection and character count, success feedback, ticket filters/search, and technician queue selection.
 - Preserved the existing health and not-found routes in the approved visual language.
-- Verification on 2026-08-31: Prettier, ESLint, strict TypeScript, eight Vitest tests, and the Next.js production webpack build passed. All four application routes returned HTTP 200 locally.
+- Verification on 2026-08-31: Prettier, ESLint, strict TypeScript, nine Vitest tests, and the Next.js production webpack build passed. All four application routes returned HTTP 200 locally.
 - Browser-based screenshots were unavailable because no browser instance was connected. The 1440×900 desktop and 390×844 mobile contracts were verified through the approved CSS values and automated responsive-design assertions; visual side-by-side review remains advisable when a browser is available.
 - No authentication, database, Supabase schema, backend persistence, Microsoft integration, or live Level.io connection was introduced.
+
+## Repository cleanup audit
+
+- Completed a full source, configuration, dependency, test, documentation, and reference-artifact audit on 2026-08-31.
+- Removed the unreachable coastal-design components, status primitive, class-name utility, stale module placeholder, superseded design artifact, and shadcn configuration.
+- Removed six packages used only by that deleted layer: `class-variance-authority`, `clsx`, `lucide-react`, `shadcn`, `tailwind-merge`, and `tw-animate-css`.
+- Simplified prototype-era view visibility CSS now that each interface is a real App Router route.
+- Fixed staff-ticket deep links so the requested mock ticket opens as the initial technician context, and added cleanup for the form feedback timer.
+- Standardized the build script on Next.js's supported webpack builder because the local Turbopack worker cannot bind its internal port in the managed environment.
+- The unused-code analyzer reports only the intentionally retained standalone design-reference CSS and JavaScript; the production dependency audit reports no known vulnerabilities.
 
 ## Step 1 completion gate
 

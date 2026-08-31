@@ -35,4 +35,11 @@ describe("service desk interactions", () => {
     expect(context).toHaveTextContent("PRN-FRO-02");
     expect(context).toHaveTextContent(/Level\.io device/i);
   });
+
+  it("opens a deep-linked mock ticket as the initial technician context", () => {
+    render(<TechnicianWorkspace initialTicketId="INC-1048" />);
+    const context = screen.getByRole("complementary", { name: "Selected ticket context" });
+    expect(context).toHaveTextContent("Front desk printer stops after each page");
+    expect(context).toHaveTextContent("PRN-FRO-02");
+  });
 });

@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
-import { TechnicianWorkspace } from "@/modules/service-desk/components/technician-workspace";
+import {
+  TechnicianWorkspace,
+  TechnicianWorkspaceFromQuery,
+} from "@/modules/service-desk/components/technician-workspace";
 
 export const metadata: Metadata = { title: "Technician workspace" };
 
 export default function TechnicianPage() {
-  return <TechnicianWorkspace />;
+  return (
+    <Suspense fallback={<TechnicianWorkspace />}>
+      <TechnicianWorkspaceFromQuery />
+    </Suspense>
+  );
 }

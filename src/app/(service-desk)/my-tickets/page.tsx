@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "My tickets" };
 
 export default function MyTicketsPage() {
   return (
-    <section className="view view-visible" aria-labelledby="tickets-title">
+    <section className="view" aria-labelledby="tickets-title">
       <PageHeader
         actionHref="/new-ticket"
         actionLabel="New ticket"

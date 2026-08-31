@@ -1,4 +1,4 @@
-export type StaffTicketStatus = "Waiting for IT" | "Needs your reply" | "In progress";
+type StaffTicketStatus = "Waiting for IT" | "Needs your reply" | "In progress";
 
 export type StaffTicket = {
   id: string;

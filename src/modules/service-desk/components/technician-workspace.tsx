@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { technicianTickets } from "../mock-data";
@@ -11,13 +12,20 @@ const metrics = [
   { label: "Resolved today", value: "14", detail: "92% within target", urgent: false },
 ] as const;
 
-export function TechnicianWorkspace() {
-  const [selectedKey, setSelectedKey] = useState("pos");
+export function TechnicianWorkspaceFromQuery() {
+  const ticketId = useSearchParams().get("ticket") ?? undefined;
+  return <TechnicianWorkspace initialTicketId={ticketId} />;
+}
+
+export function TechnicianWorkspace({ initialTicketId }: { initialTicketId?: string }) {
+  const initialKey =
+    technicianTickets.find((ticket) => ticket.id === initialTicketId)?.key ?? "pos";
+  const [selectedKey, setSelectedKey] = useState(initialKey);
   const selected =
     technicianTickets.find((ticket) => ticket.key === selectedKey) ?? technicianTickets[0];
 
   return (
-    <section className="view view-visible technician-view" aria-labelledby="technician-title">
+    <section className="view technician-view" aria-labelledby="technician-title">
       <header className="page-header technician-header">
         <div>
           <p className="overline">Technician workspace</p>

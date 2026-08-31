@@ -61,3 +61,14 @@ These identifiers are working context rather than architecture choices:
 - **Consequences:** Future frontend work must extend the accepted token system and interaction patterns rather than introducing a new dashboard aesthetic. The current data and integrations remain mock-only until separately approved backend steps.
 - **Evidence:** Supplied `WARP_CODEX_HANDOFF.md`; routes and components under `src/app/(service-desk)` and `src/modules/service-desk`; responsive and interaction tests under `tests/`.
 - **Supersedes:** The earlier coastal foundation composition as the production application interface; its delivery-control history remains valid.
+
+## ADR-004: Remove unused frontend scaffolding
+
+- **Status:** Accepted
+- **Date:** 2026-08-31
+- **Owners:** Engineering
+- **Context:** The approved service-desk interface uses custom semantic components and design tokens. The earlier coastal components, shadcn configuration, class-name helper, icon package, variant helper, and animation helper had no remaining imports.
+- **Decision:** Remove the unreachable frontend layer and its six exclusive packages while retaining the approved Tailwind CSS pipeline. Keep the supplied four-view design reference as audit evidence and remove the superseded coastal artifact.
+- **Consequences:** The install graph and maintained source surface are smaller. If a future feature genuinely needs shadcn or one of the removed utilities, it must add the specific dependency with an active use case rather than retaining speculative scaffolding.
+- **Evidence:** Repository-wide import search, passing lint/type/test/build gates, and the cleanup record in `docs/implementation-status.md`.
+- **Supersedes:** The shadcn-specific portion of ADR-002; its framework, TypeScript, Tailwind, and quality-gate decisions remain accepted.

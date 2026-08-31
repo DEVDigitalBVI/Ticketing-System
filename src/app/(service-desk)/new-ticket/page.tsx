@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Report an issue" };
 
 export default function NewTicketPage() {
   return (
-    <section className="view view-visible" aria-labelledby="new-ticket-title">
+    <section className="view" aria-labelledby="new-ticket-title">
       <PageHeader
         backHref="/"
         backLabel="Overview"

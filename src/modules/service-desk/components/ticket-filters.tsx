@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { staffTickets } from "../mock-data";
 import { StaffTicketList } from "./staff-ticket-list";
@@ -10,16 +10,10 @@ type Filter = "Active" | "Completed" | "All";
 export function TicketFilters() {
   const [filter, setFilter] = useState<Filter>("Active");
   const [query, setQuery] = useState("");
-  const tickets = useMemo(
-    () =>
-      staffTickets.filter(
-        (ticket) =>
-          (filter === "All" || ticket.state.toLowerCase() === filter.toLowerCase()) &&
-          `${ticket.id} ${ticket.title} ${ticket.location}`
-            .toLowerCase()
-            .includes(query.toLowerCase()),
-      ),
-    [filter, query],
+  const tickets = staffTickets.filter(
+    (ticket) =>
+      (filter === "All" || ticket.state.toLowerCase() === filter.toLowerCase()) &&
+      `${ticket.id} ${ticket.title} ${ticket.location}`.toLowerCase().includes(query.toLowerCase()),
   );
 
   return (

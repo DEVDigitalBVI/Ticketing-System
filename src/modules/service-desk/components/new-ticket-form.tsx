@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 const issueTypes = [
   {
@@ -28,11 +28,20 @@ const issueTypes = [
 export function NewTicketForm() {
   const [summary, setSummary] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const toastTimer = useRef<number | null>(null);
+
+  useEffect(
+    () => () => {
+      if (toastTimer.current) window.clearTimeout(toastTimer.current);
+    },
+    [],
+  );
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitted(true);
-    window.setTimeout(() => setSubmitted(false), 3400);
+    if (toastTimer.current) window.clearTimeout(toastTimer.current);
+    toastTimer.current = window.setTimeout(() => setSubmitted(false), 3400);
   }
 
   return (

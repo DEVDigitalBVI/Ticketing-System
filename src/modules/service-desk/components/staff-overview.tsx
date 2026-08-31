@@ -24,7 +24,7 @@ const actions = [
 
 export function StaffOverview() {
   return (
-    <section className="view view-visible" aria-labelledby="home-title">
+    <section className="view" aria-labelledby="home-title">
       <header className="page-header hero-header">
         <div>
           <p className="overline">Sunday, 30 August</p>
