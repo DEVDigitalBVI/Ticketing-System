@@ -12,11 +12,12 @@ Last updated: 2026-08-30
 
 ## Playbook steps
 
-| Step | Outcome | Status | Dependencies | Evidence of completion |
-| --- | --- | --- | --- | --- |
+| Step                                                   | Outcome                                                                     | Status           | Dependencies                                                                                         | Evidence of completion                                                                                                                                                                                                                                                                                                                 |
+| ------------------------------------------------------ | --------------------------------------------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1. Inspect the project and establish delivery controls | Understand the repository and create the implementation tracking documents. | Approval pending | The project blueprint must be supplied or located, and the architecture checkpoint must be approved. | Repository instructions, tracked files, history, working tree, remote, framework/dependency manifests, tests, and deployment files inspected on 2026-08-30. Delivery controls created in `docs/implementation-status.md`, `docs/decision-log.md`, `docs/open-questions.md`, and `docs/system-context.md`. Findings are recorded below. |
+| 2. Bootstrap the application and quality gates         | Deliver a clean, runnable application shell with reliable developer checks. | Complete         | ADR-002.                                                                                             | Next.js App Router site, `/health`, branded not-found state, portable design prototype, pinned dependencies and lockfile, strict TypeScript, Tailwind CSS, shadcn/ui convention, Prettier, ESLint, Vitest, setup guide, and environment template added. All checks and live route verification passed on 2026-08-30.                   |
 
-Only Step 1 was present in the supplied playbook excerpt. Add each later numbered step here before starting it so the status register remains complete.
+Steps 1 and 2 have been supplied. Add each later numbered step here before starting it so the status register remains complete.
 
 ## Step 1 inspection evidence
 
@@ -35,38 +36,53 @@ Only Step 1 was present in the supplied playbook excerpt. Add each later numbere
 
 ### Current implementation
 
-| Area | Finding |
-| --- | --- |
-| Framework | None present. |
-| Dependency versions | No manifest or lockfile present. |
-| Project structure | No application structure present; `docs/` is the first delivery structure added in Step 1. |
-| Existing features | None in the current tree. |
-| Tests | No current test files, runner, or configuration. |
-| Deployment | No hosting, CI/CD, container, infrastructure, or environment configuration. |
-| Supabase | The project is named `Ticketing system`, per the project owner; no local Supabase configuration, schema, migrations, or generated types are present. |
+| Area                | Finding                                                                                                                                              |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Framework           | None present.                                                                                                                                        |
+| Dependency versions | No manifest or lockfile present.                                                                                                                     |
+| Project structure   | No application structure present; `docs/` is the first delivery structure added in Step 1.                                                           |
+| Existing features   | None in the current tree.                                                                                                                            |
+| Tests               | No current test files, runner, or configuration.                                                                                                     |
+| Deployment          | No hosting, CI/CD, container, infrastructure, or environment configuration.                                                                          |
+| Supabase            | The project is named `Ticketing system`, per the project owner; no local Supabase configuration, schema, migrations, or generated types are present. |
 
 ### Relevant history
 
 The repository previously contained a default Swift/Xcode project named `TEST`, including unit and UI test targets. Commit `66052ee` intentionally removed those files and the README. That historical scaffold is not treated as the current framework or as reusable Peter Island Resort and Spa IT Service Desk functionality.
 
-## Proposed Step 2 bootstrap (not yet executed)
+## Step 2 completion evidence
 
-Subject to the approval checkpoint and blueprint review, bootstrap a TypeScript web application with this sequence:
+### Delivered foundation
 
-1. Confirm or adjust ADR-001 in `docs/decision-log.md`.
-2. Verify the current stable scaffold and package-manager versions, then create the application at the repository root with the approved equivalent of `pnpm dlx create-next-app@<verified-version> . --ts --eslint --tailwind --app --src-dir --import-alias "@/*" --use-pnpm`. Record the resolved versions before execution; do not leave `latest` or floating dependency ranges in the committed manifest.
-3. Pin package versions and commit the generated lockfile.
-4. Initialize Supabase CLI configuration with the current CLI syntax, link only to the confirmed `Ticketing system` project, and add local migration/seed/type-generation conventions without changing the remote schema.
-5. Add `.env.example`, repository-specific `.gitignore`, formatting/lint scripts, and a minimal CI workflow that runs lint, type-check, tests, and build.
-6. Add unit/component testing and one smoke test using tools selected for compatibility with the approved framework versions.
-7. Verify a clean install, lint, type-check, test, and production build before marking Step 2 complete.
+- Runtime: Node.js 24+, Next.js 16.3.3, React 19.2.8, and React DOM 19.2.8.
+- Language: strict TypeScript 6.0.3. TypeScript 7 was not selected because the supported TypeScript ESLint 8.68.0 peer range ends below TypeScript 6.1.
+- Styling and components: Tailwind CSS 4.3.3 with shadcn/ui 4.19.0 conventions and a shared `StatusBadge` component.
+- Package management: pnpm 11.24.0 with exact dependency versions and `pnpm-lock.yaml`.
+- Structure: App Router routes in `src/app`, future domain modules in `src/modules`, shared UI in `src/components`, shared utilities in `src/lib`, future server infrastructure in `src/server`, tests in `tests`, and delivery controls in `docs`.
+- Developer controls: Prettier formatting, ESLint 10 with TypeScript and Next.js Core Web Vitals rules, strict type checking, Vitest/Testing Library unit testing, and a production build gate.
+- Runtime configuration: `.env.example` contains only a descriptive public application URL placeholder. No secrets, authentication settings, or backend credentials were added.
+- Developer documentation: root `README.md` contains prerequisites, local setup, checks, and project structure.
+- Repository guidance: Next.js-generated `AGENTS.md` and `CLAUDE.md` keep future work aligned with the installed framework documentation.
+- Production design: the full foundation experience now includes a shared resort frame, multi-section home page, reusable health panel, dedicated health route, and branded not-found state.
+- Design handoff: `outputs/design-prototype/` contains a portable `index.html`, dependency-free progressive enhancements, and detailed design notes.
 
-No application feature, dependency installation, remote schema change, or deployment was performed in Step 1.
+### Verification results
+
+| Check               | Result                                                                                                                                                                 |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm format:check` | Passed; every matched file uses Prettier formatting.                                                                                                                   |
+| `pnpm lint`         | Passed with ESLint 10.9.1, TypeScript ESLint 8.68.0, and Next.js 16.3.3 Core Web Vitals rules.                                                                         |
+| `pnpm typecheck`    | Passed under strict TypeScript with no emitted files.                                                                                                                  |
+| `pnpm test`         | Passed: two test files covering the home and health experiences.                                                                                                       |
+| `pnpm build`        | Passed; `/`, `/_not-found`, and `/health` were statically prerendered.                                                                                                 |
+| Local runtime       | `next dev` became ready on `127.0.0.1:3000`; `/` and `/health` returned HTTP 200 with their expected content, and an unknown route returned the branded HTTP 404 page. |
+
+No ticketing feature, authentication flow, database model, Supabase configuration, remote schema change, or deployment was added in Step 2.
 
 ## Step 1 completion gate
 
 Step 1 can move from `Approval pending` to `Complete` when:
 
 - the blueprint is supplied and any conflicts are recorded;
-- the baseline architecture, hosting target, package manager, Microsoft tenant approach, storage provider, queue technology, and property model are approved; and
+- the remaining baseline decisions—hosting target, Microsoft tenant approach, storage provider, queue technology, and property model—are approved; and
 - `docs/decision-log.md` and `docs/system-context.md` are updated from proposed/unknown to accepted/confirmed.

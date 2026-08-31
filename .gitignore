@@ -1,0 +1,21 @@
+# Dependencies
+/node_modules/
+
+# Next.js build output
+/.next/
+/out/
+
+# Test output
+/coverage/
+
+# Local environment files (the documented example is committed)
+.env*
+!.env.example
+
+# Tooling and operating-system files
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+.vercel
+pnpm-debug.log*
+npm-debug.log*
