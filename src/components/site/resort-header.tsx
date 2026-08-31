@@ -16,7 +16,7 @@ export function ResortHeader({ context = "IT Service Desk" }: ResortHeaderProps)
         <span className="brand-rule" aria-hidden="true" />
         <span>British Virgin Islands</span>
       </Link>
-      <p className="prototype-meta">{context}</p>
+      <p className="design-meta">{context}</p>
     </header>
   );
 }

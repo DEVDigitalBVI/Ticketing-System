@@ -1,6 +1,6 @@
 # Peter Island Resort and Spa IT Service Desk — Design Notes
 
-Status: Implemented production foundation and standalone prototype  
+Status: Approved design source and implemented production foundation  
 Last updated: 2026-08-30
 
 ## Design intent
@@ -57,7 +57,7 @@ Do not introduce Inter, Roboto, Arial, Space Grotesk, or unrelated display faces
 - Full-viewport composition with an asymmetrical diagonal background.
 - Resort and location form a quiet brand line at the top.
 - The large “Service Desk” title is the primary landmark.
-- “Foundation online” communicates prototype state without implying backend availability.
+- “Foundation online” communicates application readiness without implying backend availability.
 - Three operating principles translate the visual direction into clear product behavior.
 - An embedded health composition provides honest application-boundary status.
 - The foundation-scope section distinguishes implemented design from deferred backend workflows.
@@ -76,9 +76,9 @@ Do not introduce Inter, Roboto, Arial, Space Grotesk, or unrelated display faces
 - A compass motif and “outside the charted route” language explain the error without turning it into a novelty.
 - The recovery action returns directly to the Service Desk home page.
 
-### Standalone artifact
+### Standalone design
 
-`outputs/design-prototype/index.html` reproduces the foundation experience without a Next.js runtime. Its inline styles intentionally make the artifact portable, while `app.js` adds current-year, motion-preference, active-navigation, and accessible-disclosure enhancements when matching hooks are present.
+`outputs/design-prototype/index.html` is the approved standalone design and reproduces the foundation experience without a Next.js runtime. `styles.css` is its visual source of truth, while `app.js` adds current-year, motion-preference, active-navigation, and accessible-disclosure enhancements when matching hooks are present. The directory name is retained as an established project path; its contents are design authority, not exploratory work.
 
 ## Shared component direction
 
@@ -95,7 +95,7 @@ The project uses shadcn/ui conventions with the `new-york` style, React Server C
 
 ## Responsive behavior
 
-The prototype is fluid rather than breakpoint-heavy:
+The design is fluid rather than breakpoint-heavy:
 
 - Type and spacing scale with `clamp()`.
 - Content width is capped while full-viewport atmosphere remains intact.
@@ -132,8 +132,9 @@ Before product screens are approved, validate color contrast for every semantic 
 | shadcn/ui configuration                                 | `components.json`                     |
 | Metadata and global document structure                  | `src/app/layout.tsx`                  |
 | Branded route fallback                                  | `src/app/not-found.tsx`               |
-| Portable design artifact                                | `outputs/design-prototype/index.html` |
-| Prototype progressive enhancement                       | `outputs/design-prototype/app.js`     |
+| Approved portable design                                | `outputs/design-prototype/index.html` |
+| Standalone visual system                                | `outputs/design-prototype/styles.css` |
+| Design progressive enhancement                          | `outputs/design-prototype/app.js`     |
 
 ## Guardrails for future screens
 
@@ -157,4 +158,4 @@ Before product screens are approved, validate color contrast for every semantic 
 
 ## Design work deferred
 
-The prototype does not yet define ticket lists, ticket detail, intake forms, navigation, empty/error/loading states, authentication screens, reporting, notification patterns, or multi-property switching. Those patterns should be designed only after the blueprint, user roles, workflows, accessibility needs, and property model are approved.
+The current design does not yet define ticket lists, ticket detail, intake forms, navigation, empty/error/loading states, authentication screens, reporting, notification patterns, or multi-property switching. Those patterns should be designed only after the blueprint, user roles, workflows, accessibility needs, and property model are approved.

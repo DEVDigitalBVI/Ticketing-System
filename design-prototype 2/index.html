@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f4f1eb" />
+    <meta name="description" content="Interactive design prototype for the Resort IT Service Desk" />
+    <title>Resort IT Service Desk — Design Prototype</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Primary navigation">
+        <div class="brand-lockup">
+          <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div>
+            <p class="brand-eyebrow">Resort operations</p>
+            <p class="brand-name">IT Service Desk</p>
+          </div>
+        </div>
+
+        <nav class="nav-list">
+          <button class="nav-item is-active" data-view="home" aria-current="page">
+            <span class="nav-symbol" aria-hidden="true">⌂</span><span>Overview</span>
+          </button>
+          <button class="nav-item" data-view="new-ticket">
+            <span class="nav-symbol" aria-hidden="true">＋</span><span>Report an issue</span>
+          </button>
+          <button class="nav-item" data-view="tickets">
+            <span class="nav-symbol" aria-hidden="true">◫</span><span>My tickets</span><span class="nav-count">3</span>
+          </button>
+          <button class="nav-item" data-view="technician">
+            <span class="nav-symbol" aria-hidden="true">⌁</span><span>Technician workspace</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-spacer"></div>
+
+        <div class="service-status" aria-label="Service status">
+          <span class="status-light" aria-hidden="true"></span>
+          <div><strong>All services available</strong><small>Updated just now</small></div>
+        </div>
+
+        <button class="profile-card" type="button" aria-label="Open profile menu">
+          <span class="avatar" aria-hidden="true">AM</span>
+          <span><strong>Alex Morgan</strong><small>Front Office</small></span>
+          <span class="profile-chevron" aria-hidden="true">⌄</span>
+        </button>
+      </aside>
+
+      <header class="mobile-header">
+        <button class="icon-button" id="menu-toggle" aria-label="Open navigation" aria-expanded="false">☰</button>
+        <span class="mobile-brand">IT Service Desk</span>
+        <button class="avatar small" type="button" aria-label="Open profile menu">AM</button>
+      </header>
+
+      <main id="main-content" tabindex="-1">
+        <section class="view is-visible" id="view-home" aria-labelledby="home-title">
+          <header class="page-header hero-header">
+            <div>
+              <p class="overline">Sunday, 30 August</p>
+              <h1 id="home-title">Good afternoon, Alex.</h1>
+              <p class="lead">How can IT help keep your day moving?</p>
+            </div>
+            <button class="primary-button" data-view-target="new-ticket"><span aria-hidden="true">＋</span> Report an issue</button>
+          </header>
+
+          <div class="action-grid" aria-label="Common actions">
+            <button class="action-card featured" data-view-target="new-ticket">
+              <span class="action-index">01</span>
+              <span class="action-title">Something is not working</span>
+              <span class="action-copy">Tell us what happened and where. Most requests take less than two minutes.</span>
+              <span class="action-link">Start a ticket <b aria-hidden="true">→</b></span>
+            </button>
+            <button class="action-card" data-view-target="tickets">
+              <span class="action-index">02</span>
+              <span class="action-title">Check an existing request</span>
+              <span class="action-copy">See progress, reply to IT, or confirm that an issue has been fixed.</span>
+              <span class="action-link">View my tickets <b aria-hidden="true">→</b></span>
+            </button>
+            <button class="action-card">
+              <span class="action-index">03</span>
+              <span class="action-title">Find a quick answer</span>
+              <span class="action-copy">Browse short guides for passwords, Wi-Fi, printers, and everyday tools.</span>
+              <span class="action-link">Search help <b aria-hidden="true">→</b></span>
+            </button>
+          </div>
+
+          <section class="content-section" aria-labelledby="active-requests-title">
+            <div class="section-heading">
+              <div><p class="overline">Your work</p><h2 id="active-requests-title">Active requests</h2></div>
+              <button class="text-button" data-view-target="tickets">View all <span aria-hidden="true">→</span></button>
+            </div>
+
+            <div class="ticket-list compact-list">
+              <button class="ticket-row" data-ticket="INC-1048">
+                <span class="priority-marker priority-high" aria-label="High priority"></span>
+                <span class="ticket-main"><strong>Front desk printer stops after each page</strong><small>INC-1048 · Front Office · Updated 12 min ago</small></span>
+                <span class="status-pill waiting">Waiting for IT</span>
+                <span class="row-arrow" aria-hidden="true">→</span>
+              </button>
+              <button class="ticket-row" data-ticket="REQ-1039">
+                <span class="priority-marker priority-normal" aria-label="Normal priority"></span>
+                <span class="ticket-main"><strong>Access to the weekly occupancy report</strong><small>REQ-1039 · Administration · Updated yesterday</small></span>
+                <span class="status-pill action">Needs your reply</span>
+                <span class="row-arrow" aria-hidden="true">→</span>
+              </button>
+            </div>
+          </section>
+
+          <aside class="support-note">
+            <div class="support-monogram" aria-hidden="true">24</div>
+            <div><strong>Urgent guest-impacting issue?</strong><p>Call the IT duty line at extension 2400 after submitting a ticket.</p></div>
+          </aside>
+        </section>
+
+        <section class="view" id="view-new-ticket" aria-labelledby="new-ticket-title">
+          <header class="page-header narrow-header">
+            <button class="back-link" data-view-target="home"><span aria-hidden="true">←</span> Overview</button>
+            <p class="overline">New request</p>
+            <h1 id="new-ticket-title">Tell us what you need.</h1>
+            <p class="lead">Use everyday language. We will work out the technical details.</p>
+          </header>
+
+          <div class="form-layout">
+            <form class="ticket-form" id="ticket-form">
+              <div class="form-section">
+                <div class="section-number">1</div>
+                <div class="form-section-content">
+                  <h2>What is happening?</h2>
+                  <p class="field-intro">Choose the closest option. You can explain more below.</p>
+                  <div class="choice-grid" role="radiogroup" aria-label="Issue type">
+                    <label class="choice-card"><input type="radio" name="type" value="device" checked /><span class="choice-icon" aria-hidden="true">▣</span><strong>Device or equipment</strong><small>Computer, printer, phone, TV</small></label>
+                    <label class="choice-card"><input type="radio" name="type" value="access" /><span class="choice-icon" aria-hidden="true">◇</span><strong>Account or access</strong><small>Sign-in, password, permissions</small></label>
+                    <label class="choice-card"><input type="radio" name="type" value="network" /><span class="choice-icon" aria-hidden="true">⌁</span><strong>Network or Wi-Fi</strong><small>Connection, speed, coverage</small></label>
+                    <label class="choice-card"><input type="radio" name="type" value="other" /><span class="choice-icon" aria-hidden="true">•••</span><strong>Something else</strong><small>Software, request, or question</small></label>
+                  </div>
+
+                  <label class="field-label" for="summary">Short summary</label>
+                  <input id="summary" name="summary" type="text" maxlength="100" placeholder="For example: Front desk printer stops after each page" required />
+                  <div class="field-meta"><span>Describe the result, not the technical cause.</span><span id="summary-count">0 / 100</span></div>
+
+                  <label class="field-label" for="details">What were you trying to do?</label>
+                  <textarea id="details" name="details" rows="5" placeholder="Include what you expected, what happened instead, and any message you saw." required></textarea>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <div class="section-number">2</div>
+                <div class="form-section-content">
+                  <h2>Where is the issue?</h2>
+                  <div class="field-pair">
+                    <div><label class="field-label" for="property">Property</label><select id="property" name="property"><option>Harbour View Resort</option><option>Beach Club</option><option>Staff Housing</option></select></div>
+                    <div><label class="field-label" for="location">Area or room</label><select id="location" name="location"><option>Front Office</option><option>Reservations</option><option>Main Restaurant</option><option>Guest Room</option><option>Other</option></select></div>
+                  </div>
+                  <label class="toggle-row"><span><strong>This affects a guest-facing service</strong><small>Examples include check-in, guest Wi-Fi, room access, or point of sale.</small></span><input class="switch" type="checkbox" name="guest-impact" /></label>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <div class="section-number">3</div>
+                <div class="form-section-content">
+                  <h2>How much is work affected?</h2>
+                  <div class="segmented-control" role="radiogroup" aria-label="Work impact">
+                    <label><input type="radio" name="impact" value="low" /><span>I can still work</span></label>
+                    <label><input type="radio" name="impact" value="medium" checked /><span>Work is difficult</span></label>
+                    <label><input type="radio" name="impact" value="high" /><span>Work has stopped</span></label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button class="secondary-button" type="button" data-view-target="home">Cancel</button>
+                <button class="primary-button" type="submit">Review request <span aria-hidden="true">→</span></button>
+              </div>
+            </form>
+
+            <aside class="form-aside">
+              <p class="overline">What happens next</p>
+              <ol class="process-list">
+                <li><span>1</span><div><strong>IT reviews your request</strong><small>We check the impact and route it to the right person.</small></div></li>
+                <li><span>2</span><div><strong>You receive updates</strong><small>Follow progress here or from your work email.</small></div></li>
+                <li><span>3</span><div><strong>Confirm the fix</strong><small>Tell us whether everything is working again.</small></div></li>
+              </ol>
+              <div class="privacy-note"><strong>Your privacy</strong><p>Do not include passwords, payment card details, or guest personal information.</p></div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="view" id="view-tickets" aria-labelledby="tickets-title">
+          <header class="page-header">
+            <div><p class="overline">Staff portal</p><h1 id="tickets-title">My tickets</h1><p class="lead">Follow progress and reply when IT needs more information.</p></div>
+            <button class="primary-button" data-view-target="new-ticket"><span aria-hidden="true">＋</span> New ticket</button>
+          </header>
+
+          <div class="filter-bar">
+            <div class="tab-list" role="tablist" aria-label="Ticket filters">
+              <button class="tab is-active" role="tab" aria-selected="true">Active <span>3</span></button>
+              <button class="tab" role="tab" aria-selected="false">Completed</button>
+              <button class="tab" role="tab" aria-selected="false">All</button>
+            </div>
+            <label class="search-field"><span class="sr-only">Search tickets</span><span aria-hidden="true">⌕</span><input type="search" placeholder="Search my tickets" /></label>
+          </div>
+
+          <div class="ticket-list detailed-list">
+            <button class="ticket-row" data-ticket="INC-1048">
+              <span class="ticket-date"><strong>30</strong><small>Aug</small></span>
+              <span class="ticket-main"><span class="ticket-kicker">INC-1048 · Device or equipment</span><strong>Front desk printer stops after each page</strong><small>Front Office · Updated 12 minutes ago</small></span>
+              <span class="status-pill waiting">Waiting for IT</span><span class="row-arrow" aria-hidden="true">→</span>
+            </button>
+            <button class="ticket-row" data-ticket="REQ-1039">
+              <span class="ticket-date"><strong>29</strong><small>Aug</small></span>
+              <span class="ticket-main"><span class="ticket-kicker">REQ-1039 · Account or access</span><strong>Access to the weekly occupancy report</strong><small>Administration · Updated yesterday</small></span>
+              <span class="status-pill action">Needs your reply</span><span class="row-arrow" aria-hidden="true">→</span>
+            </button>
+            <button class="ticket-row" data-ticket="INC-1027">
+              <span class="ticket-date"><strong>28</strong><small>Aug</small></span>
+              <span class="ticket-main"><span class="ticket-kicker">INC-1027 · Network or Wi-Fi</span><strong>Weak Wi-Fi signal in the west lobby</strong><small>Main Lobby · Updated 2 days ago</small></span>
+              <span class="status-pill progress">In progress</span><span class="row-arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="view technician-view" id="view-technician" aria-labelledby="technician-title">
+          <header class="page-header technician-header">
+            <div><p class="overline">Technician workspace</p><h1 id="technician-title">Service overview</h1><p class="lead">Focus on what needs attention now.</p></div>
+            <div class="tech-actions"><button class="icon-button surface" aria-label="Search">⌕</button><button class="secondary-button">Queue settings</button></div>
+          </header>
+
+          <div class="metric-grid">
+            <article class="metric-card urgent"><p>At risk</p><strong>4</strong><span>2 due within 30 minutes</span></article>
+            <article class="metric-card"><p>Unassigned</p><strong>8</strong><span>Oldest waiting 42 minutes</span></article>
+            <article class="metric-card"><p>My active work</p><strong>6</strong><span>3 awaiting an update</span></article>
+            <article class="metric-card"><p>Resolved today</p><strong>14</strong><span>92% within target</span></article>
+          </div>
+
+          <div class="workspace-grid">
+            <section class="queue-panel">
+              <div class="section-heading queue-heading"><div><p class="overline">Priority queue</p><h2>Needs attention</h2></div><button class="text-button">Open full queue <span aria-hidden="true">→</span></button></div>
+              <div class="queue-table" role="table" aria-label="Priority tickets">
+                <div class="queue-table-head" role="row"><span>Ticket</span><span>Context</span><span>Owner</span><span>SLA</span></div>
+                <button class="queue-item selected" role="row" data-ticket-panel="pos">
+                  <span><b class="priority-code p1">P1</b><strong>POS terminals cannot connect</strong><small>INC-1051 · 8 min ago</small></span>
+                  <span><strong>Main Restaurant</strong><small>Guest-facing · 7 devices</small></span>
+                  <span><span class="mini-avatar">JD</span> Jamie</span><span class="sla danger">18 min</span>
+                </button>
+                <button class="queue-item" role="row" data-ticket-panel="printer">
+                  <span><b class="priority-code p2">P2</b><strong>Front desk printer stops after each page</strong><small>INC-1048 · 24 min ago</small></span>
+                  <span><strong>Front Office</strong><small>Check-in affected</small></span>
+                  <span><span class="mini-avatar neutral">—</span> Unassigned</span><span class="sla warning">36 min</span>
+                </button>
+                <button class="queue-item" role="row" data-ticket-panel="wifi">
+                  <span><b class="priority-code p2">P2</b><strong>West lobby access point offline</strong><small>ALT-1046 · Level alert</small></span>
+                  <span><strong>Main Lobby</strong><small>AP-LBY-WEST-01</small></span>
+                  <span><span class="mini-avatar">SK</span> Samira</span><span class="sla">1h 12m</span>
+                </button>
+              </div>
+            </section>
+
+            <aside class="context-panel" aria-label="Selected ticket context">
+              <div class="context-top"><span class="priority-code p1">P1 incident</span><button class="icon-button" aria-label="More ticket actions">•••</button></div>
+              <h2>POS terminals cannot connect</h2>
+              <p class="context-id">INC-1051 · Main Restaurant</p>
+              <div class="context-status"><span class="pulse-dot" aria-hidden="true"></span><div><strong>Active guest impact</strong><small>Seven terminals are currently affected</small></div></div>
+              <dl class="detail-list"><div><dt>Requester</dt><dd>Maria Santos</dd></div><div><dt>Assigned to</dt><dd>Jamie D.</dd></div><div><dt>Response due</dt><dd class="danger-text">18 minutes</dd></div><div><dt>Last update</dt><dd>4 minutes ago</dd></div></dl>
+              <div class="device-card">
+                <div class="device-heading"><span><small>LEVEL.IO DEVICE</small><strong>POS-RST-01</strong></span><span class="online-badge">Online</span></div>
+                <div class="device-stats"><span><small>Agent</small><strong>Healthy</strong></span><span><small>Last seen</small><strong>Now</strong></span><span><small>Alerts</small><strong class="danger-text">3 active</strong></span></div>
+                <button class="secondary-button full-width">Open in Level.io <span aria-hidden="true">↗</span></button>
+              </div>
+              <div class="context-actions"><button class="primary-button full-width">Open ticket</button><button class="secondary-button full-width">Add internal note</button></div>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"><span class="toast-check" aria-hidden="true">✓</span><span><strong>Prototype interaction</strong><small>Your request is ready for review.</small></span></div>
+    <div class="scrim" id="scrim"></div>
+    <script src="app.js"></script>
+  </body>
+</html>

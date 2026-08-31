@@ -1,9 +1,9 @@
 /**
- * Progressive enhancements for the standalone Peter Island design prototype.
+ * Progressive enhancements for the standalone Peter Island design.
  *
  * Supported hooks:
  * - `[data-current-year]` receives the current year.
- * - `[data-prototype-nav] a[href]` receives `aria-current="page"` when active.
+ * - `[data-design-nav] a[href]` receives `aria-current="page"` when active.
  * - `[data-disclosure-button][aria-controls]` controls a matching disclosure.
  * - `<html>` receives `data-js` and `data-motion` state for CSS enhancements.
  *
@@ -33,7 +33,7 @@
   function markCurrentNavigationItem() {
     const currentPath = normalizePath(window.location.pathname);
 
-    document.querySelectorAll("[data-prototype-nav] a[href]").forEach((link) => {
+    document.querySelectorAll("[data-design-nav] a[href]").forEach((link) => {
       const destination = new URL(link.href, window.location.href);
       const isCurrent =
         destination.origin === window.location.origin &&
