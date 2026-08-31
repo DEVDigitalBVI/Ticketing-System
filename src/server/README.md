@@ -1,3 +1,8 @@
 # Server infrastructure
 
-Future server-only integrations and infrastructure adapters belong here. Step 2 intentionally includes no authentication, database, or external-service implementation.
+Server-only infrastructure and application data access belong here.
+
+- `database/` owns Prisma client construction and connection pooling.
+- `repositories/` owns typed persistence operations used by future services and route handlers.
+
+React components and route handlers must not contain raw Prisma or SQL queries. Authentication, ticket persistence, and external-service adapters remain deferred.

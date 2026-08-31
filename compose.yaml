@@ -1,0 +1,23 @@
+name: resort-it-service-desk
+
+services:
+  database:
+    image: postgres:17.11-alpine3.24
+    environment:
+      POSTGRES_DB: resort_service_desk
+      POSTGRES_PASSWORD: local_development_only
+      POSTGRES_USER: resort_app
+    ports:
+      - "127.0.0.1:54329:5432"
+    volumes:
+      - resort_postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-test-database.sql:/docker-entrypoint-initdb.d/10-init-test-database.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U resort_app -d resort_service_desk"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+    restart: unless-stopped
+
+volumes:
+  resort_postgres_data:

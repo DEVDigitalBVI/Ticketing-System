@@ -83,3 +83,40 @@ These identifiers are working context rather than architecture choices:
 - **Consequences:** Backend implementation has a clear compatibility boundary and cannot quietly redesign the product. Material visual or interaction changes require an explicit decision-log entry, updated contract evidence, and desktop/mobile regression verification. Current placeholder actions do not imply that authentication, persistence, Microsoft 365, or Level.io behavior exists.
 - **Evidence:** Step 3 audit and passing checks in `docs/implementation-status.md`; `docs/design-contract.md`; ADR-003; retained design handoff and prototype files.
 - **Supersedes:** None.
+
+## Step 3 revalidation note
+
+The baseline was reverified at commit `ba8e67a` on 2026-08-31. All automated quality gates and local route checks passed, and no application-code or dependency change was needed. This revalidation introduces no new architecture or product decision; ADR-005 remains the controlling frontend contract. The unavailable browser connection is recorded as a verification limitation rather than silently treated as visual evidence.
+
+## ADR-006: Adopt the owner-approved resort color palette
+
+- **Status:** Accepted
+- **Date:** 2026-08-31
+- **Owners:** Product / Engineering
+- **Context:** The owner selected the Figma palette `#0cdc2a`, `#384166`, `#0b735f`, `#639d75`, and `#e3dba9` for the approved interface. The layout and interaction contract remains unchanged.
+- **Decision:** Add all five colors as explicit brand tokens. Use deep indigo for the navigation rail, featured surfaces, and primary ink; teal for primary actions; signal green for selected and healthy accents; sage for supporting status treatments; and sand for hospitality warmth. Retain separate amber and red semantic colors for warning and danger. Pair colors according to WCAG contrast rather than treating every palette color as interchangeable foreground text.
+- **Consequences:** The service desk gains a more distinctive island-resort palette without altering its routes, typography, responsive layouts, component hierarchy, or interaction behavior. Future color changes must update semantic token mappings and contrast tests, not scatter raw replacements through components.
+- **Evidence:** Owner-supplied Figma palette URL; token mapping in `src/app/globals.css`; responsive design contract test; updated `docs/design-contract.md`.
+- **Supersedes:** The color assignments in ADR-003 and ADR-005; their remaining design-contract decisions stay accepted.
+
+## ADR-007: PostgreSQL and Prisma data foundation
+
+- **Status:** Accepted
+- **Date:** 2026-08-31
+- **Owners:** Product / Engineering
+- **Context:** Step 4 requires a persistent identity and organisation foundation without introducing ticketing or integration tables. The named Supabase project remains a possible production host, but its production approval and credentials are still unavailable.
+- **Decision:** Use PostgreSQL 17.11 locally through pinned Docker Compose and Prisma ORM 7.10.0 with the `pg` driver adapter. Keep application tables in a private `service_desk` schema. Model one organisation with multiple properties, property-owned departments, organisation-owned users and roles, property-scoped role assignments, and immutable audit events. Use UUID database defaults, timezone-aware timestamps, explicit constraints, tenant-consistent composite foreign keys, restricted parent deletion, indexed foreign keys, and repositories as the application access boundary. Keep migrations on a direct database URL while allowing the runtime URL to use a pooler later.
+- **Consequences:** Local and test databases have reproducible create/migrate/seed/reset workflows, and future authentication or ticket work can depend on stable identity/property relationships. Production Supabase connection, RLS policies, separate least-privilege database roles, pooler settings, and deployment migration automation remain later decisions. The private schema avoids accidental Data API exposure before those controls exist.
+- **Evidence:** `compose.yaml`, `prisma/schema.prisma`, the initial migration and seed, server configuration/repositories, database constraint tests, and Step 4 verification in `docs/implementation-status.md`.
+- **Supersedes:** The database and property-model portions of ADR-001; its hosting, storage, queue, Microsoft, and deployment proposals remain undecided.
+
+## ADR-008: Host the identity foundation in Supabase
+
+- **Status:** Accepted
+- **Date:** 2026-08-31
+- **Owners:** Product / Engineering
+- **Context:** The owner authorized connecting the application foundation to the existing Supabase project `Ticketing System`. The project was active and healthy in `us-east-1`, used PostgreSQL 17, and had no application tables or migration history before this change.
+- **Decision:** Use Supabase project `zwcmljkjoxrfzfyphdtc` as the hosted PostgreSQL environment for the Step 4 identity foundation. Apply the reviewed Prisma SQL to the private `service_desk` schema without seed data, Data API exposure, authentication integration, or domain tables. Keep Prisma migrations as the repository source of truth and record equivalent hosted migrations in Supabase. Add the covering index identified by the hosted performance advisor.
+- **Consequences:** The seven foundational tables now exist remotely and remain inaccessible to `anon` and `authenticated` because neither role has schema usage. Runtime and direct migration connection strings, a least-privilege application database role, deployment automation, and authentication-aware RLS policies still require decisions before application traffic can use this environment.
+- **Evidence:** Supabase migrations `step_4_identity_foundation` and `add_user_role_fk_index`; live catalog verification; a clean security advisor scan and no remaining missing-foreign-key-index finding; Prisma migrations under `prisma/migrations/`; hosted verification in `docs/implementation-status.md`.
+- **Supersedes:** ADR-007 only where it described the hosted Supabase database as undecided. ADR-007 remains authoritative for the schema and local/test workflow.

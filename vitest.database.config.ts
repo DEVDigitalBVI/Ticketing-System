@@ -9,8 +9,8 @@ export default defineConfig({
     },
   },
   test: {
-    environment: "jsdom",
-    setupFiles: ["./tests/setup.ts"],
-    include: ["tests/*.test.{ts,tsx}"],
+    environment: "node",
+    include: ["tests/database/**/*.test.ts"],
+    maxWorkers: 1,
   },
 });
