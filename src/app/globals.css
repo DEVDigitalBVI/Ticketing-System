@@ -1894,6 +1894,7 @@ fieldset {
   min-height: 100vh;
   display: grid;
   grid-template-columns: minmax(360px, 0.9fr) minmax(500px, 1.1fr);
+  margin-left: 0;
   overflow: hidden;
   background: var(--canvas);
 }
@@ -2236,6 +2237,7 @@ fieldset {
 .auth-task-page {
   min-height: 100vh;
   display: grid;
+  margin-left: 0;
   padding: clamp(24px, 7vw, 88px);
   background:
     linear-gradient(rgba(247, 245, 232, 0.9), rgba(247, 245, 232, 0.98)),

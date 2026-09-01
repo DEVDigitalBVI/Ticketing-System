@@ -18,14 +18,14 @@ Changing a material layout, token, responsive transition, interaction pattern, o
 
 ## Route and layout contract
 
-| Route         | Audience   | Required layout and purpose                                                                                                                                                     |
-| ------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/login`      | All users  | Resort-branded sign-in entry with a deep-indigo story panel, warm credential surface, explicit work-account language, and a single-column mobile composition.                   |
-| `/`           | Staff      | Staff overview with greeting, primary report-issue action, three help-category cards, active-request summary, service status, and shared navigation shell.                      |
-| `/new-ticket` | Staff      | Guided three-section issue form with a desktop process/privacy aside; the form becomes one column with sticky actions on mobile.                                                |
-| `/my-tickets` | Staff      | Ticket-list workspace with status tabs, search, readable status/SLA treatment, and links into the matching technician context.                                                  |
-| `/technician` | Technician | Service metrics, priority queue, selected-ticket context, and Level.io device panel in a desktop master-detail layout; context and secondary columns simplify at smaller sizes. |
-| `/health`     | Operations | Branded application-shell health view. It does not claim that external services are healthy.                                                                                    |
+| Route         | Audience   | Required layout and purpose                                                                                                                                                              |
+| ------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/login`      | All users  | Resort-branded sign-in entry with a deep-indigo story panel flush to the viewport edge, warm credential surface, explicit work-account language, and a single-column mobile composition. |
+| `/`           | Staff      | Staff overview with greeting, primary report-issue action, three help-category cards, active-request summary, service status, and shared navigation shell.                               |
+| `/new-ticket` | Staff      | Guided three-section issue form with a desktop process/privacy aside; the form becomes one column with sticky actions on mobile.                                                         |
+| `/my-tickets` | Staff      | Ticket-list workspace with status tabs, search, readable status/SLA treatment, and links into the matching technician context.                                                           |
+| `/technician` | Technician | Service metrics, priority queue, selected-ticket context, and Level.io device panel in a desktop master-detail layout; context and secondary columns simplify at smaller sizes.          |
+| `/health`     | Operations | Branded application-shell health view. It does not claim that external services are healthy.                                                                                             |
 
 All four service-desk routes share the same resort identity, navigation model, desktop rail, mobile header/drawer, service-status treatment, and profile affordance. The 404 and health routes retain the same visual language without pretending to be ticketing workflows.
 

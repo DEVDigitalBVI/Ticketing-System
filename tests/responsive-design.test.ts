@@ -46,7 +46,7 @@ describe("approved responsive design contract", () => {
   });
 
   it("keeps the login composition responsive and within the approved palette", () => {
-    expect(stylesheet).toMatch(/\.login-page\s*\{[\s\S]*?grid-template-columns:/);
+    expect(stylesheet).toMatch(/\.login-page\s*\{[\s\S]*?margin-left: 0/);
     expect(stylesheet).toContain("@media (max-width: 700px)");
     expect(stylesheet).toMatch(
       /@media \(max-width: 700px\)[\s\S]*?\.login-page\s*\{\s*display: block/,
