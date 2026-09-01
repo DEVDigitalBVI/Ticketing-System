@@ -4,12 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { AccessProfile } from "@/server/auth/access";
+import { hasPermission } from "@/modules/auth/authorization";
 
 const navigation = [
   { href: "/", label: "Overview", symbol: "⌂" },
-  { href: "/new-ticket", label: "Report an issue", symbol: "＋" },
-  { href: "/my-tickets", label: "My tickets", symbol: "◫" },
-  { href: "/technician", label: "Technician workspace", symbol: "⌁" },
+  { href: "/new-ticket", label: "Report an issue", symbol: "＋", permission: "ticket.submit" },
+  { href: "/my-tickets", label: "My tickets", symbol: "◫", permission: "ticket.read.own" },
+  {
+    href: "/technician",
+    label: "Technician workspace",
+    symbol: "⌁",
+    permission: "ticket.queue.read",
+  },
 ] as const;
 
 export function ServiceDeskShell({
@@ -18,6 +24,13 @@ export function ServiceDeskShell({
 }: Readonly<{ children: React.ReactNode; access: AccessProfile }>) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const authorizationSubject = {
+    userId: access.userId,
+    organizationId: access.organizationId,
+    propertyIds: access.properties.map((property) => property.id),
+    departmentIds: access.departmentIds,
+    roles: access.roles,
+  };
 
   useEffect(() => setMenuOpen(false), [pathname]);
 
@@ -52,8 +65,7 @@ export function ServiceDeskShell({
           {navigation
             .filter(
               (item) =>
-                item.href !== "/technician" ||
-                access.roles.some((role) => role === "technician" || role === "admin"),
+                !("permission" in item) || hasPermission(authorizationSubject, item.permission),
             )
             .map((item) => {
               const active = pathname === item.href;
@@ -72,13 +84,32 @@ export function ServiceDeskShell({
               );
             })}
         </nav>
-        {access.roles.includes("admin") ? (
-          <Link className="nav-item" href="/admin/users/new">
-            <span className="nav-symbol" aria-hidden="true">
-              ⚙
-            </span>
-            <span>User administration</span>
-          </Link>
+        {hasPermission(authorizationSubject, "user.manage") ||
+        hasPermission(authorizationSubject, "audit.read") ? (
+          <div className="nav-list admin-navigation" aria-label="Administration">
+            {hasPermission(authorizationSubject, "user.manage") ? (
+              <Link
+                className={`nav-item${pathname === "/admin/users/new" ? " is-active" : ""}`}
+                href="/admin/users/new"
+              >
+                <span className="nav-symbol" aria-hidden="true">
+                  ⚙
+                </span>
+                <span>User administration</span>
+              </Link>
+            ) : null}
+            {hasPermission(authorizationSubject, "audit.read") ? (
+              <Link
+                className={`nav-item${pathname === "/admin/audit" ? " is-active" : ""}`}
+                href="/admin/audit"
+              >
+                <span className="nav-symbol" aria-hidden="true">
+                  ≡
+                </span>
+                <span>Audit trail</span>
+              </Link>
+            ) : null}
+          </div>
         ) : null}
 
         <div className="sidebar-spacer" />

@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { createSupabaseRouteClient } from "@/lib/supabase/route";
 import { readCurrentAccess } from "@/server/auth/access";
+import { requestCorrelationId } from "@/server/audit/correlation";
 
 const passwordSchema = z
   .object({
@@ -40,7 +41,9 @@ export async function POST(request: NextRequest) {
     );
   const { error: profileError } = await supabase
     .schema("api")
-    .rpc("complete_initial_password_change");
+    .rpc("complete_initial_password_change", {
+      request_correlation_id: requestCorrelationId(request),
+    });
   if (profileError)
     return finalize(
       NextResponse.redirect(new URL("/account/change-password?error=profile", request.url), 303),

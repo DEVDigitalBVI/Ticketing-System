@@ -10,10 +10,14 @@ type ManagedUser = {
   email: string;
   displayName: string;
   propertyId: string;
-  role: "staff" | "technician" | "admin";
+  role: "requester" | "technician" | "it_manager" | "system_administrator" | "report_viewer";
 };
 
-export async function provisionManagedUser(userClient: SupabaseClient, input: ManagedUser) {
+export async function provisionManagedUser(
+  userClient: SupabaseClient,
+  input: ManagedUser,
+  correlationId: string,
+) {
   const admin = createSupabaseAdminClient();
   const temporaryPassword = createTemporaryPassword();
   const { data, error } = await admin.auth.admin.createUser({
@@ -31,6 +35,7 @@ export async function provisionManagedUser(userClient: SupabaseClient, input: Ma
     target_display_name: input.displayName,
     target_property_id: input.propertyId,
     target_role_key: input.role,
+    request_correlation_id: correlationId,
   });
   if (profileError) {
     await admin.auth.admin.deleteUser(authUserId);
@@ -40,9 +45,10 @@ export async function provisionManagedUser(userClient: SupabaseClient, input: Ma
   try {
     await sendNewAccountEmail({ ...input, temporaryPassword });
   } catch {
-    await userClient
-      .schema("api")
-      .rpc("remove_failed_user_provision", { target_auth_user_id: authUserId });
+    await userClient.schema("api").rpc("remove_failed_user_provision", {
+      target_auth_user_id: authUserId,
+      request_correlation_id: correlationId,
+    });
     await admin.auth.admin.deleteUser(authUserId);
     throw new Error("EMAIL_SEND_FAILED");
   }

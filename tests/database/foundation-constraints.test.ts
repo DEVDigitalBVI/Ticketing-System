@@ -142,6 +142,40 @@ describe("Step 4 database foundation", () => {
     ).rejects.toBeTruthy();
   });
 
+  it("requires a safe object for audit context", async () => {
+    const organization = await client.organization.findUniqueOrThrow({
+      where: { slug: "constraint-test-org" },
+    });
+
+    await expect(
+      client.auditEvent.create({
+        data: {
+          organizationId: organization.id,
+          action: "security.test",
+          entityType: "test_run",
+          result: "success",
+          correlationId: crypto.randomUUID(),
+          metadata: { nested: { access_token: "must-not-be-stored" } },
+        },
+      }),
+    ).rejects.toBeTruthy();
+  });
+
+  it("rejects invalid audit results", async () => {
+    const organization = await client.organization.findUniqueOrThrow({
+      where: { slug: "constraint-test-org" },
+    });
+    await expect(
+      client.$executeRaw`
+        insert into service_desk.audit_events (
+          organization_id, action, entity_type, result, request_correlation_id
+        ) values (
+          ${organization.id}::uuid, 'security.test', 'test_run', 'unknown', ${crypto.randomUUID()}::uuid
+        )
+      `,
+    ).rejects.toBeTruthy();
+  });
+
   it("updates timestamps for writes outside Prisma", async () => {
     const organization = await client.organization.findUniqueOrThrow({
       where: { slug: "constraint-test-org" },

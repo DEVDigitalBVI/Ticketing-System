@@ -153,3 +153,14 @@ The baseline was reverified at commit `ba8e67a` on 2026-08-31. All automated qua
 - **Consequences:** Product can review the login experience without creating a false security boundary. The credential controls may need an approved change if federated-only sign-in is selected. No existing application route is protected until authentication, sessions, authorization, and RLS are implemented together.
 - **Evidence:** `src/app/login/page.tsx`, `src/modules/auth/components/login-form.tsx`, login tests, responsive styles, and the updated design contract.
 - **Supersedes:** None.
+
+## ADR-011: Centralize role authorization and privacy-bounded audit evidence
+
+- **Status:** Accepted
+- **Date:** 2026-08-31
+- **Owners:** Product / Engineering
+- **Context:** Business tables must not be introduced before every supported role has an explicit, testable server-side access boundary. The existing three role labels were too coarse, and immutable audit rows lacked explicit outcome and request correlation fields.
+- **Decision:** Use a deny-by-default TypeScript policy matrix with canonical Requester, Technician, IT Manager, System Administrator, Auditor / Report Viewer, and Department Approver roles. Apply organisation, property, ownership, and department checks after permission checks. Keep database role assignments authoritative rather than JWT user metadata. Guard server pages and mutations at the data/service boundary, repeat privileged checks in narrowly granted PostgreSQL functions, and retain direct denial on the audit table. Extend audit events with a controlled result, UUID correlation ID, and recursively constrained safe JSON context; expose only a minimal privileged audit DTO.
+- **Consequences:** Future ticket, asset, reporting, Level.io, administration, and configuration services must call this policy rather than inventing route-local role checks. Department Approver is defined but cannot be assigned until department scope is represented. Auditor / Report Viewer has read-only report and audit permission. System Administrator is organisation-wide but cannot cross tenants. Audit context cannot contain credentials, secrets, tokens, sessions, cookies, file contents, authorization values, or private provider payloads.
+- **Evidence:** `src/modules/auth/authorization.ts`, server authorization and audit services, migration `20260901011947_step_6_authorization_and_audit`, `/admin/audit`, `docs/role-permission-matrix.md`, 44 application tests, eight database tests, and hosted Supabase readback/advisors.
+- **Supersedes:** Legacy `staff`/`admin` role naming and route-local authorization checks. ADR-007's append-only audit decision remains in force.

@@ -20,7 +20,8 @@ describe("staff overview", () => {
           properties: [
             { id: "ab9c2f07-e909-4f9d-9092-49ad4e06df1f", name: "Peter Island Resort and Spa" },
           ],
-          roles: ["staff"],
+          departmentIds: [],
+          roles: ["requester"],
           assuranceLevel: "aal1",
           mustChangePassword: false,
         }}

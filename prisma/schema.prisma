@@ -136,6 +136,8 @@ model AuditEvent {
   action         String
   entityType     String       @map("entity_type")
   entityId       String?      @map("entity_id")
+  result         String       @default("success")
+  correlationId  String       @default(dbgenerated("gen_random_uuid()")) @map("request_correlation_id") @db.Uuid
   metadata       Json         @default("{}")
   createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
@@ -145,6 +147,7 @@ model AuditEvent {
   @@index([organizationId, createdAt])
   @@index([propertyId, organizationId])
   @@index([actorUserId, organizationId])
+  @@index([correlationId])
   @@map("audit_events")
   @@schema("service_desk")
 }

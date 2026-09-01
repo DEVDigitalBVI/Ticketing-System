@@ -5,6 +5,7 @@ import { cache } from "react";
 import { z } from "zod";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { roleKeys, type RoleKey } from "@/modules/auth/authorization";
 
 const accessRowSchema = z.object({
   user_id: z.string().uuid(),
@@ -16,7 +17,8 @@ const accessRowSchema = z.object({
   organization_name: z.string().min(1),
   property_id: z.string().uuid(),
   property_name: z.string().min(1),
-  role_key: z.string().min(1),
+  department_id: z.string().uuid().nullable(),
+  role_key: z.enum(roleKeys),
 });
 
 export type AccessProfile = {
@@ -27,7 +29,8 @@ export type AccessProfile = {
   organizationId: string;
   organizationName: string;
   properties: Array<{ id: string; name: string }>;
-  roles: string[];
+  departmentIds: string[];
+  roles: RoleKey[];
   assuranceLevel: "aal1" | "aal2";
   mustChangePassword: boolean;
 };
@@ -40,7 +43,7 @@ export async function readCurrentAccess(supabase: SupabaseClient) {
     .schema("api")
     .from("current_user_access")
     .select(
-      "user_id,auth_user_id,email,display_name,must_change_password,organization_id,organization_name,property_id,property_name,role_key",
+      "user_id,auth_user_id,email,display_name,must_change_password,organization_id,organization_name,property_id,property_name,department_id,role_key",
     );
 
   if (error) throw new Error("The authenticated access profile could not be loaded.");
@@ -60,6 +63,9 @@ export async function readCurrentAccess(supabase: SupabaseClient) {
     organizationId: first.organization_id,
     organizationName: first.organization_name,
     properties: [...properties].map(([id, name]) => ({ id, name })),
+    departmentIds: [
+      ...new Set(rows.flatMap((row) => (row.department_id ? [row.department_id] : []))),
+    ],
     roles: [...new Set(rows.map((row) => row.role_key))],
     assuranceLevel,
     mustChangePassword: first.must_change_password,

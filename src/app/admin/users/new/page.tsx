@@ -1,17 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { getCurrentAccess } from "@/server/auth/access";
+import { requireCurrentAccess } from "@/server/auth/authorization";
 
 export default async function NewUserPage({
   searchParams,
 }: {
   searchParams: Promise<{ status?: string }>;
 }) {
-  const access = await getCurrentAccess();
-  if (!access) redirect("/login");
-  if (access.mustChangePassword) redirect("/account/change-password");
-  if (!access.roles.includes("admin")) redirect("/");
+  const access = await requireCurrentAccess("user.manage");
   if (access.assuranceLevel !== "aal2") redirect("/account/mfa?next=/admin/users/new");
   const { status } = await searchParams;
   return (
@@ -44,10 +41,12 @@ export default async function NewUserPage({
           </div>
           <div className="login-field">
             <label htmlFor="role">Access role</label>
-            <select id="role" name="role" defaultValue="staff">
-              <option value="staff">Staff</option>
+            <select id="role" name="role" defaultValue="requester">
+              <option value="requester">Requester</option>
               <option value="technician">Technician</option>
-              <option value="admin">Administrator</option>
+              <option value="it_manager">IT Manager</option>
+              <option value="report_viewer">Auditor / Report Viewer</option>
+              <option value="system_administrator">System Administrator</option>
             </select>
           </div>
           <button className="primary-button login-submit" type="submit">
