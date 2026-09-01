@@ -20,6 +20,9 @@ export function MfaForm({ nextPath }: { nextPath: string }) {
       const verified = data?.totp.find((factor) => factor.status === "verified");
       if (verified) setFactorId(verified.id);
       else {
+        for (const factor of data?.totp ?? []) {
+          await supabase.auth.mfa.unenroll({ factorId: factor.id });
+        }
         const enrollment = await supabase.auth.mfa.enroll({
           factorType: "totp",
           friendlyName: "IT Service Desk",

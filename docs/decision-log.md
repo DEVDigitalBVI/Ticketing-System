@@ -2,6 +2,17 @@
 
 Last updated: 2026-08-31
 
+## ADR-010: Managed Supabase credentials with SMTP onboarding
+
+- **Status:** Accepted
+- **Date:** 2026-08-31
+- **Owners:** Product / Engineering
+- **Context:** Administrators create accounts and users receive initial credentials through the resort's application SMTP forwarder.
+- **Decision:** Use Supabase Auth for passwords, sessions, and MFA, mapped by Auth UUID to `service_desk.users`. Disable public sign-up. Require an AAL2 administrator to create an account. Generate a cryptographically random temporary password, send it through server-only SMTP, and require replacement before service-desk access. Use domain roles and RLS—not user-editable Auth metadata—for authorization.
+- **Consequences:** Runtime creation requires a Supabase secret key and SMTP credentials. Temporary passwords exist only during the Auth Admin call and SMTP send. Failed profile creation or delivery triggers compensating deletion. Administrators must enroll TOTP.
+- **Evidence:** Auth routes under `src/app`, adapters under `src/server/auth` and `src/server/email`, and hosted auth/RLS migrations.
+- **Supersedes:** The authentication-provider portion of open question 2.
+
 ## How to use this log
 
 Create one record for each architecture or product decision that has meaningful cost, risk, or downstream impact. Keep records short and update the status rather than silently rewriting history.

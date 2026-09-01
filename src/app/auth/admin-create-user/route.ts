@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     return new NextResponse(null, { status: 403 });
   const { supabase, finalize } = createSupabaseRouteClient(request);
   const access = await readCurrentAccess(supabase);
-  if (!access || !access.roles.includes("admin"))
+  if (!access || access.mustChangePassword || !access.roles.includes("admin"))
     return finalize(new NextResponse(null, { status: 403 }));
   if (access.assuranceLevel !== "aal2") return finalize(redirectTo(request, "mfa"));
   const form = await request.formData();

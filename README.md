@@ -1,6 +1,6 @@
 # Peter Island Resort and Spa IT Service Desk
 
-This repository contains the approved frontend and PostgreSQL identity foundation for the Peter Island Resort and Spa IT Service Desk. Unconnected ticket, identity, monitoring, and integration surfaces render explicit empty states; no production mock records are bundled. Authentication, ticket persistence, and external integrations remain intentionally deferred.
+This repository contains the approved frontend, PostgreSQL identity foundation, and managed Supabase authentication flow for the Peter Island Resort and Spa IT Service Desk. Unconnected ticket, monitoring, and integration surfaces render explicit empty states; no production mock records are bundled.
 
 ## Prerequisites
 
@@ -20,6 +20,8 @@ If `pnpm` is not installed globally, commands can be run with `npx --yes pnpm@11
 
 `NEXT_PUBLIC_APP_URL` is browser-safe. `DATABASE_URL`, `DATABASE_DIRECT_URL`, and `TEST_DATABASE_URL` are server-only and must never use the `NEXT_PUBLIC_` prefix. Startup validation reports invalid variable names without printing their values.
 
+Account administration also requires the server-only `SUPABASE_SECRET_KEY`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, and `SMTP_FROM` values shown in `.env.example`. Never add `NEXT_PUBLIC_` to them. Administrators verify TOTP before creating users. The application emails a generated temporary password and the login URL; users must replace it before service-desk access.
+
 ## Database workflow
 
 - `pnpm db:validate`: validate the Prisma schema.
@@ -36,7 +38,10 @@ The empty Step 4 foundation is also migrated to Supabase project `Ticketing Syst
 
 ## Frontend routes
 
-- `/login`: responsive work-account sign-in screen; currently presentation-only and does not transmit credentials.
+- `/login`: responsive Supabase work-account sign-in with generic failure states.
+- `/account/change-password`: mandatory first-login password replacement.
+- `/account/mfa`: authenticator enrollment and verification for privileged work.
+- `/admin/users/new`: MFA-protected account creation and SMTP credential delivery.
 - `/`: staff overview and active requests.
 - `/new-ticket`: guided request form with local success feedback.
 - `/my-tickets`: filterable ticket workspace with an honest empty state until persistence exists.

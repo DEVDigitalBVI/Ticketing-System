@@ -7,10 +7,10 @@ Only questions that block implementation or materially change architecture, secu
 Step 3 has no blocking product decision: the approved frontend baseline is stable and no backend behavior was introduced. The following questions remain intentionally open for later backend and deployment steps.
 
 1. Where is the approved project blueprint? It is not present in the repository or the conversation payload available during Step 1, so its requirements and baseline architecture could not be verified.
-2. Which authentication method should replace the presentation-only login handler: Microsoft Entra ID, Supabase Auth credentials, or another approved provider? This decision controls whether the current credential fields remain, session handling, recovery, route protection, role mapping, and RLS claims.
-3. Which server-only Supabase connection strings and least-privilege database role should the deployed application use? The hosted foundation is approved and migrated, but runtime pooling, direct migration access, deployment automation, and authentication-aware RLS policies remain undecided.
+2. What are the server-only SMTP host, port, TLS mode, username, password, and approved sender address? The adapter is complete, but no email or initial administrator can be provisioned until these values are supplied outside Git.
+3. What is the production application URL? It is required in credential emails and before pushing Auth configuration without replacing hosted redirects with localhost.
 4. Is Vercel the approved hosting target, and are there region, data-residency, network, or Peter Island Resort and Spa IT constraints that affect hosting?
-5. Which Microsoft Entra tenant will own the application registration, and should access be single-tenant for Peter Island Resort and Spa staff, multi-tenant, or also support guest/external identities?
+5. Is Microsoft Entra still planned for Microsoft 365 integrations only, now that Supabase password authentication is approved for sign-in?
 6. Should ticket attachments use Supabase Storage, or is an existing Microsoft 365/Azure or other storage provider mandated?
 7. Should durable asynchronous work use Supabase Queues (`pgmq`), or is another queue/service already approved and operated by Peter Island Resort and Spa?
 8. Will the first release expose only Peter Island Resort and Spa or multiple properties? The Step 4 schema is property-aware from day one, so this now controls launch behavior and authorization policy rather than the physical data model.

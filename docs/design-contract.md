@@ -62,7 +62,8 @@ Safe-area padding, `min-width: 0`, wrapping rules, and the 320-pixel viewport fl
 - The new-ticket form continues to provide character count, required fields, choice states, and local review feedback until persistence is implemented.
 - Placeholder technician actions and the Level.io button must not imply successful external work. Live behavior must add pending, success, empty, permission, and failure states in the same visual language.
 - Until authenticated data sources exist, ticket lists, service metrics, profile identity, monitoring status, selected-ticket context, and Level.io context render explicit empty or unavailable states. Do not repopulate these surfaces with bundled demonstration records.
-- Until an authentication provider is approved, the login form must prevent default submission, transmit or persist no credentials, and clearly state that authentication is not connected. Provider integration may replace this local handler but must retain honest pending, error, and recovery states.
+- The approved login composition submits work email and password to Supabase Auth through a server route. Errors remain generic and do not disclose whether an email exists. Newly provisioned users cannot reach service-desk layouts until replacing the temporary password.
+- Password-change, authenticator verification, and user-administration screens extend the login surface's indigo/teal/sand tokens, fields, focus treatment, 44-pixel targets, and responsive single-column behavior. They do not alter the four approved service-desk layouts.
 
 ## Component conventions
 

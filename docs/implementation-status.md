@@ -176,10 +176,17 @@ No application-code fix was required in Step 3.
 ## Login interface
 
 - Added a responsive `/login` route that extends the approved indigo, teal, sand, typography, spacing, focus, and minimum-target conventions without changing the service-desk layouts.
-- Added accessible work-email and password fields, current-password autofill semantics, a password visibility control, a remember-device choice, and a live status region.
-- The form is intentionally presentation-only: submission is prevented locally, credentials are neither transmitted nor persisted, and the interface states that authentication is not connected.
-- Authentication provider selection, sessions, recovery, route protection, role mapping, RLS policies, and production secret configuration remain undecided backend work.
-- Prettier, ESLint, strict TypeScript, 6 test files/21 tests, the production build, and live `/login` HTTP/content verification pass. The route is statically prerendered.
+- Added accessible work-email/password fields, current-password autofill, visibility control, server submission, and generic live error states.
+- Supabase authentication now replaces the former presentation-only handler; the approved composition remains unchanged.
+- Prettier, ESLint, strict TypeScript, and 6 test files/21 tests pass after integration.
+
+## Supabase authentication and managed onboarding
+
+- Supabase SSR clients, verified-claim guards, signed-cookie refresh, logout, domain role mapping, forced initial password replacement, other-session revocation, and TOTP enrollment/verification are implemented.
+- Account creation requires an MFA-verified administrator. It uses a server-only Supabase secret client, CSPRNG temporary passwords, pinned Nodemailer SMTP, same-origin mutation checks, generic failures, and compensating deletion when profile creation or delivery fails.
+- Hosted migrations enable RLS on all seven foundation tables, expose only a security-invoker current-user view, and create narrowly granted RPCs with explicit identity, role, and AAL checks. Hosted reference data is limited to the real resort organization/property and three access roles; there are no users or tickets.
+- Local migration deployment and 6 database constraint tests pass. Supabase security advisors have no actionable warning after the explicit audit-event deny policy; unused-index notices are expected before workload exists.
+- SMTP delivery and the initial Jamaal Hodge administrator remain blocked on server-only SMTP credentials and a production application URL. The password previously posted in chat was not used, stored, or committed.
 
 ## Step 1 completion gate
 
