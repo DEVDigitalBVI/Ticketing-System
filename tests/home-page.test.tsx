@@ -9,7 +9,22 @@ vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
 describe("staff overview", () => {
   it("renders the approved staff hierarchy and working client-side routes", () => {
     render(
-      <ServiceDeskShell>
+      <ServiceDeskShell
+        access={{
+          userId: "d02ac995-a572-46ab-94a8-e9010a1d1398",
+          authUserId: "3e01703f-9fef-42eb-b976-38e4679894b1",
+          email: "staff@peterisland.net",
+          displayName: "Resort Staff",
+          organizationId: "18b8d97e-9622-4ca7-b344-6230ad863e84",
+          organizationName: "Peter Island Resort and Spa",
+          properties: [
+            { id: "ab9c2f07-e909-4f9d-9092-49ad4e06df1f", name: "Peter Island Resort and Spa" },
+          ],
+          roles: ["staff"],
+          assuranceLevel: "aal1",
+          mustChangePassword: false,
+        }}
+      >
         <HomePage />
       </ServiceDeskShell>,
     );
@@ -27,6 +42,6 @@ describe("staff overview", () => {
     expect(screen.getByText("Active requests")).toBeVisible();
     expect(screen.getByText("No ticket data available")).toBeVisible();
     expect(screen.getByLabelText("Service monitoring is not connected")).toBeVisible();
-    expect(screen.getAllByLabelText("Profile unavailable")).toHaveLength(2);
+    expect(screen.getByText("Resort Staff")).toBeVisible();
   });
 });

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import type { AccessProfile } from "@/server/auth/access";
 
 const navigation = [
   { href: "/", label: "Overview", symbol: "⌂" },
@@ -11,7 +12,10 @@ const navigation = [
   { href: "/technician", label: "Technician workspace", symbol: "⌁" },
 ] as const;
 
-export function ServiceDeskShell({ children }: Readonly<{ children: React.ReactNode }>) {
+export function ServiceDeskShell({
+  children,
+  access,
+}: Readonly<{ children: React.ReactNode; access: AccessProfile }>) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -45,23 +49,37 @@ export function ServiceDeskShell({ children }: Readonly<{ children: React.ReactN
         </Link>
 
         <nav className="nav-list" aria-label="Primary navigation">
-          {navigation.map((item) => {
-            const active = pathname === item.href;
-            return (
-              <Link
-                className={`nav-item${active ? " is-active" : ""}`}
-                href={item.href}
-                key={item.href}
-                aria-current={active ? "page" : undefined}
-              >
-                <span className="nav-symbol" aria-hidden="true">
-                  {item.symbol}
-                </span>
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
+          {navigation
+            .filter(
+              (item) =>
+                item.href !== "/technician" ||
+                access.roles.some((role) => role === "technician" || role === "admin"),
+            )
+            .map((item) => {
+              const active = pathname === item.href;
+              return (
+                <Link
+                  className={`nav-item${active ? " is-active" : ""}`}
+                  href={item.href}
+                  key={item.href}
+                  aria-current={active ? "page" : undefined}
+                >
+                  <span className="nav-symbol" aria-hidden="true">
+                    {item.symbol}
+                  </span>
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
         </nav>
+        {access.roles.includes("admin") ? (
+          <Link className="nav-item" href="/admin/users/new">
+            <span className="nav-symbol" aria-hidden="true">
+              ⚙
+            </span>
+            <span>User administration</span>
+          </Link>
+        ) : null}
 
         <div className="sidebar-spacer" />
         <div className="service-status" aria-label="Service monitoring is not connected">
@@ -71,15 +89,25 @@ export function ServiceDeskShell({ children }: Readonly<{ children: React.ReactN
             <small>Monitoring not connected</small>
           </div>
         </div>
-        <div className="profile-card is-unavailable" aria-label="Profile unavailable">
+        <div className="profile-card">
           <span className="avatar" aria-hidden="true">
-            —
+            {access.displayName
+              .split(/\s+/)
+              .slice(0, 2)
+              .map((part) => part[0])
+              .join("")
+              .toUpperCase()}
           </span>
           <span>
-            <strong>Profile unavailable</strong>
-            <small>Authentication not connected</small>
+            <strong>{access.displayName}</strong>
+            <small>{access.properties[0]?.name}</small>
           </span>
         </div>
+        <form action="/auth/logout" method="post">
+          <button className="nav-item sign-out-button" type="submit">
+            Sign out
+          </button>
+        </form>
       </aside>
 
       <header className="mobile-header">
@@ -96,7 +124,7 @@ export function ServiceDeskShell({ children }: Readonly<{ children: React.ReactN
           IT Service Desk
         </Link>
         <span className="avatar small" aria-label="Profile unavailable">
-          —
+          {access.displayName.charAt(0).toUpperCase()}
         </span>
       </header>
 

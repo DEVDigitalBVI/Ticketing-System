@@ -1,13 +1,9 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-export function LoginForm() {
+export function LoginForm({ error = null, next = "" }: { error?: string | null; next?: string }) {
   const [showPassword, setShowPassword] = useState(false);
-  const searchParams = useSearchParams();
-  const error = searchParams.get("error");
-  const next = searchParams.get("next") ?? "";
 
   return (
     <form className="login-form" action="/auth/login" method="post">

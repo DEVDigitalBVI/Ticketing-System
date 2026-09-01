@@ -2231,3 +2231,101 @@ fieldset {
     display: none;
   }
 }
+
+/* Authenticated account tasks extend the approved login surface. */
+.auth-task-page {
+  min-height: 100vh;
+  display: grid;
+  padding: clamp(24px, 7vw, 88px);
+  background:
+    linear-gradient(rgba(247, 245, 232, 0.9), rgba(247, 245, 232, 0.98)),
+    radial-gradient(circle at 100% 0%, var(--palette-sand), transparent 48%);
+  place-items: center;
+}
+.auth-task-card {
+  width: min(100%, 520px);
+  padding: clamp(26px, 5vw, 52px);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-card);
+}
+.auth-task-card.wide {
+  width: min(100%, 650px);
+}
+.auth-task-card h1 {
+  margin: 10px 0 12px;
+  color: var(--ink);
+  font-size: clamp(30px, 4vw, 42px);
+  letter-spacing: -0.04em;
+}
+.auth-task-card > p:not(.overline) {
+  margin: 0 0 28px;
+  color: var(--ink-soft);
+  line-height: 1.65;
+}
+.login-field select {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  color: var(--ink);
+}
+.password-guidance {
+  margin: -8px 0 0;
+  color: var(--ink-faint);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.form-error,
+.form-success {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.form-error {
+  border: 1px solid rgba(154, 51, 39, 0.22);
+  background: #fff0ed;
+  color: #7c2f26;
+}
+.form-success {
+  border: 1px solid rgba(11, 115, 95, 0.22);
+  background: #e8f6ef;
+  color: #075849;
+}
+.mfa-secret {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--canvas);
+}
+.mfa-secret span {
+  color: var(--ink-faint);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+.mfa-secret code {
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: 14px;
+}
+.text-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  margin-top: 22px;
+  color: var(--accent);
+  font-weight: 700;
+}
+.sign-out-button {
+  width: 100%;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+}

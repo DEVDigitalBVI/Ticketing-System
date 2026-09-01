@@ -7,7 +7,12 @@ export const metadata: Metadata = {
   description: "Sign in to the Peter Island Resort and Spa IT Service Desk.",
 };
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; next?: string }>;
+}) {
+  const { error, next } = await searchParams;
   return (
     <main id="main-content" className="login-page">
       <section className="login-story" aria-labelledby="login-story-title">
@@ -50,7 +55,7 @@ export default function LoginPage() {
             <h2 id="login-title">Sign in to continue</h2>
             <p>Use your Peter Island Resort and Spa work credentials.</p>
           </div>
-          <LoginForm />
+          <LoginForm error={error} next={next} />
           <p className="login-support-note">
             Need account help? Contact the IT team through your approved support channel.
           </p>

@@ -7,7 +7,9 @@ const protectedPaths = new Set(["/", "/new-ticket", "/my-tickets", "/technician"
 
 function isProtected(pathname: string) {
   return (
-    protectedPaths.has(pathname) || pathname.startsWith("/account/") || pathname.startsWith("/admin/")
+    protectedPaths.has(pathname) ||
+    pathname.startsWith("/account/") ||
+    pathname.startsWith("/admin/")
   );
 }
 
