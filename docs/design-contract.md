@@ -5,7 +5,7 @@ Status: Approved frontend baseline for future implementation
 
 ## Authority and change control
 
-The existing interface is the product design, not an exploratory prototype. Future work must preserve it while replacing mock data and local-only behavior behind reusable Next.js and React components.
+The existing interface is the product design, not an exploratory prototype. Future work must preserve it while connecting real behavior behind reusable Next.js and React components; bundled demonstration data must not be restored.
 
 When sources appear to conflict, use this order:
 
@@ -20,6 +20,7 @@ Changing a material layout, token, responsive transition, interaction pattern, o
 
 | Route         | Audience   | Required layout and purpose                                                                                                                                                     |
 | ------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/login`      | All users  | Resort-branded sign-in entry with a deep-indigo story panel, warm credential surface, explicit work-account language, and a single-column mobile composition.                   |
 | `/`           | Staff      | Staff overview with greeting, primary report-issue action, three help-category cards, active-request summary, service status, and shared navigation shell.                      |
 | `/new-ticket` | Staff      | Guided three-section issue form with a desktop process/privacy aside; the form becomes one column with sticky actions on mobile.                                                |
 | `/my-tickets` | Staff      | Ticket-list workspace with status tabs, search, readable status/SLA treatment, and links into the matching technician context.                                                  |
@@ -60,10 +61,12 @@ Safe-area padding, `min-width: 0`, wrapping rules, and the 320-pixel viewport fl
 - Reduced-motion and increased-contrast preferences remain supported.
 - The new-ticket form continues to provide character count, required fields, choice states, and local review feedback until persistence is implemented.
 - Placeholder technician actions and the Level.io button must not imply successful external work. Live behavior must add pending, success, empty, permission, and failure states in the same visual language.
+- Until authenticated data sources exist, ticket lists, service metrics, profile identity, monitoring status, selected-ticket context, and Level.io context render explicit empty or unavailable states. Do not repopulate these surfaces with bundled demonstration records.
+- Until an authentication provider is approved, the login form must prevent default submission, transmit or persist no credentials, and clearly state that authentication is not connected. Provider integration may replace this local handler but must retain honest pending, error, and recovery states.
 
 ## Component conventions
 
-- Route files compose domain components; ticketing UI and mock domain data remain under `src/modules/service-desk` until server boundaries are introduced.
+- Route files compose domain components; ticketing view contracts and empty-state UI remain under `src/modules/service-desk` until server boundaries are introduced.
 - Reuse the shared shell, page header, ticket/status treatments, button classes, fields, cards, queues, and context panels. Do not duplicate whole pages or paste the standalone reference into production.
 - Keep server components as the default. Add client boundaries only for interaction, navigation state, or browser APIs.
 - Backend adapters must supply typed view data to the existing component hierarchy; they must not couple provider SDK objects directly to presentation components.
@@ -75,12 +78,12 @@ Safe-area padding, `min-width: 0`, wrapping rules, and the 320-pixel viewport fl
 | ------------------------ | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Frontend routes/design   | Implemented                                     | Four approved service-desk routes, shared shell, local interactions, responsive rules, and tests are present and pass.                                                            |
 | Database                 | Implemented                                     | PostgreSQL/Prisma foundation and private `service_desk` schema are migrated locally, in tests, and to the approved Supabase project. Ticket persistence is not implemented.       |
-| Authentication           | Missing                                         | No provider, session, middleware, route protection, role mapping, or sign-in UI exists.                                                                                           |
+| Authentication           | UI only / provider undecided                    | The responsive `/login` interface exists. No provider, session, middleware, route protection, role mapping, credential transmission, or recovery flow exists.                     |
 | File storage             | Undecided                                       | No storage SDK, bucket, upload flow, retention rule, or malware/type/size policy exists.                                                                                          |
 | Queue                    | Undecided                                       | No queue technology, producer, consumer, retry policy, or dead-letter behavior is implemented.                                                                                    |
 | Hosting                  | Undecided                                       | No production hosting target or deployment pipeline is configured.                                                                                                                |
 | Microsoft 365 / Entra ID | Undecided                                       | No tenant approach, application registration, identity flow, Graph integration, or notification integration is implemented.                                                       |
-| Level.io                 | Missing                                         | The selected-ticket device panel is display-only mock context. No API client, credential, live device lookup, deep link, or remote action exists.                                 |
+| Level.io                 | Missing                                         | The selected-ticket device panel renders an explicit unavailable state. No API client, credential, live device lookup, deep link, or remote action exists.                        |
 | Property model           | Implemented foundation / launch scope undecided | The schema supports one organisation with multiple properties and property-scoped role assignments. Whether launch exposes one or multiple properties remains a Product decision. |
 
 ## Step 3 verification baseline

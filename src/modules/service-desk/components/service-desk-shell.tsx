@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 const navigation = [
   { href: "/", label: "Overview", symbol: "⌂" },
   { href: "/new-ticket", label: "Report an issue", symbol: "＋" },
-  { href: "/my-tickets", label: "My tickets", symbol: "◫", count: 3 },
+  { href: "/my-tickets", label: "My tickets", symbol: "◫" },
   { href: "/technician", label: "Technician workspace", symbol: "⌁" },
 ] as const;
 
@@ -58,32 +58,28 @@ export function ServiceDeskShell({ children }: Readonly<{ children: React.ReactN
                   {item.symbol}
                 </span>
                 <span>{item.label}</span>
-                {"count" in item ? <span className="nav-count">{item.count}</span> : null}
               </Link>
             );
           })}
         </nav>
 
         <div className="sidebar-spacer" />
-        <div className="service-status" aria-label="Service status: all services available">
-          <span className="status-light" aria-hidden="true" />
+        <div className="service-status" aria-label="Service monitoring is not connected">
+          <span className="status-light unavailable" aria-hidden="true" />
           <div>
-            <strong>All services available</strong>
-            <small>Updated just now</small>
+            <strong>Status unavailable</strong>
+            <small>Monitoring not connected</small>
           </div>
         </div>
-        <button className="profile-card" type="button" aria-label="Open profile menu">
+        <div className="profile-card is-unavailable" aria-label="Profile unavailable">
           <span className="avatar" aria-hidden="true">
-            AM
+            —
           </span>
           <span>
-            <strong>Alex Morgan</strong>
-            <small>Front Office</small>
+            <strong>Profile unavailable</strong>
+            <small>Authentication not connected</small>
           </span>
-          <span className="profile-chevron" aria-hidden="true">
-            ⌄
-          </span>
-        </button>
+        </div>
       </aside>
 
       <header className="mobile-header">
@@ -99,9 +95,9 @@ export function ServiceDeskShell({ children }: Readonly<{ children: React.ReactN
         <Link className="mobile-brand" href="/">
           IT Service Desk
         </Link>
-        <button className="avatar small" type="button" aria-label="Open profile menu">
-          AM
-        </button>
+        <span className="avatar small" aria-label="Profile unavailable">
+          —
+        </span>
       </header>
 
       <main id="main-content" tabIndex={-1}>

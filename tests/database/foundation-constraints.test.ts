@@ -10,6 +10,47 @@ const client = createDatabaseClient(connectionString);
 
 beforeAll(async () => {
   await client.$connect();
+  const organization = await client.organization.create({
+    data: { slug: "constraint-test-org", name: "Constraint Test Organisation" },
+  });
+  await client.property.createMany({
+    data: [
+      {
+        organizationId: organization.id,
+        code: "alpha_property",
+        name: "Alpha Test Property",
+        timezone: "America/Tortola",
+      },
+      {
+        organizationId: organization.id,
+        code: "beta_property",
+        name: "Beta Test Property",
+        timezone: "America/Tortola",
+      },
+    ],
+  });
+  const user = await client.user.create({
+    data: {
+      organizationId: organization.id,
+      email: "database-test@example.invalid",
+      displayName: "Database Test User",
+    },
+  });
+  await client.role.create({
+    data: {
+      organizationId: organization.id,
+      key: "test_role",
+      name: "Test Role",
+    },
+  });
+  await client.auditEvent.create({
+    data: {
+      organizationId: organization.id,
+      actorUserId: user.id,
+      action: "constraint_test_started",
+      entityType: "test_run",
+    },
+  });
 });
 
 afterAll(async () => {
@@ -17,26 +58,26 @@ afterAll(async () => {
 });
 
 describe("Step 4 database foundation", () => {
-  it("seeds one fictional organisation with multiple properties", async () => {
+  it("supports one organisation with multiple properties", async () => {
     const organization = await client.organization.findUnique({
-      where: { slug: "northstar-hospitality" },
+      where: { slug: "constraint-test-org" },
       include: { properties: true },
     });
 
-    expect(organization?.name).toBe("Northstar Hospitality Collective");
+    expect(organization?.name).toBe("Constraint Test Organisation");
     expect(organization?.properties).toHaveLength(2);
   });
 
   it("rejects duplicate property codes inside an organisation", async () => {
     const organization = await client.organization.findUniqueOrThrow({
-      where: { slug: "northstar-hospitality" },
+      where: { slug: "constraint-test-org" },
     });
 
     await expect(
       client.property.create({
         data: {
           organizationId: organization.id,
-          code: "seabreeze_cay",
+          code: "alpha_property",
           name: "Duplicate Property Name",
           timezone: "America/Tortola",
         },
@@ -46,7 +87,7 @@ describe("Step 4 database foundation", () => {
 
   it("rejects role assignments that cross organisation boundaries", async () => {
     const firstOrganization = await client.organization.findUniqueOrThrow({
-      where: { slug: "northstar-hospitality" },
+      where: { slug: "constraint-test-org" },
     });
     const secondOrganization = await client.organization.create({
       data: { slug: "wayfinder-lodging", name: "Wayfinder Lodging Group" },
@@ -80,7 +121,7 @@ describe("Step 4 database foundation", () => {
 
   it("restricts deletion of an organisation that owns records", async () => {
     const organization = await client.organization.findUniqueOrThrow({
-      where: { slug: "northstar-hospitality" },
+      where: { slug: "constraint-test-org" },
     });
 
     await expect(
@@ -90,7 +131,7 @@ describe("Step 4 database foundation", () => {
 
   it("keeps audit events immutable", async () => {
     const event = await client.auditEvent.findFirstOrThrow({
-      where: { action: "development_seed_completed" },
+      where: { action: "constraint_test_started" },
     });
 
     await expect(
@@ -103,7 +144,7 @@ describe("Step 4 database foundation", () => {
 
   it("updates timestamps for writes outside Prisma", async () => {
     const organization = await client.organization.findUniqueOrThrow({
-      where: { slug: "northstar-hospitality" },
+      where: { slug: "constraint-test-org" },
     });
     const previousUpdatedAt = organization.updatedAt;
 

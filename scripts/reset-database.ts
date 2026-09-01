@@ -16,4 +16,3 @@ const environment = {
 
 await resetServiceDeskSchema(databaseUrl);
 run("./node_modules/.bin/prisma", ["migrate", "deploy"], environment);
-run("./node_modules/.bin/prisma", ["db", "seed"], environment);

@@ -19,6 +19,16 @@ const serverEnvironmentSchema = z.object({
   DATABASE_DIRECT_URL: postgresUrl.optional(),
 });
 
+const authServerEnvironmentSchema = z.object({
+  SUPABASE_SECRET_KEY: z.string().min(1),
+  SMTP_HOST: z.string().min(1),
+  SMTP_PORT: z.coerce.number().int().min(1).max(65535),
+  SMTP_SECURE: z.enum(["true", "false"]).transform((value) => value === "true"),
+  SMTP_USER: z.string().min(1),
+  SMTP_PASSWORD: z.string().min(1),
+  SMTP_FROM: z.string().email(),
+});
+
 let cachedEnvironment: z.infer<typeof serverEnvironmentSchema> | undefined;
 
 export function getServerEnvironment() {
@@ -36,4 +46,21 @@ export function getServerEnvironment() {
 
   cachedEnvironment = result.data;
   return cachedEnvironment;
+}
+
+export function getAuthServerEnvironment() {
+  const result = authServerEnvironmentSchema.safeParse({
+    SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
+    SMTP_HOST: process.env.SMTP_HOST,
+    SMTP_PORT: process.env.SMTP_PORT,
+    SMTP_SECURE: process.env.SMTP_SECURE,
+    SMTP_USER: process.env.SMTP_USER,
+    SMTP_PASSWORD: process.env.SMTP_PASSWORD,
+    SMTP_FROM: process.env.SMTP_FROM,
+  });
+  if (!result.success) {
+    const fields = [...new Set(result.error.issues.map((issue) => issue.path.join(".")))];
+    throw new Error(`Invalid authentication server configuration: ${fields.join(", ")}.`);
+  }
+  return result.data;
 }

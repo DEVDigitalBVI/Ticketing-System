@@ -120,3 +120,25 @@ The baseline was reverified at commit `ba8e67a` on 2026-08-31. All automated qua
 - **Consequences:** The seven foundational tables now exist remotely and remain inaccessible to `anon` and `authenticated` because neither role has schema usage. Runtime and direct migration connection strings, a least-privilege application database role, deployment automation, and authentication-aware RLS policies still require decisions before application traffic can use this environment.
 - **Evidence:** Supabase migrations `step_4_identity_foundation` and `add_user_role_fk_index`; live catalog verification; a clean security advisor scan and no remaining missing-foreign-key-index finding; Prisma migrations under `prisma/migrations/`; hosted verification in `docs/implementation-status.md`.
 - **Supersedes:** ADR-007 only where it described the hosted Supabase database as undecided. ADR-007 remains authoritative for the schema and local/test workflow.
+
+## ADR-009: Remove bundled mock and development seed data
+
+- **Status:** Accepted
+- **Date:** 2026-08-31
+- **Owners:** Product / Engineering
+- **Context:** The owner requested removal of all mock application data before further backend work and a complete application/security audit. The approved layouts previously rendered fictional tickets, profile identity, metrics, service health, device context, and an optional fictional development seed.
+- **Decision:** Remove the production mock-data module and development seed workflow. Preserve the approved layout with explicit empty and unavailable states, keep data-capable components typed for future server-provided view data, and retain synthetic records only inside isolated constraint tests. Do not represent authentication, monitoring, ticket persistence, Level.io, or service health as connected when they are not.
+- **Consequences:** The application no longer demonstrates populated ticket flows until real authenticated persistence is implemented. Local reset produces a migrated empty schema. Tests create only the records they require inside the disposable test database. Empty-state copy and disabled unavailable controls become part of the design contract.
+- **Evidence:** Removed `src/modules/service-desk/mock-data.ts` and `prisma/seed.ts`; updated service-desk components, database scripts/tests, README, design contract, and application audit.
+- **Supersedes:** ADR-003 and ADR-005 only where they permitted bundled mock records; their visual and interaction contract remains accepted. ADR-007's fictional seed decision is retired.
+
+## ADR-010: Add a provider-unconnected login interface
+
+- **Status:** Accepted
+- **Date:** 2026-08-31
+- **Owners:** Product / Engineering
+- **Context:** The owner requested a login screen before an authentication provider, session model, recovery flow, or authorization policy has been approved.
+- **Decision:** Add `/login` as a responsive, accessible extension of the approved resort design. Present conventional work-email/password controls for product review, but prevent submission locally and explicitly state that credentials are not sent or stored. Keep provider integration behind a future authentication boundary; this screen does not select Supabase Auth, Microsoft Entra ID, or another provider.
+- **Consequences:** Product can review the login experience without creating a false security boundary. The credential controls may need an approved change if federated-only sign-in is selected. No existing application route is protected until authentication, sessions, authorization, and RLS are implemented together.
+- **Evidence:** `src/app/login/page.tsx`, `src/modules/auth/components/login-form.tsx`, login tests, responsive styles, and the updated design contract.
+- **Supersedes:** None.

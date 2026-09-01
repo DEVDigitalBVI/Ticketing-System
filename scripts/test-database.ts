@@ -16,7 +16,6 @@ const testEnvironment = {
 
 await resetServiceDeskSchema(testDatabaseUrl);
 run("./node_modules/.bin/prisma", ["migrate", "deploy"], testEnvironment);
-run("./node_modules/.bin/prisma", ["db", "seed"], testEnvironment);
 run(
   "./node_modules/.bin/vitest",
   ["run", "--config", "vitest.database.config.ts"],

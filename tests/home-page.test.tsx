@@ -14,17 +14,19 @@ describe("staff overview", () => {
       </ServiceDeskShell>,
     );
 
-    expect(screen.getByRole("heading", { level: 1, name: "Good afternoon, Alex." })).toBeVisible();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "How can IT help keep your day moving?" }),
+    ).toBeVisible();
     expect(screen.getByRole("navigation", { name: "Primary navigation" })).toBeVisible();
     expect(screen.getAllByRole("link", { name: "Report an issue" })).toHaveLength(2);
     expect(screen.getAllByRole("link", { name: "Report an issue" })[0]).toHaveAttribute(
       "href",
       "/new-ticket",
     );
-    expect(screen.getByRole("link", { name: /My tickets.*3/i })).toHaveAttribute(
-      "href",
-      "/my-tickets",
-    );
+    expect(screen.getByRole("link", { name: "My tickets" })).toHaveAttribute("href", "/my-tickets");
     expect(screen.getByText("Active requests")).toBeVisible();
+    expect(screen.getByText("No ticket data available")).toBeVisible();
+    expect(screen.getByLabelText("Service monitoring is not connected")).toBeVisible();
+    expect(screen.getAllByLabelText("Profile unavailable")).toHaveLength(2);
   });
 });

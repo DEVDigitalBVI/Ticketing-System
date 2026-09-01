@@ -16,30 +16,22 @@ describe("service desk interactions", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Request ready for review");
   });
 
-  it("filters tickets using accessible tabs and search", () => {
+  it("keeps empty ticket filters accessible without inventing request data", () => {
     render(<TicketFilters />);
+    expect(screen.getByText("No tickets yet")).toBeVisible();
     fireEvent.click(screen.getByRole("tab", { name: "Completed" }));
-    expect(screen.getByText("No matching tickets")).toBeVisible();
-    fireEvent.click(screen.getByRole("tab", { name: "All" }));
+    expect(screen.getByText("No tickets yet")).toBeVisible();
     fireEvent.change(screen.getByRole("searchbox", { name: "Search tickets" }), {
-      target: { value: "Wi-Fi" },
+      target: { value: "printer" },
     });
-    expect(screen.getByText("Weak Wi-Fi signal in the west lobby")).toBeVisible();
-    expect(screen.queryByText("Front desk printer stops after each page")).not.toBeInTheDocument();
+    expect(screen.getByText("No tickets yet")).toBeVisible();
   });
 
-  it("updates the technician detail context when a queue row is selected", () => {
+  it("renders an honest empty technician workspace", () => {
     render(<TechnicianWorkspace />);
-    fireEvent.click(screen.getByRole("row", { name: /front desk printer stops/i }));
+    expect(screen.getByText("No tickets in the queue")).toBeVisible();
     const context = screen.getByRole("complementary", { name: "Selected ticket context" });
-    expect(context).toHaveTextContent("PRN-FRO-02");
-    expect(context).toHaveTextContent(/Level\.io device/i);
-  });
-
-  it("opens a deep-linked mock ticket as the initial technician context", () => {
-    render(<TechnicianWorkspace initialTicketId="INC-1048" />);
-    const context = screen.getByRole("complementary", { name: "Selected ticket context" });
-    expect(context).toHaveTextContent("Front desk printer stops after each page");
-    expect(context).toHaveTextContent("PRN-FRO-02");
+    expect(context).toHaveTextContent("No ticket selected");
+    expect(screen.getAllByText("Ticket data not connected")).toHaveLength(4);
   });
 });

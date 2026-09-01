@@ -2,15 +2,15 @@
 
 import { useState } from "react";
 
-import { staffTickets } from "../mock-data";
+import type { StaffTicket } from "../types";
 import { StaffTicketList } from "./staff-ticket-list";
 
 type Filter = "Active" | "Completed" | "All";
 
-export function TicketFilters() {
+export function TicketFilters({ tickets = [] }: { tickets?: StaffTicket[] }) {
   const [filter, setFilter] = useState<Filter>("Active");
   const [query, setQuery] = useState("");
-  const tickets = staffTickets.filter(
+  const visibleTickets = tickets.filter(
     (ticket) =>
       (filter === "All" || ticket.state.toLowerCase() === filter.toLowerCase()) &&
       `${ticket.id} ${ticket.title} ${ticket.location}`.toLowerCase().includes(query.toLowerCase()),
@@ -30,7 +30,9 @@ export function TicketFilters() {
               onClick={() => setFilter(item)}
             >
               {item}
-              {item === "Active" ? <span>3</span> : null}
+              {item === "Active" && tickets.length ? (
+                <span>{tickets.filter((ticket) => ticket.state === "active").length}</span>
+              ) : null}
             </button>
           ))}
         </div>
@@ -45,12 +47,16 @@ export function TicketFilters() {
           />
         </label>
       </div>
-      {tickets.length ? (
-        <StaffTicketList tickets={tickets} />
+      {visibleTickets.length ? (
+        <StaffTicketList tickets={visibleTickets} />
       ) : (
         <div className="empty-state">
-          <strong>No matching tickets</strong>
-          <p>Try another filter or search term.</p>
+          <strong>{tickets.length ? "No matching tickets" : "No tickets yet"}</strong>
+          <p>
+            {tickets.length
+              ? "Try another filter or search term."
+              : "Your requests will appear here after secure ticket persistence is connected."}
+          </p>
         </div>
       )}
     </>

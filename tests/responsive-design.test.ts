@@ -45,6 +45,15 @@ describe("approved responsive design contract", () => {
     expect(stylesheet).toContain("env(safe-area-inset-bottom)");
   });
 
+  it("keeps the login composition responsive and within the approved palette", () => {
+    expect(stylesheet).toMatch(/\.login-page\s*\{[\s\S]*?grid-template-columns:/);
+    expect(stylesheet).toContain("@media (max-width: 700px)");
+    expect(stylesheet).toMatch(
+      /@media \(max-width: 700px\)[\s\S]*?\.login-page\s*\{\s*display: block/,
+    );
+    expect(stylesheet).toMatch(/\.login-story\s*\{[\s\S]*?background: var\(--palette-indigo\)/);
+  });
+
   it("retains accessible target, focus, contrast, and motion rules", () => {
     expect(stylesheet).toContain("min-height: 44px");
     expect(stylesheet).toContain(":focus-visible");
