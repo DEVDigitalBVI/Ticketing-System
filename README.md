@@ -50,7 +50,7 @@ Step 8 adds the reviewed migration `20260901153000_step_8_ticket_domain`, which 
 - `/admin/users/new`: permission-gated account creation and SMTP credential delivery.
 - `/admin/configuration`: permission-gated hierarchy and service-taxonomy administration.
 - `/`: staff overview and active requests.
-- `/new-ticket`: guided request form with local success feedback; not yet connected to ticket persistence.
+- `/new-ticket`: guided request form connected to authenticated ticket creation with controlled reference data and real ticket-number confirmation.
 - `/my-tickets`: filterable ticket workspace with an honest empty state until ticket reads are connected.
 - `/technician`: empty service metrics, queue, selected-ticket context, and Level.io integration states until ticket and integration reads are connected.
 - `/health`: application-boundary health status.

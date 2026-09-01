@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { useMemo, useState } from "react";
+
+import type { NewTicketFormOptions } from "@/server/tickets/intake";
 
 const issueTypes = [
   {
@@ -25,29 +27,67 @@ const issueTypes = [
   },
 ] as const;
 
-export function NewTicketForm() {
-  const [summary, setSummary] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const toastTimer = useRef<number | null>(null);
-
-  useEffect(
-    () => () => {
-      if (toastTimer.current) window.clearTimeout(toastTimer.current);
-    },
-    [],
-  );
-
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSubmitted(true);
-    if (toastTimer.current) window.clearTimeout(toastTimer.current);
-    toastTimer.current = window.setTimeout(() => setSubmitted(false), 3400);
+function statusMessage(search: { status?: string; ticket?: string }) {
+  switch (search.status) {
+    case "created":
+      return {
+        tone: "success" as const,
+        title: `Request received: ${search.ticket ?? "ticket created"}`,
+        detail: "IT will review it next. You can follow updates from My tickets.",
+      };
+    case "invalid":
+      return {
+        tone: "error" as const,
+        title: "We could not submit your request",
+        detail: "Check the required fields and remove unsupported text, then try again.",
+      };
+    case "denied":
+      return {
+        tone: "error" as const,
+        title: "You do not have access to submit that request",
+        detail: "Choose only active options available to your signed-in account.",
+      };
+    case "failed":
+      return {
+        tone: "error" as const,
+        title: "We could not submit your request",
+        detail: "Please try again. If the issue continues, contact IT directly.",
+      };
+    default:
+      return null;
   }
+}
+
+export function NewTicketForm({
+  options,
+  search,
+}: {
+  options: NewTicketFormOptions;
+  search: { status?: string; ticket?: string };
+}) {
+  const [summary, setSummary] = useState("");
+  const [selectedPropertyId, setSelectedPropertyId] = useState(options.properties[0]?.id ?? "");
+  const [selectedCategoryId, setSelectedCategoryId] = useState(options.categories[0]?.id ?? "");
+  const message = statusMessage(search);
+
+  const visibleLocations = useMemo(
+    () => options.serviceLocations.filter((location) => location.propertyId === selectedPropertyId),
+    [options.serviceLocations, selectedPropertyId],
+  );
+  const visibleDepartments = useMemo(
+    () => options.departments.filter((department) => department.propertyId === selectedPropertyId),
+    [options.departments, selectedPropertyId],
+  );
+  const visibleSubcategories = useMemo(
+    () =>
+      options.subcategories.filter((subcategory) => subcategory.categoryId === selectedCategoryId),
+    [options.subcategories, selectedCategoryId],
+  );
 
   return (
     <>
       <div className="form-layout">
-        <form className="ticket-form" onSubmit={submit}>
+        <form className="ticket-form" action="/auth/new-ticket" method="post">
           <div className="form-section">
             <div className="section-number">1</div>
             <div className="form-section-content">
@@ -95,9 +135,48 @@ export function NewTicketForm() {
                 id="details"
                 name="details"
                 rows={5}
+                maxLength={4000}
                 placeholder="Include what you expected, what happened instead, and any message you saw."
                 required
               />
+              <div className="field-pair">
+                <div>
+                  <label className="field-label" htmlFor="category">
+                    Category
+                  </label>
+                  <select
+                    id="category"
+                    name="categoryId"
+                    required
+                    value={selectedCategoryId}
+                    onChange={(event) => setSelectedCategoryId(event.target.value)}
+                  >
+                    {options.categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="field-label" htmlFor="subcategory">
+                    Subcategory
+                  </label>
+                  <select
+                    id="subcategory"
+                    key={selectedCategoryId}
+                    name="subcategoryId"
+                    defaultValue=""
+                  >
+                    <option value="">Choose one if it helps</option>
+                    {visibleSubcategories.map((subcategory) => (
+                      <option key={subcategory.id} value={subcategory.id}>
+                        {subcategory.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -110,23 +189,49 @@ export function NewTicketForm() {
                   <label className="field-label" htmlFor="property">
                     Property
                   </label>
-                  <select id="property" name="property">
-                    <option>Peter Island Resort and Spa</option>
+                  <select
+                    id="property"
+                    name="propertyId"
+                    value={selectedPropertyId}
+                    onChange={(event) => setSelectedPropertyId(event.target.value)}
+                  >
+                    {options.properties.map((property) => (
+                      <option key={property.id} value={property.id}>
+                        {property.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
                   <label className="field-label" htmlFor="location">
                     Area or room
                   </label>
-                  <select id="location" name="location">
-                    <option>Front Office</option>
-                    <option>Reservations</option>
-                    <option>Main Restaurant</option>
-                    <option>Guest Room</option>
-                    <option>Other</option>
+                  <select
+                    id="location"
+                    key={selectedPropertyId}
+                    name="serviceLocationId"
+                    defaultValue=""
+                  >
+                    <option value="">Choose the nearest room or service location</option>
+                    {visibleLocations.map((location) => (
+                      <option key={location.id} value={location.id}>
+                        {location.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
+              <label className="field-label" htmlFor="department">
+                Department
+              </label>
+              <select id="department" key={selectedPropertyId} name="departmentId" defaultValue="">
+                <option value="">Choose the department most affected</option>
+                {visibleDepartments.map((department) => (
+                  <option key={department.id} value={department.id}>
+                    {department.name}
+                  </option>
+                ))}
+              </select>
               <label className="toggle-row">
                 <span>
                   <strong>This affects a guest-facing service</strong>
@@ -161,6 +266,30 @@ export function NewTicketForm() {
                 <label>
                   <input type="radio" name="impact" value="high" />
                   <span>Work has stopped</span>
+                </label>
+                <label>
+                  <input type="radio" name="impact" value="critical" />
+                  <span>Guest service has stopped</span>
+                </label>
+              </fieldset>
+              <h2>How urgent is it?</h2>
+              <fieldset className="segmented-control">
+                <legend className="sr-only">Urgency</legend>
+                <label>
+                  <input type="radio" name="urgency" value="low" />
+                  <span>It can wait today</span>
+                </label>
+                <label>
+                  <input type="radio" name="urgency" value="medium" defaultChecked />
+                  <span>Please help soon</span>
+                </label>
+                <label>
+                  <input type="radio" name="urgency" value="high" />
+                  <span>This is urgent</span>
+                </label>
+                <label>
+                  <input type="radio" name="urgency" value="critical" />
+                  <span>This is happening now</span>
                 </label>
               </fieldset>
             </div>
@@ -206,13 +335,19 @@ export function NewTicketForm() {
           </div>
         </aside>
       </div>
-      <div className={`toast${submitted ? " is-visible" : ""}`} role="status" aria-live="polite">
+      <div
+        className={`toast${message ? " is-visible" : ""}`}
+        role={message?.tone === "error" ? "alert" : "status"}
+        aria-live="polite"
+      >
         <span className="toast-check" aria-hidden="true">
-          ✓
+          {message?.tone === "error" ? "!" : "✓"}
         </span>
         <span>
-          <strong>Request ready for review</strong>
-          <small>Your information is retained locally for this design step.</small>
+          <strong>{message?.title ?? "Request ready for review"}</strong>
+          <small>
+            {message?.detail ?? "Your information is retained locally for this design step."}
+          </small>
         </span>
       </div>
     </>
