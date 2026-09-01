@@ -5,6 +5,7 @@ import { NewTicketForm } from "@/modules/service-desk/components/new-ticket-form
 import { TechnicianWorkspace } from "@/modules/service-desk/components/technician-workspace";
 import { TicketFilters } from "@/modules/service-desk/components/ticket-filters";
 import type { NewTicketFormOptions } from "@/server/tickets/intake";
+import type { RequesterTicketWorkspace } from "@/server/tickets/requester-portal";
 
 const options: NewTicketFormOptions = {
   properties: [{ id: "property-1", name: "Peter Island Resort and Spa" }],
@@ -12,6 +13,17 @@ const options: NewTicketFormOptions = {
   departments: [{ id: "department-1", propertyId: "property-1", name: "Front Office" }],
   categories: [{ id: "category-1", name: "Printers" }],
   subcategories: [{ id: "subcategory-1", categoryId: "category-1", name: "Paper jam" }],
+};
+
+const workspace: RequesterTicketWorkspace = {
+  filter: "active",
+  query: "",
+  page: 1,
+  pageSize: 10,
+  totalPages: 1,
+  counts: { active: 0, completed: 0, all: 0 },
+  tickets: [],
+  selectedTicket: null,
 };
 
 describe("service desk interactions", () => {
@@ -35,14 +47,16 @@ describe("service desk interactions", () => {
   });
 
   it("keeps empty ticket filters accessible without inventing request data", () => {
-    render(<TicketFilters />);
+    render(<TicketFilters workspace={workspace} search={{}} />);
     expect(screen.getByText("No tickets yet")).toBeVisible();
-    fireEvent.click(screen.getByRole("tab", { name: "Completed" }));
-    expect(screen.getByText("No tickets yet")).toBeVisible();
-    fireEvent.change(screen.getByRole("searchbox", { name: "Search tickets" }), {
-      target: { value: "printer" },
-    });
-    expect(screen.getByText("No tickets yet")).toBeVisible();
+    expect(screen.getByRole("tab", { name: /Completed 0/i })).toHaveAttribute(
+      "href",
+      "/my-tickets?filter=completed",
+    );
+    expect(screen.getByRole("searchbox", { name: "Search tickets" })).toHaveAttribute(
+      "placeholder",
+      "Search my tickets",
+    );
   });
 
   it("renders an honest empty technician workspace", () => {

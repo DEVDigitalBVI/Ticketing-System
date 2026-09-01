@@ -62,7 +62,7 @@ Safe-area padding, `min-width: 0`, wrapping rules, and the 320-pixel viewport fl
 - Reduced-motion and increased-contrast preferences remain supported.
 - The new-ticket form continues to provide character count, required fields, choice states, and an in-page success or error treatment in the approved visual language after server submission.
 - Placeholder technician actions and the Level.io button must not imply successful external work. Live behavior must add pending, success, empty, permission, and failure states in the same visual language.
-- Until authenticated data sources exist, ticket lists, service metrics, profile identity, monitoring status, selected-ticket context, and Level.io context render explicit empty or unavailable states. Do not repopulate these surfaces with bundled demonstration records.
+- Until authenticated data sources exist, service metrics, monitoring status, and Level.io context render explicit empty or unavailable states. Do not repopulate these surfaces with bundled demonstration records. `/new-ticket` and `/my-tickets` may now use real authorized data, but they must continue to preserve the approved layout and avoid demonstration records.
 - The approved login composition submits work email and password to Supabase Auth through a server route. Errors remain generic and do not disclose whether an email exists. Newly provisioned users cannot reach service-desk layouts until replacing the temporary password.
 - Password-change, authenticator verification, and user-administration screens extend the login surface's indigo/teal/sand tokens, fields, focus treatment, 44-pixel targets, and responsive single-column behavior. They do not alter the four approved service-desk layouts.
 

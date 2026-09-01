@@ -124,6 +124,7 @@ function assertReadable(
     organizationId: string;
     propertyId: string;
     requesterUserId: string;
+    affectedUserId?: string | null;
     departmentId?: string | null;
   },
 ) {
@@ -634,6 +635,7 @@ export async function getTicketForAccess(access: AccessProfile, ticketId: string
     organizationId: ticket.organizationId,
     propertyId: ticket.propertyId,
     requesterUserId: ticket.requesterUserId,
+    affectedUserId: ticket.affectedUserId,
     departmentId: ticket.departmentId,
   });
   return ticket;

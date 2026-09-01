@@ -56,6 +56,7 @@ export type TicketAccessResource = {
   organizationId: string;
   propertyId: string;
   requesterUserId: string;
+  affectedUserId?: string | null;
   departmentId?: string | null;
 };
 
@@ -89,7 +90,14 @@ export function canReadTicket(subject: AuthorizationSubject, ticket: TicketAcces
       propertyId: ticket.propertyId,
       departmentId: ticket.departmentId ?? undefined,
       ownerUserId: ticket.requesterUserId,
-    })
+    }) ||
+    (!!ticket.affectedUserId &&
+      isAuthorized(subject, "ticket.read.own", {
+        organizationId: ticket.organizationId,
+        propertyId: ticket.propertyId,
+        departmentId: ticket.departmentId ?? undefined,
+        ownerUserId: ticket.affectedUserId,
+      }))
   );
 }
 

@@ -3,11 +3,24 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/modules/service-desk/components/page-header";
 import { TicketFilters } from "@/modules/service-desk/components/ticket-filters";
 import { requireCurrentAccess } from "@/server/auth/authorization";
+import { listRequesterTicketWorkspace } from "@/server/tickets/requester-portal";
 
 export const metadata: Metadata = { title: "My tickets" };
 
-export default async function MyTicketsPage() {
-  await requireCurrentAccess("ticket.read.own");
+export default async function MyTicketsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    filter?: string;
+    q?: string;
+    page?: string;
+    ticket?: string;
+    status?: string;
+  }>;
+}) {
+  const access = await requireCurrentAccess("ticket.read.own");
+  const search = await searchParams;
+  const workspace = await listRequesterTicketWorkspace(access, search);
   return (
     <section className="view" aria-labelledby="tickets-title">
       <PageHeader
@@ -18,7 +31,7 @@ export default async function MyTicketsPage() {
         title="My tickets"
         titleId="tickets-title"
       />
-      <TicketFilters />
+      <TicketFilters workspace={workspace} search={search} />
     </section>
   );
 }

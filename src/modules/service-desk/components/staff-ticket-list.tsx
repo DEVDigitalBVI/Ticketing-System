@@ -4,24 +4,28 @@ import type { StaffTicket } from "../types";
 
 function statusClass(status: StaffTicket["status"]) {
   if (status === "Needs your reply") return "action";
-  if (status === "In progress") return "progress";
+  if (status === "Ready for confirmation") return "progress";
   return "waiting";
 }
 
 export function StaffTicketList({
   tickets,
   compact = false,
+  getHref,
+  selectedTicketId,
 }: {
   tickets: StaffTicket[];
   compact?: boolean;
+  getHref?: (ticket: StaffTicket) => string;
+  selectedTicketId?: string;
 }) {
   return (
     <div className={`ticket-list ${compact ? "compact-list" : "detailed-list"}`}>
       {tickets.map((ticket) => (
         <Link
-          className="ticket-row"
-          href={`/technician?ticket=${ticket.id}`}
-          key={ticket.id}
+          className={`ticket-row${selectedTicketId === ticket.ticketId ? " is-selected" : ""}`}
+          href={getHref ? getHref(ticket) : `/technician?ticket=${ticket.ticketId}`}
+          key={ticket.ticketId}
           aria-label={`${ticket.id}: ${ticket.title}, ${ticket.status}`}
         >
           {compact ? (

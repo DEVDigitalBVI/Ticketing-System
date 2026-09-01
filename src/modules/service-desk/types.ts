@@ -1,6 +1,11 @@
-type StaffTicketStatus = "Waiting for IT" | "Needs your reply" | "In progress";
+type StaffTicketStatus =
+  | "Waiting for IT"
+  | "Needs your reply"
+  | "Ready for confirmation"
+  | "Completed";
 
 export type StaffTicket = {
+  ticketId: string;
   id: string;
   type: string;
   title: string;
@@ -11,6 +16,7 @@ export type StaffTicket = {
   priority: "high" | "normal";
   status: StaffTicketStatus;
   state: "active" | "completed";
+  canonicalStatus: string;
 };
 
 export type TechnicianTicket = {
