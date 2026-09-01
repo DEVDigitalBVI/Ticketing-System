@@ -191,9 +191,30 @@ export function TicketFilters({
   workspace,
   search,
 }: {
-  workspace: RequesterTicketWorkspace;
+  workspace?: RequesterTicketWorkspace;
   search: SearchState;
 }) {
+  if (!workspace) {
+    return (
+      <div className="workspace-grid">
+        <div className="empty-state">
+          <strong>Ticket data is temporarily unavailable</strong>
+          <p>
+            My tickets could not be loaded right now. Please try again after the local service
+            database is available.
+          </p>
+        </div>
+        <aside className="context-panel" aria-label="Selected ticket context" aria-live="polite">
+          <h2>Ticket details</h2>
+          <div className="empty-state queue-empty-state">
+            <strong>No ticket details available</strong>
+            <p>Open a ticket again after service data is restored.</p>
+          </div>
+        </aside>
+      </div>
+    );
+  }
+
   return (
     <div className="workspace-grid">
       <div>

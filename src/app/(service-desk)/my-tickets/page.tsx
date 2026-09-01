@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/modules/service-desk/components/page-header";
 import { TicketFilters } from "@/modules/service-desk/components/ticket-filters";
 import { requireCurrentAccess } from "@/server/auth/authorization";
+import { isDatabaseUnavailableError } from "@/server/database/errors";
 import { listRequesterTicketWorkspace } from "@/server/tickets/requester-portal";
 
 export const metadata: Metadata = { title: "My tickets" };
@@ -20,7 +21,14 @@ export default async function MyTicketsPage({
 }) {
   const access = await requireCurrentAccess("ticket.read.own");
   const search = await searchParams;
-  const workspace = await listRequesterTicketWorkspace(access, search);
+  let workspace;
+
+  try {
+    workspace = await listRequesterTicketWorkspace(access, search);
+  } catch (error) {
+    if (!isDatabaseUnavailableError(error)) throw error;
+  }
+
   return (
     <section className="view" aria-labelledby="tickets-title">
       <PageHeader
