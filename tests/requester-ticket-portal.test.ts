@@ -51,7 +51,13 @@ type TicketRecord = {
     visibility: string;
     createdAt: Date;
   }>;
-  activities: Array<{ id: string; createdAt: Date; activityType: string; toStatus: string | null; requesterVisible: boolean }>;
+  activities: Array<{
+    id: string;
+    createdAt: Date;
+    activityType: string;
+    toStatus: string | null;
+    requesterVisible: boolean;
+  }>;
 };
 
 type TransactionShape = {
@@ -80,10 +86,16 @@ function matchesClause(ticket: TicketRecord, clause: Record<string, unknown>): b
   if ("propertyId" in clause) {
     const propertyClause = clause.propertyId as { in?: string[] } | string;
     if (typeof propertyClause === "string" && propertyClause !== ticket.propertyId) return false;
-    if (typeof propertyClause === "object" && propertyClause?.in && !propertyClause.in.includes(ticket.propertyId)) return false;
+    if (
+      typeof propertyClause === "object" &&
+      propertyClause?.in &&
+      !propertyClause.in.includes(ticket.propertyId)
+    )
+      return false;
   }
 
-  if ("requesterUserId" in clause && clause.requesterUserId !== ticket.requesterUserId) return false;
+  if ("requesterUserId" in clause && clause.requesterUserId !== ticket.requesterUserId)
+    return false;
   if ("affectedUserId" in clause && clause.affectedUserId !== ticket.affectedUserId) return false;
 
   if ("status" in clause) {
@@ -129,17 +141,65 @@ let tickets: TicketRecord[] = [];
 vi.mock("@/server/database/client", () => ({
   database: {
     ticket: {
-      count: vi.fn(async ({ where }: { where: Record<string, unknown> }) =>
-        tickets.filter((ticket) => matchesClause(ticket, where)).length,
+      count: vi.fn(
+        async ({ where }: { where: Record<string, unknown> }) =>
+          tickets.filter((ticket) => matchesClause(ticket, where)).length,
       ),
-      findMany: vi.fn(async ({ where, skip = 0, take = 10 }: { where: Record<string, unknown>; skip?: number; take?: number }) =>
-        tickets
-          .filter((ticket) => matchesClause(ticket, where))
-          .sort((left, right) => right.updatedAt.getTime() - left.updatedAt.getTime())
-          .slice(skip, skip + take),
+      findMany: vi.fn(
+        async ({
+          where,
+          skip = 0,
+          take = 10,
+        }: {
+          where: Record<string, unknown>;
+          skip?: number;
+          take?: number;
+        }) =>
+          tickets
+            .filter((ticket) => matchesClause(ticket, where))
+            .sort((left, right) => right.updatedAt.getTime() - left.updatedAt.getTime())
+            .slice(skip, skip + take),
       ),
-      findFirst: vi.fn(async ({ where }: { where: Record<string, unknown> }) =>
-        tickets.find((ticket) => matchesClause(ticket, where)) ?? null,
+      findFirst: vi.fn(
+        async ({
+          where,
+          include,
+          select,
+        }: {
+          where: Record<string, unknown>;
+          include?: {
+            comments?: { where?: { visibility?: string } };
+            activities?: { where?: { requesterVisible?: boolean } };
+          };
+          select?: Record<string, boolean>;
+        }) => {
+          const ticket = tickets.find((entry) => matchesClause(entry, where)) ?? null;
+          if (!ticket) return null;
+
+          if (select) {
+            return Object.fromEntries(
+              Object.entries(select)
+                .filter(([, enabled]) => enabled)
+                .map(([key]) => [key, ticket[key as keyof TicketRecord]]),
+            );
+          }
+
+          return {
+            ...ticket,
+            comments: include?.comments?.where?.visibility
+              ? ticket.comments.filter(
+                  (comment) => comment.visibility === include.comments?.where?.visibility,
+                )
+              : ticket.comments,
+            activities:
+              typeof include?.activities?.where?.requesterVisible === "boolean"
+                ? ticket.activities.filter(
+                    (activity) =>
+                      activity.requesterVisible === include.activities?.where?.requesterVisible,
+                  )
+                : ticket.activities,
+          };
+        },
       ),
     },
     $transaction: vi.fn(async (callback: (transaction: TransactionShape) => Promise<unknown>) =>
@@ -279,9 +339,27 @@ beforeEach(() => {
         },
       ],
       activities: [
-        { id: "created-a1", createdAt: new Date("2026-09-01T10:00:00.000Z"), activityType: "ticket_created", toStatus: "new", requesterVisible: true },
-        { id: "assign-a1", createdAt: new Date("2026-09-01T10:10:00.000Z"), activityType: "assignment_recorded", toStatus: "assigned", requesterVisible: false },
-        { id: "wait-a1", createdAt: new Date("2026-09-01T11:00:00.000Z"), activityType: "status_changed", toStatus: "waiting_for_requester", requesterVisible: true },
+        {
+          id: "created-a1",
+          createdAt: new Date("2026-09-01T10:00:00.000Z"),
+          activityType: "ticket_created",
+          toStatus: "new",
+          requesterVisible: true,
+        },
+        {
+          id: "assign-a1",
+          createdAt: new Date("2026-09-01T10:10:00.000Z"),
+          activityType: "assignment_recorded",
+          toStatus: "assigned",
+          requesterVisible: false,
+        },
+        {
+          id: "wait-a1",
+          createdAt: new Date("2026-09-01T11:00:00.000Z"),
+          activityType: "status_changed",
+          toStatus: "waiting_for_requester",
+          requesterVisible: true,
+        },
       ],
     },
     {
@@ -309,8 +387,20 @@ beforeEach(() => {
       subcategory: { name: "Displays" },
       comments: [],
       activities: [
-        { id: "created-a2", createdAt: new Date("2026-09-01T09:00:00.000Z"), activityType: "ticket_created", toStatus: "new", requesterVisible: true },
-        { id: "resolved-a2", createdAt: new Date("2026-09-01T12:00:00.000Z"), activityType: "status_changed", toStatus: "resolved", requesterVisible: true },
+        {
+          id: "created-a2",
+          createdAt: new Date("2026-09-01T09:00:00.000Z"),
+          activityType: "ticket_created",
+          toStatus: "new",
+          requesterVisible: true,
+        },
+        {
+          id: "resolved-a2",
+          createdAt: new Date("2026-09-01T12:00:00.000Z"),
+          activityType: "status_changed",
+          toStatus: "resolved",
+          requesterVisible: true,
+        },
       ],
     },
     {
@@ -358,18 +448,21 @@ describe("requester ticket portal", () => {
     }
 
     const active = await listRequesterTicketWorkspace(requesterA, { filter: "active", page: "1" });
-    expect(active.counts.active).toBe(12);
+    expect(active.counts.active).toBe(13);
     expect(active.counts.completed).toBe(0);
-    expect(active.counts.all).toBe(12);
+    expect(active.counts.all).toBe(13);
     expect(active.tickets).toHaveLength(10);
     expect(active.tickets.every((ticket) => ticket.id !== "PIR-001003")).toBe(true);
 
     const completed = await listRequesterTicketWorkspace(requesterA, { filter: "completed" });
     expect(completed.tickets).toHaveLength(0);
 
-    const secondPage = await listRequesterTicketWorkspace(requesterA, { filter: "active", page: "2" });
+    const secondPage = await listRequesterTicketWorkspace(requesterA, {
+      filter: "active",
+      page: "2",
+    });
     expect(secondPage.page).toBe(2);
-    expect(secondPage.tickets).toHaveLength(2);
+    expect(secondPage.tickets).toHaveLength(3);
   });
 
   it("supports search without exposing another requester's ticket", async () => {

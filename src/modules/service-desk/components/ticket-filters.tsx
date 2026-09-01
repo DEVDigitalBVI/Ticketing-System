@@ -57,12 +57,7 @@ function pageHref(filter: StaffTicketFilter, query: string, page: number, ticket
   return params ? `/my-tickets?${params}` : "/my-tickets";
 }
 
-function ticketHref(
-  filter: StaffTicketFilter,
-  query: string,
-  page: number,
-  ticketId: string,
-) {
+function ticketHref(filter: StaffTicketFilter, query: string, page: number, ticketId: string) {
   const params = paramsFor(filter, query, page, ticketId);
   return `/my-tickets?${params}`;
 }
@@ -98,12 +93,12 @@ function DetailPanel({
     <aside className="context-panel" aria-label="Selected ticket context" aria-live="polite">
       <h2>{ticket.ticketNumber}</h2>
       {status ? (
-        <p className={status.tone === "success" ? "form-success" : "form-error"}>
-          {status.text}
-        </p>
+        <p className={status.tone === "success" ? "form-success" : "form-error"}>{status.text}</p>
       ) : null}
       <div className="context-status">
-        <span className={`status-pill ${ticket.staffStatus === "Needs your reply" ? "action" : ticket.staffStatus === "Completed" ? "waiting" : "progress"}`}>
+        <span
+          className={`status-pill ${ticket.staffStatus === "Needs your reply" ? "action" : ticket.staffStatus === "Completed" ? "waiting" : "progress"}`}
+        >
           {ticket.staffStatus}
         </span>
         <small>Internal status: {ticket.canonicalStatus.replaceAll("_", " ")}</small>
@@ -204,11 +199,13 @@ export function TicketFilters({
       <div>
         <div className="filter-bar">
           <div className="tab-list" role="tablist" aria-label="Ticket filters">
-            {([
-              ["active", "Active", workspace.counts.active],
-              ["completed", "Completed", workspace.counts.completed],
-              ["all", "All", workspace.counts.all],
-            ] as const).map(([value, label, count]) => (
+            {(
+              [
+                ["active", "Active", workspace.counts.active],
+                ["completed", "Completed", workspace.counts.completed],
+                ["all", "All", workspace.counts.all],
+              ] as const
+            ).map(([value, label, count]) => (
               <Link
                 className={`tab${workspace.filter === value ? " is-active" : ""}`}
                 href={tabHref(value, workspace.query)}

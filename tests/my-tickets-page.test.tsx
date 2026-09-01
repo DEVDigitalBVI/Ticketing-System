@@ -86,7 +86,11 @@ describe("my tickets page", () => {
     );
 
     expect(screen.getByRole("heading", { name: "My tickets" })).toBeVisible();
-    expect(screen.getByText("Front desk printer offline")).toBeVisible();
+    expect(
+      screen.getByRole("link", {
+        name: "PIR-001001: Front desk printer offline, Needs your reply",
+      }),
+    ).toBeVisible();
     expect(screen.getByText("Reply to IT")).toBeVisible();
     expect(screen.getByText("Internal status: waiting for requester")).toBeVisible();
     expect(screen.queryByText("Replace the formatter board.")).not.toBeInTheDocument();

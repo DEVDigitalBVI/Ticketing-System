@@ -48,7 +48,8 @@ export async function POST(request: NextRequest) {
 
   const { supabase, finalize } = createSupabaseRouteClient(request);
   const access = await readCurrentAccess(supabase);
-  if (!access || access.mustChangePassword) return finalize(new NextResponse(null, { status: 403 }));
+  if (!access || access.mustChangePassword)
+    return finalize(new NextResponse(null, { status: 403 }));
 
   const formData = await request.formData();
   const raw = Object.fromEntries(formData.entries());

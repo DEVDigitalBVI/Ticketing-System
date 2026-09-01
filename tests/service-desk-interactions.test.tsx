@@ -49,7 +49,7 @@ describe("service desk interactions", () => {
   it("keeps empty ticket filters accessible without inventing request data", () => {
     render(<TicketFilters workspace={workspace} search={{}} />);
     expect(screen.getByText("No tickets yet")).toBeVisible();
-    expect(screen.getByRole("tab", { name: /Completed 0/i })).toHaveAttribute(
+    expect(screen.getByRole("tab", { name: /Completed\s*0/i })).toHaveAttribute(
       "href",
       "/my-tickets?filter=completed",
     );

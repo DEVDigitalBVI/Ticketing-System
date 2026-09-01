@@ -244,7 +244,8 @@ export async function listRequesterTicketWorkspace(
     database.ticket.count({ where: filteredWhere(access, "all", query) }),
   ]);
 
-  const totalForFilter = filter === "active" ? activeCount : filter === "completed" ? completedCount : allCount;
+  const totalForFilter =
+    filter === "active" ? activeCount : filter === "completed" ? completedCount : allCount;
   const totalPages = Math.max(1, Math.ceil(totalForFilter / pageSize));
   const normalizedPage = Math.min(page, totalPages);
 

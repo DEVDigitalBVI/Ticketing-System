@@ -1,8 +1,5 @@
 type StaffTicketStatus =
-  | "Waiting for IT"
-  | "Needs your reply"
-  | "Ready for confirmation"
-  | "Completed";
+  "Waiting for IT" | "Needs your reply" | "Ready for confirmation" | "Completed";
 
 export type StaffTicket = {
   ticketId: string;
