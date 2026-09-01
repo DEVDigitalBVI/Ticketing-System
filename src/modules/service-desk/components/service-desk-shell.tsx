@@ -85,7 +85,8 @@ export function ServiceDeskShell({
             })}
         </nav>
         {hasPermission(authorizationSubject, "user.manage") ||
-        hasPermission(authorizationSubject, "audit.read") ? (
+        hasPermission(authorizationSubject, "audit.read") ||
+        hasPermission(authorizationSubject, "configuration.manage") ? (
           <div className="nav-list admin-navigation" aria-label="Administration">
             {hasPermission(authorizationSubject, "user.manage") ? (
               <Link
@@ -96,6 +97,17 @@ export function ServiceDeskShell({
                   ⚙
                 </span>
                 <span>User administration</span>
+              </Link>
+            ) : null}
+            {hasPermission(authorizationSubject, "configuration.manage") ? (
+              <Link
+                className={`nav-item${pathname === "/admin/configuration" ? " is-active" : ""}`}
+                href="/admin/configuration"
+              >
+                <span className="nav-symbol" aria-hidden="true">
+                  ⌘
+                </span>
+                <span>Configuration</span>
               </Link>
             ) : null}
             {hasPermission(authorizationSubject, "audit.read") ? (

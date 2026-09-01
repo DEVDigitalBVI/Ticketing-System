@@ -17,35 +17,42 @@ export class OrganizationRepository {
   }
 
   upsertProperty(data: Prisma.PropertyUncheckedCreateInput) {
-    return this.client.property.upsert({
+    return this.client.property.findFirst({
       where: {
-        organizationId_code: {
-          organizationId: data.organizationId,
-          code: data.code,
-        },
+        organizationId: data.organizationId,
+        code: data.code,
       },
-      create: data,
-      update: {
-        isActive: data.isActive,
-        name: data.name,
-        timezone: data.timezone,
-      },
-    });
+    }).then((existing) =>
+      existing
+        ? this.client.property.update({
+            where: { id_organizationId: { id: existing.id, organizationId: existing.organizationId } },
+            data: {
+              isActive: data.isActive,
+              name: data.name,
+              timezone: data.timezone,
+            },
+          })
+        : this.client.property.create({ data }),
+    );
   }
 
   upsertDepartment(data: Prisma.DepartmentUncheckedCreateInput) {
-    return this.client.department.upsert({
+    return this.client.department.findFirst({
       where: {
-        propertyId_code: {
-          propertyId: data.propertyId,
-          code: data.code,
-        },
+        propertyId: data.propertyId,
+        organizationId: data.organizationId,
+        code: data.code,
       },
-      create: data,
-      update: {
-        isActive: data.isActive,
-        name: data.name,
-      },
-    });
+    }).then((existing) =>
+      existing
+        ? this.client.department.update({
+            where: { id_organizationId: { id: existing.id, organizationId: existing.organizationId } },
+            data: {
+              isActive: data.isActive,
+              name: data.name,
+            },
+          })
+        : this.client.department.create({ data }),
+    );
   }
 }
