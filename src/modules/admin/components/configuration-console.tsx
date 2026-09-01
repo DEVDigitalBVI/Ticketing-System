@@ -35,8 +35,6 @@ function statusMessage(search: SearchState, entityType: ConfigurationEntityType)
       };
     case "not_found":
       return { tone: "error", text: "That record no longer exists in this organisation." };
-    case "mfa":
-      return { tone: "error", text: "Administrator MFA verification is required." };
     default:
       return { tone: "error", text: "The configuration change could not be completed." };
   }

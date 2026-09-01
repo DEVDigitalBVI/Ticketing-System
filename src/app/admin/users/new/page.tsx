@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { requireCurrentAccess } from "@/server/auth/authorization";
 
@@ -9,7 +8,6 @@ export default async function NewUserPage({
   searchParams: Promise<{ status?: string }>;
 }) {
   const access = await requireCurrentAccess("user.manage");
-  if (access.assuranceLevel !== "aal2") redirect("/account/mfa?next=/admin/users/new");
   const { status } = await searchParams;
   return (
     <main id="main-content" className="auth-task-page">

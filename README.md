@@ -1,6 +1,6 @@
 # Peter Island Resort and Spa IT Service Desk
 
-This repository contains the approved frontend, PostgreSQL identity foundation, managed Supabase authentication flow, and administrator-managed configuration console for the Peter Island Resort and Spa IT Service Desk. Unconnected ticket, monitoring, and integration surfaces render explicit empty states; no production mock records are bundled.
+This repository contains the approved frontend, PostgreSQL identity foundation, managed Supabase authentication flow, administrator-managed configuration console, and the server-side core ticket domain for the Peter Island Resort and Spa IT Service Desk. Existing UI routes still render explicit empty or local-only states until the ticket pages are wired to persistence.
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ If `pnpm` is not installed globally, commands can be run with `npx --yes pnpm@11
 
 `NEXT_PUBLIC_APP_URL` is browser-safe. `DATABASE_URL`, `DATABASE_DIRECT_URL`, and `TEST_DATABASE_URL` are server-only and must never use the `NEXT_PUBLIC_` prefix. Startup validation reports invalid variable names without printing their values.
 
-Account administration also requires the server-only `SUPABASE_SECRET_KEY`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, and `SMTP_FROM` values shown in `.env.example`. Never add `NEXT_PUBLIC_` to them. Administrators verify TOTP before creating users. The application emails a generated temporary password and the login URL; users must replace it before service-desk access.
+Account administration also requires the server-only `SUPABASE_SECRET_KEY`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, and `SMTP_FROM` values shown in `.env.example`. Never add `NEXT_PUBLIC_` to them. The application emails a generated temporary password and the login URL; users must replace it before service-desk access.
 
 To create the first administrator in a clean environment, set the SMTP/Auth values plus `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_DISPLAY_NAME`, then run `pnpm bootstrap:admin` exactly once. The database refuses the operation after any domain user exists. The command never prints the temporary password and rolls back both records if email delivery fails.
 
@@ -40,17 +40,19 @@ The empty Step 4 foundation is also migrated to Supabase project `Ticketing Syst
 
 Step 7 adds the reviewed migration `20260901120000_step_7_configuration_taxonomy`, which seeds fictional resort hierarchy values and useful IT categories/subcategories. Active-only uniqueness for configuration values is enforced in SQL so inactive historical records can remain referenced.
 
+Step 8 adds the reviewed migration `20260901153000_step_8_ticket_domain`, which introduces the core ticket tables, human-readable `PIR-######` ticket numbering, append-only history records, validated lifecycle transitions, and placeholder priority calculation. See `docs/ticket-domain.md`.
+
 ## Frontend routes
 
 - `/login`: responsive Supabase work-account sign-in with generic failure states.
 - `/account/change-password`: mandatory first-login password replacement.
-- `/account/mfa`: authenticator enrollment and verification for privileged work.
-- `/admin/users/new`: MFA-protected account creation and SMTP credential delivery.
-- `/admin/configuration`: MFA-protected hierarchy and service-taxonomy administration.
+- `/account/mfa`: authenticator enrollment and verification screen retained for future login hardening.
+- `/admin/users/new`: permission-gated account creation and SMTP credential delivery.
+- `/admin/configuration`: permission-gated hierarchy and service-taxonomy administration.
 - `/`: staff overview and active requests.
-- `/new-ticket`: guided request form with local success feedback.
-- `/my-tickets`: filterable ticket workspace with an honest empty state until persistence exists.
-- `/technician`: empty service metrics, queue, selected-ticket context, and Level.io integration states until live services exist.
+- `/new-ticket`: guided request form with local success feedback; not yet connected to ticket persistence.
+- `/my-tickets`: filterable ticket workspace with an honest empty state until ticket reads are connected.
+- `/technician`: empty service metrics, queue, selected-ticket context, and Level.io integration states until ticket and integration reads are connected.
 - `/health`: application-boundary health status.
 
 ## Quality gates

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 
 import { ConfigurationConsole } from "@/modules/admin/components/configuration-console";
 import { ServiceDeskShell } from "@/modules/service-desk/components/service-desk-shell";
@@ -14,7 +13,6 @@ export default async function ConfigurationPage({
   searchParams: Promise<{ entity?: string; id?: string; status?: string }>;
 }) {
   const access = await requireCurrentAccess("configuration.manage");
-  if (access.assuranceLevel !== "aal2") redirect("/account/mfa?next=/admin/configuration");
   const [search, catalog] = await Promise.all([
     searchParams,
     listConfigurationCatalog(access.organizationId),

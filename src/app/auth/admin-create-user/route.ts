@@ -25,7 +25,6 @@ export async function POST(request: NextRequest) {
   const access = await readCurrentAccess(supabase);
   if (!access || access.mustChangePassword || !accessCan(access, "user.manage"))
     return finalize(new NextResponse(null, { status: 403 }));
-  if (access.assuranceLevel !== "aal2") return finalize(redirectTo(request, "mfa"));
   const form = await request.formData();
   const input = inputSchema.safeParse({
     displayName: form.get("displayName"),

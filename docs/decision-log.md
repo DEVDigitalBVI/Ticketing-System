@@ -8,8 +8,8 @@ Last updated: 2026-08-31
 - **Date:** 2026-08-31
 - **Owners:** Product / Engineering
 - **Context:** Administrators create accounts and users receive initial credentials through the resort's application SMTP forwarder.
-- **Decision:** Use Supabase Auth for passwords, sessions, and MFA, mapped by Auth UUID to `service_desk.users`. Disable public sign-up. Require an AAL2 administrator to create an account. Generate a cryptographically random temporary password, send it through server-only SMTP, and require replacement before service-desk access. Use domain roles and RLS—not user-editable Auth metadata—for authorization.
-- **Consequences:** Runtime creation requires a Supabase secret key and SMTP credentials. Temporary passwords exist only during the Auth Admin call and SMTP send. Failed profile creation or delivery triggers compensating deletion. Administrators must enroll TOTP.
+- **Decision:** Use Supabase Auth for passwords, sessions, and an MFA-capable login path, mapped by Auth UUID to `service_desk.users`. Disable public sign-up. Generate a cryptographically random temporary password, send it through server-only SMTP, and require replacement before service-desk access. Use domain roles and RLS—not user-editable Auth metadata—for authorization. Defer mandatory MFA enforcement until the login hardening work is implemented before deployment.
+- **Consequences:** Runtime creation requires a Supabase secret key and SMTP credentials. Temporary passwords exist only during the Auth Admin call and SMTP send. Failed profile creation or delivery triggers compensating deletion. MFA enrollment and strict AAL2 enforcement remain future hardening work rather than a current runtime requirement.
 - **Evidence:** Auth routes under `src/app`, adapters under `src/server/auth` and `src/server/email`, and hosted auth/RLS migrations.
 - **Supersedes:** The authentication-provider portion of open question 2.
 

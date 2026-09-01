@@ -152,7 +152,7 @@ export type ConfigurationCatalog = {
 
 export class ConfigurationMutationError extends Error {
   constructor(
-    readonly code: "denied" | "mfa" | "invalid" | "not_found" | "duplicate" | "linked" | "failed",
+    readonly code: "denied" | "invalid" | "not_found" | "duplicate" | "linked" | "failed",
     readonly entityType: ConfigurationEntityType,
     readonly id?: string,
   ) {
@@ -171,8 +171,7 @@ function requireManageAccess(
     propertyId,
   });
   if (!allowed) throw new ConfigurationMutationError("denied", entityType);
-  if (access.assuranceLevel !== "aal2" || access.mustChangePassword)
-    throw new ConfigurationMutationError("mfa", entityType);
+  if (access.mustChangePassword) throw new ConfigurationMutationError("denied", entityType);
 }
 
 function parseEnvelope(formData: FormData) {
