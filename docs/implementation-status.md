@@ -1,6 +1,6 @@
 # Peter Island Resort and Spa IT Service Desk — Implementation Status
 
-Last updated: 2026-08-31
+Last updated: 2026-09-01
 
 ## Status definitions
 
@@ -20,8 +20,18 @@ Last updated: 2026-08-31
 | 4. Establish the persistent data foundation            | Create a safe PostgreSQL and Prisma baseline before domain persistence.     | Complete         | ADR-007 and ADR-008.                                                                                 | PostgreSQL 17.11 Compose infrastructure, Prisma 7.10, private `service_desk` schema, initial migration, guarded empty reset/test workflows, repositories, server/public environment validation, and six self-contained database constraint tests are present. Clean development and test databases were migrated, tested, and reset on 2026-08-31. The same empty foundation was migrated and verified in the approved Supabase project.                                                 |
 | 5. Establish authentication and managed onboarding     | Authenticate managed users and map provider identities to domain access.    | Complete         | Supabase Auth and the Step 4 identity foundation.                                                    | Supabase SSR sessions, Auth UUID mapping, forced initial password change, MFA-gated administrator provisioning, SMTP delivery boundary, RLS, and narrowly granted RPCs are implemented. The first administrator is mapped and remains subject to the initial-password gate.                                                                                                                                                                                                              |
 | 6. Establish server-side access boundaries             | Prove explicit allow and deny behavior before business data is added.       | Complete         | ADR-011 and `docs/role-permission-matrix.md`.                                                        | Six canonical roles, 15 explicit permissions, organisation/property/owner/department object checks, server route guards, database-enforced audit retrieval, privacy-bounded append-only audit events, and the privileged `/admin/audit` view are implemented. Eight application test files/44 tests and eight database constraint tests pass; the clean migration is applied locally and in Supabase.                                                                                    |
+| 7. Make configuration values administrator-managed     | Let administrators manage resort hierarchy and service taxonomy in product. | In progress      | Step 6 access boundaries and a runnable PostgreSQL verification target.                              | Prisma models, a reviewed Step 7 migration, configuration services, audited mutation route, administrator `/admin/configuration` interface, fictional resort hierarchy seeds, useful IT categories/subcategories, and focused tests are added on 2026-09-01. Prettier, ESLint, strict TypeScript, 9 application test files/45 tests, and the production build pass. Local database migration and `pnpm test:database` verification remain blocked here because Docker/PostgreSQL is unavailable (`docker: command not found`, `ECONNREFUSED 127.0.0.1:54329`). |
 
 Steps 1 through 3 have been supplied. Add each later numbered step here before starting it so the status register remains complete.
+
+## Step 7 implementation evidence
+
+- Added administrator-managed `building_areas`, `service_locations`, `support_teams`, `ticket_categories`, and `ticket_subcategories` plus scoped relationships in Prisma. Existing `properties` and `departments` now use active-only uniqueness enforced in SQL so inactive historical values can remain referenced without blocking replacement values.
+- Added reviewed migration `20260901120000_step_7_configuration_taxonomy` with tenant-safe foreign keys, active-only unique indexes, `updated_at` triggers, and fictional Peter Island resort hierarchy seeds for areas, villas, operational locations, departments, support teams, categories, and subcategories.
+- Added a server-side configuration service and repository that enforce `configuration.manage`, require AAL2, validate codes/names/timezones, reject invalid hierarchy links, reject duplicate active values in scope, block parent deactivation while active dependents remain, and write audit events for create, update, and deactivate actions.
+- Added `/admin/configuration` and `/auth/admin-configuration`, plus administration-shell navigation, sectioned create/edit/deactivate workflows, scoped parent selectors, state badges, and feedback states using the established design tokens and existing shell/table primitives.
+- Added application coverage for the configuration navigation entry and a focused database/service suite for permissions, validation, hierarchy, duplicates, deactivation, and audit recording.
+- Verification on 2026-09-01: `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` passed. `pnpm test:database` could not run in this environment because no local PostgreSQL runtime was available and `pnpm db:up` failed with `docker: command not found`.
 
 ## Step 6 completion evidence
 

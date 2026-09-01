@@ -158,7 +158,11 @@ export class ConfigurationRepository {
     return this.client.department.create({ data });
   }
 
-  updateDepartment(id: string, organizationId: string, data: Prisma.DepartmentUncheckedUpdateInput) {
+  updateDepartment(
+    id: string,
+    organizationId: string,
+    data: Prisma.DepartmentUncheckedUpdateInput,
+  ) {
     return this.client.department.updateMany({
       where: { id, organizationId },
       data,

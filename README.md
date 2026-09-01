@@ -1,6 +1,6 @@
 # Peter Island Resort and Spa IT Service Desk
 
-This repository contains the approved frontend, PostgreSQL identity foundation, and managed Supabase authentication flow for the Peter Island Resort and Spa IT Service Desk. Unconnected ticket, monitoring, and integration surfaces render explicit empty states; no production mock records are bundled.
+This repository contains the approved frontend, PostgreSQL identity foundation, managed Supabase authentication flow, and administrator-managed configuration console for the Peter Island Resort and Spa IT Service Desk. Unconnected ticket, monitoring, and integration surfaces render explicit empty states; no production mock records are bundled.
 
 ## Prerequisites
 
@@ -38,12 +38,15 @@ The reset commands reject non-local hosts and unexpected database names. They mu
 
 The empty Step 4 foundation is also migrated to Supabase project `Ticketing System` (`zwcmljkjoxrfzfyphdtc`). Hosted databases must use reviewed forward-only migrations; never run the local reset command against Supabase. Runtime and direct migration connection strings remain server-only deployment configuration and are not committed.
 
+Step 7 adds the reviewed migration `20260901120000_step_7_configuration_taxonomy`, which seeds fictional resort hierarchy values and useful IT categories/subcategories. Active-only uniqueness for configuration values is enforced in SQL so inactive historical records can remain referenced.
+
 ## Frontend routes
 
 - `/login`: responsive Supabase work-account sign-in with generic failure states.
 - `/account/change-password`: mandatory first-login password replacement.
 - `/account/mfa`: authenticator enrollment and verification for privileged work.
 - `/admin/users/new`: MFA-protected account creation and SMTP credential delivery.
+- `/admin/configuration`: MFA-protected hierarchy and service-taxonomy administration.
 - `/`: staff overview and active requests.
 - `/new-ticket`: guided request form with local success feedback.
 - `/my-tickets`: filterable ticket workspace with an honest empty state until persistence exists.

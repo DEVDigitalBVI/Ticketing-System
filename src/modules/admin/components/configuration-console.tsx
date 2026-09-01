@@ -12,10 +12,6 @@ type SearchState = {
   status?: string;
 };
 
-function isEditing(search: SearchState, entityType: ConfigurationEntityType, id: string) {
-  return search.entity === entityType && search.id === id;
-}
-
 function statusMessage(search: SearchState, entityType: ConfigurationEntityType) {
   if (search.entity !== entityType || !search.status) return null;
   switch (search.status) {
@@ -47,7 +43,11 @@ function statusMessage(search: SearchState, entityType: ConfigurationEntityType)
 }
 
 function StateBadge({ isActive }: { isActive: boolean }) {
-  return <span className={`audit-result${isActive ? "" : " failure"}`}>{isActive ? "active" : "inactive"}</span>;
+  return (
+    <span className={`audit-result${isActive ? "" : " failure"}`}>
+      {isActive ? "active" : "inactive"}
+    </span>
+  );
 }
 
 export function ConfigurationConsole({
@@ -86,7 +86,9 @@ export function ConfigurationConsole({
         </div>
         {statusMessage(search, "property") ? (
           <p
-            className={statusMessage(search, "property")?.tone === "success" ? "form-success" : "form-error"}
+            className={
+              statusMessage(search, "property")?.tone === "success" ? "form-success" : "form-error"
+            }
             role={statusMessage(search, "property")?.tone === "success" ? "status" : "alert"}
           >
             {statusMessage(search, "property")?.text}
@@ -94,7 +96,11 @@ export function ConfigurationConsole({
         ) : null}
         <form className="admin-form-grid" action="/auth/admin-configuration" method="post">
           <input type="hidden" name="entityType" value="property" />
-          <input type="hidden" name="intent" value={search.entity === "property" && search.id ? "update" : "create"} />
+          <input
+            type="hidden"
+            name="intent"
+            value={search.entity === "property" && search.id ? "update" : "create"}
+          />
           {search.entity === "property" && search.id ? (
             <input type="hidden" name="id" value={search.id} />
           ) : null}
@@ -163,9 +169,14 @@ export function ConfigurationConsole({
                   <td>{record.name}</td>
                   <td>{record.code}</td>
                   <td>{record.timezone}</td>
-                  <td><StateBadge isActive={record.isActive} /></td>
+                  <td>
+                    <StateBadge isActive={record.isActive} />
+                  </td>
                   <td className="admin-actions-cell">
-                    <Link className="text-link inline-link" href={`/admin/configuration?entity=property&id=${record.id}`}>
+                    <Link
+                      className="text-link inline-link"
+                      href={`/admin/configuration?entity=property&id=${record.id}`}
+                    >
                       Edit
                     </Link>
                     {record.isActive ? (
@@ -173,7 +184,9 @@ export function ConfigurationConsole({
                         <input type="hidden" name="entityType" value="property" />
                         <input type="hidden" name="intent" value="deactivate" />
                         <input type="hidden" name="id" value={record.id} />
-                        <button className="ghost-button" type="submit">Deactivate</button>
+                        <button className="ghost-button" type="submit">
+                          Deactivate
+                        </button>
                       </form>
                     ) : null}
                   </td>
@@ -197,9 +210,19 @@ export function ConfigurationConsole({
           isActive: record.isActive,
         }))}
         form={
-          <EntityForm actionLabel={search.entity === "building_area" && search.id ? "Save building or area" : "Add building or area"}>
+          <EntityForm
+            actionLabel={
+              search.entity === "building_area" && search.id
+                ? "Save building or area"
+                : "Add building or area"
+            }
+          >
             <input type="hidden" name="entityType" value="building_area" />
-            <input type="hidden" name="intent" value={search.entity === "building_area" && search.id ? "update" : "create"} />
+            <input
+              type="hidden"
+              name="intent"
+              value={search.entity === "building_area" && search.id ? "update" : "create"}
+            />
             {search.entity === "building_area" && search.id ? (
               <input type="hidden" name="id" value={search.id} />
             ) : null}
@@ -275,9 +298,17 @@ export function ConfigurationConsole({
           isActive: record.isActive,
         }))}
         form={
-          <EntityForm actionLabel={search.entity === "service_location" && search.id ? "Save location" : "Add location"}>
+          <EntityForm
+            actionLabel={
+              search.entity === "service_location" && search.id ? "Save location" : "Add location"
+            }
+          >
             <input type="hidden" name="entityType" value="service_location" />
-            <input type="hidden" name="intent" value={search.entity === "service_location" && search.id ? "update" : "create"} />
+            <input
+              type="hidden"
+              name="intent"
+              value={search.entity === "service_location" && search.id ? "update" : "create"}
+            />
             {search.entity === "service_location" && search.id ? (
               <input type="hidden" name="id" value={search.id} />
             ) : null}
@@ -304,7 +335,8 @@ export function ConfigurationConsole({
                 name="buildingAreaId"
                 defaultValue={
                   search.entity === "service_location"
-                    ? catalog.serviceLocations.find((record) => record.id === search.id)?.buildingAreaId
+                    ? catalog.serviceLocations.find((record) => record.id === search.id)
+                        ?.buildingAreaId
                     : activeBuildingAreas[0]?.id
                 }
               >
@@ -370,9 +402,17 @@ export function ConfigurationConsole({
           isActive: record.isActive,
         }))}
         form={
-          <EntityForm actionLabel={search.entity === "department" && search.id ? "Save department" : "Add department"}>
+          <EntityForm
+            actionLabel={
+              search.entity === "department" && search.id ? "Save department" : "Add department"
+            }
+          >
             <input type="hidden" name="entityType" value="department" />
-            <input type="hidden" name="intent" value={search.entity === "department" && search.id ? "update" : "create"} />
+            <input
+              type="hidden"
+              name="intent"
+              value={search.entity === "department" && search.id ? "update" : "create"}
+            />
             {search.entity === "department" && search.id ? (
               <input type="hidden" name="id" value={search.id} />
             ) : null}
@@ -436,9 +476,19 @@ export function ConfigurationConsole({
           isActive: record.isActive,
         }))}
         form={
-          <EntityForm actionLabel={search.entity === "support_team" && search.id ? "Save support team" : "Add support team"}>
+          <EntityForm
+            actionLabel={
+              search.entity === "support_team" && search.id
+                ? "Save support team"
+                : "Add support team"
+            }
+          >
             <input type="hidden" name="entityType" value="support_team" />
-            <input type="hidden" name="intent" value={search.entity === "support_team" && search.id ? "update" : "create"} />
+            <input
+              type="hidden"
+              name="intent"
+              value={search.entity === "support_team" && search.id ? "update" : "create"}
+            />
             {search.entity === "support_team" && search.id ? (
               <input type="hidden" name="id" value={search.id} />
             ) : null}
@@ -465,7 +515,8 @@ export function ConfigurationConsole({
                 name="departmentId"
                 defaultValue={
                   search.entity === "support_team"
-                    ? catalog.supportTeams.find((record) => record.id === search.id)?.departmentId ?? ""
+                    ? (catalog.supportTeams.find((record) => record.id === search.id)
+                        ?.departmentId ?? "")
                     : ""
                 }
               >
@@ -518,9 +569,17 @@ export function ConfigurationConsole({
           isActive: record.isActive,
         }))}
         form={
-          <EntityForm actionLabel={search.entity === "ticket_category" && search.id ? "Save category" : "Add category"}>
+          <EntityForm
+            actionLabel={
+              search.entity === "ticket_category" && search.id ? "Save category" : "Add category"
+            }
+          >
             <input type="hidden" name="entityType" value="ticket_category" />
-            <input type="hidden" name="intent" value={search.entity === "ticket_category" && search.id ? "update" : "create"} />
+            <input
+              type="hidden"
+              name="intent"
+              value={search.entity === "ticket_category" && search.id ? "update" : "create"}
+            />
             {search.entity === "ticket_category" && search.id ? (
               <input type="hidden" name="id" value={search.id} />
             ) : null}
@@ -565,9 +624,19 @@ export function ConfigurationConsole({
           isActive: record.isActive,
         }))}
         form={
-          <EntityForm actionLabel={search.entity === "ticket_subcategory" && search.id ? "Save subcategory" : "Add subcategory"}>
+          <EntityForm
+            actionLabel={
+              search.entity === "ticket_subcategory" && search.id
+                ? "Save subcategory"
+                : "Add subcategory"
+            }
+          >
             <input type="hidden" name="entityType" value="ticket_subcategory" />
-            <input type="hidden" name="intent" value={search.entity === "ticket_subcategory" && search.id ? "update" : "create"} />
+            <input
+              type="hidden"
+              name="intent"
+              value={search.entity === "ticket_subcategory" && search.id ? "update" : "create"}
+            />
             {search.entity === "ticket_subcategory" && search.id ? (
               <input type="hidden" name="id" value={search.id} />
             ) : null}
@@ -577,7 +646,8 @@ export function ConfigurationConsole({
                 name="categoryId"
                 defaultValue={
                   search.entity === "ticket_subcategory"
-                    ? catalog.ticketSubcategories.find((record) => record.id === search.id)?.categoryId
+                    ? catalog.ticketSubcategories.find((record) => record.id === search.id)
+                        ?.categoryId
                     : activeCategories[0]?.id
                 }
               >
@@ -619,13 +689,7 @@ export function ConfigurationConsole({
   );
 }
 
-function EntityForm({
-  children,
-  actionLabel,
-}: {
-  children: React.ReactNode;
-  actionLabel: string;
-}) {
+function EntityForm({ children, actionLabel }: { children: React.ReactNode; actionLabel: string }) {
   return (
     <form className="admin-form-grid" action="/auth/admin-configuration" method="post">
       {children}
@@ -664,7 +728,10 @@ function EntitySection({
         </div>
       </div>
       {message ? (
-        <p className={message.tone === "success" ? "form-success" : "form-error"} role={message.tone === "success" ? "status" : "alert"}>
+        <p
+          className={message.tone === "success" ? "form-success" : "form-error"}
+          role={message.tone === "success" ? "status" : "alert"}
+        >
           {message.text}
         </p>
       ) : null}
@@ -687,9 +754,14 @@ function EntitySection({
                 <td>{row.primary}</td>
                 <td>{row.secondary}</td>
                 <td>{row.code}</td>
-                <td><StateBadge isActive={row.isActive} /></td>
+                <td>
+                  <StateBadge isActive={row.isActive} />
+                </td>
                 <td className="admin-actions-cell">
-                  <Link className="text-link inline-link" href={`/admin/configuration?entity=${entityType}&id=${row.id}`}>
+                  <Link
+                    className="text-link inline-link"
+                    href={`/admin/configuration?entity=${entityType}&id=${row.id}`}
+                  >
                     Edit
                   </Link>
                   {row.isActive ? (
@@ -697,7 +769,9 @@ function EntitySection({
                       <input type="hidden" name="entityType" value={entityType} />
                       <input type="hidden" name="intent" value="deactivate" />
                       <input type="hidden" name="id" value={row.id} />
-                      <button className="ghost-button" type="submit">Deactivate</button>
+                      <button className="ghost-button" type="submit">
+                        Deactivate
+                      </button>
                     </form>
                   ) : null}
                 </td>

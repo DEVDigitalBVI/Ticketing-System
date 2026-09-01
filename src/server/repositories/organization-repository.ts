@@ -17,42 +17,50 @@ export class OrganizationRepository {
   }
 
   upsertProperty(data: Prisma.PropertyUncheckedCreateInput) {
-    return this.client.property.findFirst({
-      where: {
-        organizationId: data.organizationId,
-        code: data.code,
-      },
-    }).then((existing) =>
-      existing
-        ? this.client.property.update({
-            where: { id_organizationId: { id: existing.id, organizationId: existing.organizationId } },
-            data: {
-              isActive: data.isActive,
-              name: data.name,
-              timezone: data.timezone,
-            },
-          })
-        : this.client.property.create({ data }),
-    );
+    return this.client.property
+      .findFirst({
+        where: {
+          organizationId: data.organizationId,
+          code: data.code,
+        },
+      })
+      .then((existing) =>
+        existing
+          ? this.client.property.update({
+              where: {
+                id_organizationId: { id: existing.id, organizationId: existing.organizationId },
+              },
+              data: {
+                isActive: data.isActive,
+                name: data.name,
+                timezone: data.timezone,
+              },
+            })
+          : this.client.property.create({ data }),
+      );
   }
 
   upsertDepartment(data: Prisma.DepartmentUncheckedCreateInput) {
-    return this.client.department.findFirst({
-      where: {
-        propertyId: data.propertyId,
-        organizationId: data.organizationId,
-        code: data.code,
-      },
-    }).then((existing) =>
-      existing
-        ? this.client.department.update({
-            where: { id_organizationId: { id: existing.id, organizationId: existing.organizationId } },
-            data: {
-              isActive: data.isActive,
-              name: data.name,
-            },
-          })
-        : this.client.department.create({ data }),
-    );
+    return this.client.department
+      .findFirst({
+        where: {
+          propertyId: data.propertyId,
+          organizationId: data.organizationId,
+          code: data.code,
+        },
+      })
+      .then((existing) =>
+        existing
+          ? this.client.department.update({
+              where: {
+                id_organizationId: { id: existing.id, organizationId: existing.organizationId },
+              },
+              data: {
+                isActive: data.isActive,
+                name: data.name,
+              },
+            })
+          : this.client.department.create({ data }),
+      );
   }
 }

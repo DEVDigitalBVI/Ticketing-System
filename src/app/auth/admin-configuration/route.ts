@@ -2,18 +2,10 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { createSupabaseRouteClient } from "@/lib/supabase/route";
 import { readCurrentAccess } from "@/server/auth/access";
-import {
-  ConfigurationMutationError,
-  mutateConfiguration,
-} from "@/server/configuration/service";
+import { ConfigurationMutationError, mutateConfiguration } from "@/server/configuration/service";
 import { requestCorrelationId } from "@/server/audit/correlation";
 
-function redirectTo(
-  request: NextRequest,
-  entity: string,
-  status: string,
-  id?: string,
-) {
+function redirectTo(request: NextRequest, entity: string, status: string, id?: string) {
   const url = new URL("/admin/configuration", request.url);
   url.searchParams.set("entity", entity);
   url.searchParams.set("status", status);

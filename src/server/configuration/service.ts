@@ -152,14 +152,7 @@ export type ConfigurationCatalog = {
 
 export class ConfigurationMutationError extends Error {
   constructor(
-    readonly code:
-      | "denied"
-      | "mfa"
-      | "invalid"
-      | "not_found"
-      | "duplicate"
-      | "linked"
-      | "failed",
+    readonly code: "denied" | "mfa" | "invalid" | "not_found" | "duplicate" | "linked" | "failed",
     readonly entityType: ConfigurationEntityType,
     readonly id?: string,
   ) {
@@ -168,7 +161,11 @@ export class ConfigurationMutationError extends Error {
   }
 }
 
-function requireManageAccess(access: AccessProfile, entityType: ConfigurationEntityType, propertyId?: string) {
+function requireManageAccess(
+  access: AccessProfile,
+  entityType: ConfigurationEntityType,
+  propertyId?: string,
+) {
   const allowed = accessCan(access, "configuration.manage", {
     organizationId: access.organizationId,
     propertyId,
@@ -198,7 +195,9 @@ function parseOrThrow<T>(
 function toAuditMetadata(
   data: Record<string, string | number | boolean | null | undefined>,
 ): Prisma.InputJsonObject {
-  const entries = Object.entries(data).filter((entry): entry is [string, string | number | boolean | null] => entry[1] !== undefined);
+  const entries = Object.entries(data).filter(
+    (entry): entry is [string, string | number | boolean | null] => entry[1] !== undefined,
+  );
   return Object.fromEntries(entries);
 }
 
@@ -207,14 +206,20 @@ function auditAction(entityType: ConfigurationEntityType, intent: MutationIntent
   return `configuration.${entityType}.${intent === "create" ? "created" : "updated"}`;
 }
 
-function friendlyDatabaseError(error: unknown, entityType: ConfigurationEntityType, id?: string): never {
+function friendlyDatabaseError(
+  error: unknown,
+  entityType: ConfigurationEntityType,
+  id?: string,
+): never {
   if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
     throw new ConfigurationMutationError("duplicate", entityType, id);
   }
   throw error;
 }
 
-export async function listConfigurationCatalog(organizationId: string): Promise<ConfigurationCatalog> {
+export async function listConfigurationCatalog(
+  organizationId: string,
+): Promise<ConfigurationCatalog> {
   const repository = new ConfigurationRepository(database);
   const [
     properties,
@@ -345,16 +350,25 @@ export async function mutateConfiguration(
             throw new ConfigurationMutationError("linked", entityType, id);
           if (current.isActive) {
             await repository.updateProperty(id, access.organizationId, { isActive: false });
-            await recordAudit(auditRepository, access, correlationId, entityType, id, id, { code: current.code, name: current.name }, intent);
+            await recordAudit(
+              auditRepository,
+              access,
+              correlationId,
+              entityType,
+              id,
+              id,
+              { code: current.code, name: current.name },
+              intent,
+            );
           }
           return { entityType, intent };
         }
 
         const input = parseOrThrow(
           propertySchema.safeParse({
-          code: formData.get("code"),
-          name: formData.get("name"),
-          timezone: formData.get("timezone"),
+            code: formData.get("code"),
+            name: formData.get("name"),
+            timezone: formData.get("timezone"),
           }),
           entityType,
           id,
@@ -408,22 +422,7 @@ export async function mutateConfiguration(
       }
 
       case "building_area": {
-        const input =
-          intent === "deactivate"
-            ? null
-            : parseOrThrow(
-                buildingAreaSchema.safeParse({
-          code: formData.get("code"),
-          name: formData.get("name"),
-          propertyId: formData.get("propertyId"),
-          kind: formData.get("kind"),
-                }),
-                entityType,
-                id,
-              );
-
-        const propertyId = input?.propertyId;
-        requireManageAccess(access, entityType, propertyId);
+        requireManageAccess(access, entityType);
         if (intent === "deactivate") {
           if (!id) throw new ConfigurationMutationError("invalid", entityType);
           const current = await repository.findBuildingArea(id, access.organizationId);
@@ -433,11 +432,31 @@ export async function mutateConfiguration(
             throw new ConfigurationMutationError("linked", entityType, id);
           if (current.isActive) {
             await repository.updateBuildingArea(id, access.organizationId, { isActive: false });
-            await recordAudit(auditRepository, access, correlationId, entityType, id, current.propertyId, { code: current.code, name: current.name }, intent);
+            await recordAudit(
+              auditRepository,
+              access,
+              correlationId,
+              entityType,
+              id,
+              current.propertyId,
+              { code: current.code, name: current.name },
+              intent,
+            );
           }
           return { entityType, intent };
         }
 
+        const input = parseOrThrow(
+          buildingAreaSchema.safeParse({
+            code: formData.get("code"),
+            name: formData.get("name"),
+            propertyId: formData.get("propertyId"),
+            kind: formData.get("kind"),
+          }),
+          entityType,
+          id,
+        );
+        requireManageAccess(access, entityType, input.propertyId);
         const property = await repository.findProperty(input.propertyId, access.organizationId);
         if (!property?.isActive) throw new ConfigurationMutationError("invalid", entityType, id);
         const duplicate = await repository.findActiveBuildingAreaByCodeOrName(
@@ -491,22 +510,7 @@ export async function mutateConfiguration(
       }
 
       case "service_location": {
-        const input =
-          intent === "deactivate"
-            ? null
-            : parseOrThrow(
-                serviceLocationSchema.safeParse({
-          code: formData.get("code"),
-          name: formData.get("name"),
-          propertyId: formData.get("propertyId"),
-          buildingAreaId: formData.get("buildingAreaId"),
-          kind: formData.get("kind"),
-                }),
-                entityType,
-                id,
-              );
-        const propertyId = input?.propertyId;
-        requireManageAccess(access, entityType, propertyId);
+        requireManageAccess(access, entityType);
         if (intent === "deactivate") {
           if (!id) throw new ConfigurationMutationError("invalid", entityType);
           const current = await repository.findServiceLocation(id, access.organizationId);
@@ -514,16 +518,41 @@ export async function mutateConfiguration(
           requireManageAccess(access, entityType, current.propertyId);
           if (current.isActive) {
             await repository.updateServiceLocation(id, access.organizationId, { isActive: false });
-            await recordAudit(auditRepository, access, correlationId, entityType, id, current.propertyId, { code: current.code, name: current.name }, intent);
+            await recordAudit(
+              auditRepository,
+              access,
+              correlationId,
+              entityType,
+              id,
+              current.propertyId,
+              { code: current.code, name: current.name },
+              intent,
+            );
           }
           return { entityType, intent };
         }
 
+        const input = parseOrThrow(
+          serviceLocationSchema.safeParse({
+            code: formData.get("code"),
+            name: formData.get("name"),
+            propertyId: formData.get("propertyId"),
+            buildingAreaId: formData.get("buildingAreaId"),
+            kind: formData.get("kind"),
+          }),
+          entityType,
+          id,
+        );
+        requireManageAccess(access, entityType, input.propertyId);
         const [property, buildingArea] = await Promise.all([
           repository.findProperty(input.propertyId, access.organizationId),
           repository.findBuildingArea(input.buildingAreaId, access.organizationId),
         ]);
-        if (!property?.isActive || !buildingArea?.isActive || buildingArea.propertyId !== input.propertyId)
+        if (
+          !property?.isActive ||
+          !buildingArea?.isActive ||
+          buildingArea.propertyId !== input.propertyId
+        )
           throw new ConfigurationMutationError("invalid", entityType, id);
         const duplicate = await repository.findActiveServiceLocationByCodeOrName(
           input.buildingAreaId,
@@ -577,20 +606,7 @@ export async function mutateConfiguration(
       }
 
       case "department": {
-        const input =
-          intent === "deactivate"
-            ? null
-            : parseOrThrow(
-                departmentSchema.safeParse({
-          code: formData.get("code"),
-          name: formData.get("name"),
-          propertyId: formData.get("propertyId"),
-                }),
-                entityType,
-                id,
-              );
-        const propertyId = input?.propertyId;
-        requireManageAccess(access, entityType, propertyId);
+        requireManageAccess(access, entityType);
         if (intent === "deactivate") {
           if (!id) throw new ConfigurationMutationError("invalid", entityType);
           const current = await repository.findDepartment(id, access.organizationId);
@@ -600,11 +616,30 @@ export async function mutateConfiguration(
             throw new ConfigurationMutationError("linked", entityType, id);
           if (current.isActive) {
             await repository.updateDepartment(id, access.organizationId, { isActive: false });
-            await recordAudit(auditRepository, access, correlationId, entityType, id, current.propertyId, { code: current.code, name: current.name }, intent);
+            await recordAudit(
+              auditRepository,
+              access,
+              correlationId,
+              entityType,
+              id,
+              current.propertyId,
+              { code: current.code, name: current.name },
+              intent,
+            );
           }
           return { entityType, intent };
         }
 
+        const input = parseOrThrow(
+          departmentSchema.safeParse({
+            code: formData.get("code"),
+            name: formData.get("name"),
+            propertyId: formData.get("propertyId"),
+          }),
+          entityType,
+          id,
+        );
+        requireManageAccess(access, entityType, input.propertyId);
         const property = await repository.findProperty(input.propertyId, access.organizationId);
         if (!property?.isActive) throw new ConfigurationMutationError("invalid", entityType, id);
         const duplicate = await repository.findActiveDepartmentByCodeOrName(
@@ -657,21 +692,7 @@ export async function mutateConfiguration(
       }
 
       case "support_team": {
-        const input =
-          intent === "deactivate"
-            ? null
-            : parseOrThrow(
-                supportTeamSchema.safeParse({
-          code: formData.get("code"),
-          name: formData.get("name"),
-          propertyId: formData.get("propertyId"),
-          departmentId: formData.get("departmentId"),
-                }),
-                entityType,
-                id,
-              );
-        const propertyId = input?.propertyId;
-        requireManageAccess(access, entityType, propertyId);
+        requireManageAccess(access, entityType);
         if (intent === "deactivate") {
           if (!id) throw new ConfigurationMutationError("invalid", entityType);
           const current = await repository.findSupportTeam(id, access.organizationId);
@@ -679,15 +700,38 @@ export async function mutateConfiguration(
           requireManageAccess(access, entityType, current.propertyId);
           if (current.isActive) {
             await repository.updateSupportTeam(id, access.organizationId, { isActive: false });
-            await recordAudit(auditRepository, access, correlationId, entityType, id, current.propertyId, { code: current.code, name: current.name }, intent);
+            await recordAudit(
+              auditRepository,
+              access,
+              correlationId,
+              entityType,
+              id,
+              current.propertyId,
+              { code: current.code, name: current.name },
+              intent,
+            );
           }
           return { entityType, intent };
         }
 
+        const input = parseOrThrow(
+          supportTeamSchema.safeParse({
+            code: formData.get("code"),
+            name: formData.get("name"),
+            propertyId: formData.get("propertyId"),
+            departmentId: formData.get("departmentId"),
+          }),
+          entityType,
+          id,
+        );
+        requireManageAccess(access, entityType, input.propertyId);
         const property = await repository.findProperty(input.propertyId, access.organizationId);
         if (!property?.isActive) throw new ConfigurationMutationError("invalid", entityType, id);
         if (input.departmentId) {
-          const department = await repository.findDepartment(input.departmentId, access.organizationId);
+          const department = await repository.findDepartment(
+            input.departmentId,
+            access.organizationId,
+          );
           if (!department?.isActive || department.propertyId !== input.propertyId)
             throw new ConfigurationMutationError("invalid", entityType, id);
         }
@@ -751,15 +795,24 @@ export async function mutateConfiguration(
             throw new ConfigurationMutationError("linked", entityType, id);
           if (current.isActive) {
             await repository.updateTicketCategory(id, access.organizationId, { isActive: false });
-            await recordAudit(auditRepository, access, correlationId, entityType, id, null, { code: current.code, name: current.name }, intent);
+            await recordAudit(
+              auditRepository,
+              access,
+              correlationId,
+              entityType,
+              id,
+              null,
+              { code: current.code, name: current.name },
+              intent,
+            );
           }
           return { entityType, intent };
         }
 
         const input = parseOrThrow(
           ticketCategorySchema.safeParse({
-          code: formData.get("code"),
-          name: formData.get("name"),
+            code: formData.get("code"),
+            name: formData.get("name"),
           }),
           entityType,
           id,
@@ -818,22 +871,36 @@ export async function mutateConfiguration(
           const current = await repository.findTicketSubcategory(id, access.organizationId);
           if (!current) throw new ConfigurationMutationError("not_found", entityType, id);
           if (current.isActive) {
-            await repository.updateTicketSubcategory(id, access.organizationId, { isActive: false });
-            await recordAudit(auditRepository, access, correlationId, entityType, id, null, { code: current.code, name: current.name }, intent);
+            await repository.updateTicketSubcategory(id, access.organizationId, {
+              isActive: false,
+            });
+            await recordAudit(
+              auditRepository,
+              access,
+              correlationId,
+              entityType,
+              id,
+              null,
+              { code: current.code, name: current.name },
+              intent,
+            );
           }
           return { entityType, intent };
         }
 
         const input = parseOrThrow(
           ticketSubcategorySchema.safeParse({
-          code: formData.get("code"),
-          name: formData.get("name"),
-          categoryId: formData.get("categoryId"),
+            code: formData.get("code"),
+            name: formData.get("name"),
+            categoryId: formData.get("categoryId"),
           }),
           entityType,
           id,
         );
-        const category = await repository.findTicketCategory(input.categoryId, access.organizationId);
+        const category = await repository.findTicketCategory(
+          input.categoryId,
+          access.organizationId,
+        );
         if (!category?.isActive) throw new ConfigurationMutationError("invalid", entityType, id);
         const duplicate = await repository.findActiveTicketSubcategoryByCodeOrName(
           input.categoryId,
