@@ -22,6 +22,8 @@ If `pnpm` is not installed globally, commands can be run with `npx --yes pnpm@11
 
 Account administration also requires the server-only `SUPABASE_SECRET_KEY`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, and `SMTP_FROM` values shown in `.env.example`. Never add `NEXT_PUBLIC_` to them. Administrators verify TOTP before creating users. The application emails a generated temporary password and the login URL; users must replace it before service-desk access.
 
+To create the first administrator in a clean environment, set the SMTP/Auth values plus `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_DISPLAY_NAME`, then run `pnpm bootstrap:admin` exactly once. The database refuses the operation after any domain user exists. The command never prints the temporary password and rolls back both records if email delivery fails.
+
 ## Database workflow
 
 - `pnpm db:validate`: validate the Prisma schema.

@@ -187,6 +187,8 @@ No application-code fix was required in Step 3.
 - Hosted migrations enable RLS on all seven foundation tables, expose only a security-invoker current-user view, and create narrowly granted RPCs with explicit identity, role, and AAL checks. Hosted reference data is limited to the real resort organization/property and three access roles; there are no users or tickets.
 - Local migration deployment and 6 database constraint tests pass. Supabase security advisors have no actionable warning after the explicit audit-event deny policy; unused-index notices are expected before workload exists.
 - SMTP delivery and the initial Jamaal Hodge administrator remain blocked on server-only SMTP credentials and a production application URL. The password previously posted in chat was not used, stored, or committed.
+- A service-role-only, empty-database-only `pnpm bootstrap:admin` workflow is migrated locally and remotely for the first administrator; later users must use the MFA-verified web workflow.
+- Hosted Auth still reports public sign-up enabled. Unmapped sign-ups cannot pass domain authorization or RLS, but sign-up must be disabled and TOTP/session/password policy pushed after the production application URL is supplied; the checked-in config intentionally remains localhost-safe until then.
 
 ## Step 1 completion gate
 
