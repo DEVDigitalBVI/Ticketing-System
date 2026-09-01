@@ -1,5 +1,11 @@
 import type { AuditEventView } from "@/server/audit/events";
 
+const auditEventTimeFormatter = new Intl.DateTimeFormat("en-GB", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "America/Tortola",
+});
+
 function readableAction(action: string) {
   return action.replaceAll(/[._]/g, " ");
 }
@@ -32,11 +38,7 @@ export function AuditEventList({ events }: { events: AuditEventView[] }) {
             <tr key={event.id}>
               <td>
                 <time dateTime={event.occurredAt}>
-                  {new Intl.DateTimeFormat("en-GB", {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                    timeZone: "America/Tortola",
-                  }).format(new Date(event.occurredAt))}
+                  {auditEventTimeFormatter.format(new Date(event.occurredAt))}
                 </time>
               </td>
               <td>{event.actor}</td>

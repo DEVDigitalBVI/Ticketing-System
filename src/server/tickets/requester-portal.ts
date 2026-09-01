@@ -17,6 +17,13 @@ const activeStatuses = [
   "waiting_for_vendor",
   "resolved",
 ] as const satisfies readonly TicketStatus[];
+const requesterDateFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+});
+const requesterMonthFormatter = new Intl.DateTimeFormat("en-US", { month: "short" });
+const requesterDayFormatter = new Intl.DateTimeFormat("en-US", { day: "2-digit" });
 
 export type StaffTicketFilter = "active" | "completed" | "all";
 
@@ -116,16 +123,12 @@ function ticketStateFor(status: TicketStatus): StaffTicketListItem["state"] {
 }
 
 function formatRelativeDate(value: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(value);
+  return requesterDateFormatter.format(value);
 }
 
 function dateParts(value: Date) {
-  const month = new Intl.DateTimeFormat("en-US", { month: "short" }).format(value);
-  const day = new Intl.DateTimeFormat("en-US", { day: "2-digit" }).format(value);
+  const month = requesterMonthFormatter.format(value);
+  const day = requesterDayFormatter.format(value);
   return { day, month };
 }
 

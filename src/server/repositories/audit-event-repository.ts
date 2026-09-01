@@ -8,10 +8,6 @@ export class AuditEventRepository {
     return this.client.auditEvent.create({ data });
   }
 
-  recordOnce(data: Prisma.AuditEventUncheckedCreateInput) {
-    return this.client.auditEvent.createMany({ data, skipDuplicates: true });
-  }
-
   listRecentForOrganization(organizationId: string, limit = 50) {
     return this.client.auditEvent.findMany({
       where: { organizationId },

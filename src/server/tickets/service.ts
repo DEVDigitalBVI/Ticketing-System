@@ -51,6 +51,10 @@ const assignTicketSchema = z.object({
   ticketId: uuidSchema,
   assignedUserId: optionalUuidSchema,
   assignedSupportTeamId: optionalUuidSchema,
+  expectedUpdatedAt: z.preprocess(
+    (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+    z.string().datetime({ offset: true }).optional(),
+  ),
   note: z.preprocess(
     (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
     z.string().trim().min(2).max(1000).optional(),
@@ -88,7 +92,8 @@ export class TicketServiceError extends Error {
       | "not_found"
       | "transition_invalid"
       | "assignment_required"
-      | "resolution_required",
+      | "resolution_required"
+      | "conflict",
     readonly ticketId?: string,
   ) {
     super(code);
@@ -450,12 +455,23 @@ export async function assignTicket(
     const status =
       ticket.status === "new" || ticket.status === "triage" ? "assigned" : ticket.status;
 
-    const updated = await repository.updateTicket(ticket.id, access.organizationId, {
+    const assignmentUpdate = {
       supportTeamId: input.assignedSupportTeamId,
       assigneeUserId: input.assignedUserId,
       status,
       assignedAt: new Date(),
-    });
+    } satisfies Prisma.TicketUncheckedUpdateInput;
+
+    const updated = input.expectedUpdatedAt
+      ? await repository.updateTicketIfCurrent(
+          ticket.id,
+          access.organizationId,
+          new Date(input.expectedUpdatedAt),
+          assignmentUpdate,
+        )
+      : await repository.updateTicket(ticket.id, access.organizationId, assignmentUpdate);
+
+    if (!updated) throw new TicketServiceError("conflict", input.ticketId);
 
     await repository.createAssignment({
       organizationId: access.organizationId,

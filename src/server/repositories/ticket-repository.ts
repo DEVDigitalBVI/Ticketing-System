@@ -78,6 +78,20 @@ export class TicketRepository {
     });
   }
 
+  async updateTicketIfCurrent(
+    id: string,
+    organizationId: string,
+    expectedUpdatedAt: Date,
+    data: Prisma.TicketUncheckedUpdateInput,
+  ) {
+    const result = await this.client.ticket.updateMany({
+      where: { id, organizationId, updatedAt: expectedUpdatedAt },
+      data,
+    });
+    if (result.count !== 1) return null;
+    return this.findTicket(id, organizationId);
+  }
+
   createActivity(data: Prisma.TicketActivityUncheckedCreateInput) {
     return this.client.ticketActivity.create({ data });
   }

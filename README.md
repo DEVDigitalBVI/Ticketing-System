@@ -1,6 +1,6 @@
 # Peter Island Resort and Spa IT Service Desk
 
-This repository contains the approved frontend, PostgreSQL identity foundation, managed Supabase authentication flow, administrator-managed configuration console, the server-side core ticket domain, the authenticated ticket-submission workflow, and the requester-facing My Tickets workspace for the Peter Island Resort and Spa IT Service Desk.
+This repository contains the approved frontend, PostgreSQL identity foundation, managed Supabase authentication flow, administrator-managed configuration console, the server-side core ticket domain, the authenticated ticket-submission workflow, the requester-facing My Tickets workspace, and the live technician queue for the Peter Island Resort and Spa IT Service Desk.
 
 ## Prerequisites
 
@@ -52,7 +52,7 @@ Step 8 adds the reviewed migration `20260901153000_step_8_ticket_domain`, which 
 - `/`: staff overview and active requests.
 - `/new-ticket`: guided request form connected to authenticated ticket creation with controlled reference data and real ticket-number confirmation.
 - `/my-tickets`: requester-authorized ticket workspace with server-side filters, search, pagination, public history, replies, and resolution confirmation.
-- `/technician`: empty service metrics, queue, selected-ticket context, and Level.io integration states until ticket and integration reads are connected.
+- `/technician`: live technician queue with server-side views, pagination, assignment controls, conflict protection, and a real ticket detail panel. Formal SLA timing and Level.io remain placeholder states.
 - `/health`: application-boundary health status.
 
 ## Quality gates

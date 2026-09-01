@@ -1,33 +1,311 @@
-"use client";
+import Link from "next/link";
 
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import type {
+  TechnicianQueueDetail,
+  TechnicianQueueFilter,
+  TechnicianWorkspaceData,
+} from "@/server/tickets/technician-queue";
 
-import type { TechnicianTicket } from "../types";
+type SearchState = {
+  status?: string;
+};
 
-const emptyMetrics = [
-  { label: "At risk", value: "—", detail: "Ticket data not connected" },
-  { label: "Unassigned", value: "—", detail: "Ticket data not connected" },
-  { label: "My active work", value: "—", detail: "Ticket data not connected" },
-  { label: "Resolved today", value: "—", detail: "Ticket data not connected" },
-] as const;
+function filterMessage(search: SearchState) {
+  switch (search.status) {
+    case "assigned":
+      return { tone: "success" as const, text: "The ticket assignment was saved." };
+    case "conflict":
+      return {
+        tone: "error" as const,
+        text: "That ticket changed before your update was saved. Refresh and try again.",
+      };
+    case "failed":
+      return { tone: "error" as const, text: "We could not update that ticket." };
+    default:
+      return null;
+  }
+}
 
-export function TechnicianWorkspaceFromQuery({ tickets = [] }: { tickets?: TechnicianTicket[] }) {
-  const ticketId = useSearchParams().get("ticket") ?? undefined;
-  return <TechnicianWorkspace initialTicketId={ticketId} tickets={tickets} />;
+function paramsFor(
+  filter: TechnicianQueueFilter,
+  page: number,
+  ticketId?: string,
+  status?: string,
+) {
+  const params = new URLSearchParams();
+  if (filter !== "unassigned") params.set("filter", filter);
+  if (page > 1) params.set("page", String(page));
+  if (ticketId) params.set("ticket", ticketId);
+  if (status) params.set("status", status);
+  return params.toString();
+}
+
+function filterHref(filter: TechnicianQueueFilter) {
+  const params = paramsFor(filter, 1);
+  return params ? `/technician?${params}` : "/technician";
+}
+
+function pageHref(filter: TechnicianQueueFilter, page: number, ticketId?: string) {
+  const params = paramsFor(filter, page, ticketId);
+  return params ? `/technician?${params}` : "/technician";
+}
+
+function ticketHref(filter: TechnicianQueueFilter, page: number, ticketId: string) {
+  const params = paramsFor(filter, page, ticketId);
+  return `/technician?${params}`;
+}
+
+function statusClass(status: string) {
+  if (status === "Waiting for requester" || status === "Waiting for vendor") return "action";
+  if (status === "Resolved" || status === "In progress") return "progress";
+  return "waiting";
+}
+
+function queueEmptyState(filter: TechnicianQueueFilter) {
+  switch (filter) {
+    case "unassigned":
+      return "No unassigned tickets";
+    case "my_work":
+      return "No tickets in My Work";
+    case "team_work":
+      return "No tickets in Team Work";
+    case "waiting":
+      return "No waiting tickets";
+    case "at_risk":
+      return "No at-risk tickets";
+    case "breached":
+      return "No breached tickets";
+    case "recently_resolved":
+      return "No recently resolved tickets";
+  }
+}
+
+function DetailPanel({
+  ticket,
+  filter,
+  page,
+  search,
+}: {
+  ticket: TechnicianQueueDetail | null;
+  filter: TechnicianQueueFilter;
+  page: number;
+  search: SearchState;
+}) {
+  const message = filterMessage(search);
+
+  if (!ticket) {
+    return (
+      <aside className="context-panel" aria-label="Selected ticket context" aria-live="polite">
+        <div className="empty-context">
+          <p className="overline">Ticket context</p>
+          <h2>No ticket selected</h2>
+          <p>Choose a queue item to review the ticket, assignment, and activity history.</p>
+        </div>
+      </aside>
+    );
+  }
+
+  return (
+    <aside className="context-panel" aria-label="Selected ticket context" aria-live="polite">
+      <div className="context-top">
+        <span className={`priority-code ${ticket.priority.toLowerCase()}`}>{ticket.priority}</span>
+        <span className={`status-pill ${statusClass(ticket.status)}`}>{ticket.status}</span>
+      </div>
+      <h2>{ticket.subject}</h2>
+      <p className="context-id">
+        {ticket.ticketNumber} · {ticket.location}
+      </p>
+      {message ? (
+        <p className={message.tone === "success" ? "form-success" : "form-error"}>{message.text}</p>
+      ) : null}
+      <div className="context-status">
+        <span className="pulse-dot" aria-hidden="true" />
+        <div>
+          <strong>{ticket.serviceIndicator}</strong>
+          <small>Internal status: {ticket.canonicalStatus.replaceAll("_", " ")}</small>
+        </div>
+      </div>
+      <p>{ticket.description}</p>
+      <dl className="detail-list">
+        <div>
+          <dt>Requester</dt>
+          <dd>{ticket.requester}</dd>
+        </div>
+        <div>
+          <dt>Affected user</dt>
+          <dd>{ticket.affectedUser ?? "Same as requester"}</dd>
+        </div>
+        <div>
+          <dt>Support team</dt>
+          <dd>{ticket.supportTeam}</dd>
+        </div>
+        <div>
+          <dt>Assignee</dt>
+          <dd>{ticket.assignee}</dd>
+        </div>
+        <div>
+          <dt>Property</dt>
+          <dd>{ticket.property}</dd>
+        </div>
+        <div>
+          <dt>Category</dt>
+          <dd>
+            {ticket.category}
+            {ticket.subcategory ? ` · ${ticket.subcategory}` : ""}
+          </dd>
+        </div>
+        <div>
+          <dt>Age</dt>
+          <dd>{ticket.age}</dd>
+        </div>
+        <div>
+          <dt>Source</dt>
+          <dd>{ticket.source}</dd>
+        </div>
+      </dl>
+      <form className="ticket-inline-form" action="/auth/technician-ticket" method="post">
+        <input type="hidden" name="intent" value="assign" />
+        <input type="hidden" name="ticketId" value={ticket.ticketId} />
+        <input type="hidden" name="filter" value={filter} />
+        <input type="hidden" name="page" value={String(page)} />
+        <input type="hidden" name="expectedUpdatedAt" value={ticket.updatedAtToken} />
+        <label className="field-label" htmlFor="support-team">
+          Support team
+        </label>
+        <select id="support-team" name="assignedSupportTeamId" defaultValue="">
+          <option value="">Keep current team</option>
+          {ticket.assignmentOptions.supportTeams.map((team) => (
+            <option key={team.id} value={team.id}>
+              {team.name}
+            </option>
+          ))}
+        </select>
+        <label className="field-label" htmlFor="assigned-user">
+          Assignee
+        </label>
+        <select id="assigned-user" name="assignedUserId" defaultValue="">
+          <option value="">Keep current assignee</option>
+          {ticket.assignmentOptions.technicians.map((technician) => (
+            <option key={technician.id} value={technician.id}>
+              {technician.name}
+            </option>
+          ))}
+        </select>
+        <label className="field-label" htmlFor="assignment-note">
+          Assignment note
+        </label>
+        <textarea
+          id="assignment-note"
+          name="note"
+          rows={3}
+          maxLength={1000}
+          placeholder="Add a short handoff note if needed."
+        />
+        <div className="tech-actions">
+          <button className="primary-button" type="submit">
+            Save assignment
+          </button>
+        </div>
+      </form>
+      <div className="ticket-inline-form secondary-form">
+        <form action="/auth/technician-ticket" method="post">
+          <input type="hidden" name="intent" value="claim" />
+          <input type="hidden" name="ticketId" value={ticket.ticketId} />
+          <input type="hidden" name="filter" value={filter} />
+          <input type="hidden" name="page" value={String(page)} />
+          <input type="hidden" name="expectedUpdatedAt" value={ticket.updatedAtToken} />
+          <button className="secondary-button" type="submit">
+            Claim this ticket
+          </button>
+        </form>
+      </div>
+      <div className="ticket-thread">
+        <h3>Activity history</h3>
+        <ol className="thread-list">
+          {ticket.history.map((entry) => (
+            <li key={entry.id} className="thread-entry">
+              <strong>{entry.title}</strong>
+              <small>{entry.timestamp}</small>
+              {entry.body ? <p>{entry.body}</p> : null}
+            </li>
+          ))}
+        </ol>
+      </div>
+      <div className="device-card">
+        <div className="device-heading">
+          <span>
+            <small>LEVEL.IO DEVICE</small>
+            <strong>Not connected</strong>
+          </span>
+          <span className="online-badge">Status unavailable</span>
+        </div>
+        <button className="secondary-button full-width" type="button" disabled>
+          Level.io not connected
+        </button>
+      </div>
+    </aside>
+  );
 }
 
 export function TechnicianWorkspace({
-  initialTicketId,
-  tickets = [],
+  workspace,
+  search,
 }: {
-  initialTicketId?: string;
-  tickets?: TechnicianTicket[];
+  workspace?: TechnicianWorkspaceData;
+  search?: SearchState;
 }) {
-  const initialKey =
-    tickets.find((ticket) => ticket.id === initialTicketId)?.key ?? tickets[0]?.key;
-  const [selectedKey, setSelectedKey] = useState(initialKey);
-  const selected = tickets.find((ticket) => ticket.key === selectedKey) ?? tickets[0];
+  if (!workspace) {
+    return (
+      <section className="view technician-view" aria-labelledby="technician-title">
+        <header className="page-header technician-header">
+          <div>
+            <p className="overline">Technician workspace</p>
+            <h1 id="technician-title">Service overview</h1>
+            <p className="lead">Queue data will appear here after ticket access is connected.</p>
+          </div>
+        </header>
+        <div className="metric-grid" aria-label="Service metrics">
+          {[
+            ["Unassigned", "—", "Ticket data not connected"],
+            ["My Work", "—", "Ticket data not connected"],
+            ["Waiting", "—", "Ticket data not connected"],
+            ["Recently Resolved", "—", "Ticket data not connected"],
+          ].map(([label, value, detail]) => (
+            <article className="metric-card" key={label}>
+              <p>{label}</p>
+              <strong>{value}</strong>
+              <span>{detail}</span>
+            </article>
+          ))}
+        </div>
+        <div className="workspace-grid">
+          <section className="queue-panel" aria-labelledby="priority-queue-title">
+            <div className="section-heading queue-heading">
+              <div>
+                <p className="overline">Priority queue</p>
+                <h2 id="priority-queue-title">Needs attention</h2>
+              </div>
+            </div>
+            <div className="queue-table" role="table" aria-label="Priority tickets">
+              <div className="empty-state queue-empty-state">
+                <strong>No tickets in the queue</strong>
+                <p>Priority work will appear after authenticated ticket access is connected.</p>
+              </div>
+            </div>
+          </section>
+          <aside className="context-panel" aria-label="Selected ticket context" aria-live="polite">
+            <div className="empty-context">
+              <p className="overline">Ticket context</p>
+              <h2>No ticket selected</h2>
+              <p>Ticket and device details will appear here when live services are connected.</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+    );
+  }
+
+  const searchState = search ?? {};
 
   return (
     <section className="view technician-view" aria-labelledby="technician-title">
@@ -35,26 +313,31 @@ export function TechnicianWorkspace({
         <div>
           <p className="overline">Technician workspace</p>
           <h1 id="technician-title">Service overview</h1>
-          <p className="lead">Live service data is not connected yet.</p>
-        </div>
-        <div className="tech-actions">
-          <button className="icon-button surface" type="button" aria-label="Search" disabled>
-            ⌕
-          </button>
-          <button className="secondary-button" type="button" disabled>
-            Queue settings
-          </button>
+          <p className="lead">Find, claim, and assign tickets from the live operational queue.</p>
         </div>
       </header>
 
       <div className="metric-grid" aria-label="Service metrics">
-        {emptyMetrics.map((metric) => (
-          <article className="metric-card" key={metric.label}>
-            <p>{metric.label}</p>
-            <strong>{metric.value}</strong>
-            <span>{metric.detail}</span>
-          </article>
-        ))}
+        <article className="metric-card">
+          <p>Unassigned</p>
+          <strong>{workspace.metrics.unassigned}</strong>
+          <span>Ready to be claimed</span>
+        </article>
+        <article className="metric-card">
+          <p>My Work</p>
+          <strong>{workspace.metrics.myWork}</strong>
+          <span>Assigned to you</span>
+        </article>
+        <article className="metric-card">
+          <p>Waiting</p>
+          <strong>{workspace.metrics.waiting}</strong>
+          <span>Requester or vendor follow-up</span>
+        </article>
+        <article className="metric-card">
+          <p>Recently Resolved</p>
+          <strong>{workspace.metrics.recentlyResolved}</strong>
+          <span>Latest fixes and confirmations</span>
+        </article>
       </div>
 
       <div className="workspace-grid">
@@ -64,122 +347,133 @@ export function TechnicianWorkspace({
               <p className="overline">Priority queue</p>
               <h2 id="priority-queue-title">Needs attention</h2>
             </div>
-            <button className="text-button" type="button" disabled>
-              Open full queue <span aria-hidden="true">→</span>
-            </button>
+          </div>
+          <div className="filter-bar queue-filters">
+            <div className="tab-list" role="tablist" aria-label="Queue views">
+              {(
+                [
+                  ["unassigned", "Unassigned"],
+                  ["my_work", "My Work"],
+                  ["team_work", "Team Work"],
+                  ["waiting", "Waiting"],
+                  ["at_risk", "At Risk"],
+                  ["breached", "Breached"],
+                  ["recently_resolved", "Recently Resolved"],
+                ] as const
+              ).map(([value, label]) => (
+                <Link
+                  key={value}
+                  href={filterHref(value)}
+                  className={`tab${workspace.filter === value ? " is-active" : ""}`}
+                  role="tab"
+                  aria-selected={workspace.filter === value}
+                >
+                  {label}
+                  <span>{workspace.counts[value]}</span>
+                </Link>
+              ))}
+            </div>
           </div>
           <div className="queue-table" role="table" aria-label="Priority tickets">
             <div className="queue-table-head" role="row">
               <span role="columnheader">Ticket</span>
               <span role="columnheader">Context</span>
               <span role="columnheader">Owner</span>
-              <span role="columnheader">SLA</span>
+              <span role="columnheader">Service</span>
             </div>
-            {tickets.length ? (
-              tickets.map((ticket) => (
-                <button
-                  className={`queue-item${selected?.key === ticket.key ? " selected" : ""}`}
-                  type="button"
+            {workspace.tickets.length ? (
+              workspace.tickets.map((ticket) => (
+                <Link
+                  className={`queue-item${workspace.selectedTicket?.ticketId === ticket.ticketId ? " selected" : ""}`}
+                  href={ticketHref(workspace.filter, workspace.page, ticket.ticketId)}
                   role="row"
-                  aria-pressed={selected?.key === ticket.key}
-                  key={ticket.key}
-                  onClick={() => setSelectedKey(ticket.key)}
+                  aria-current={
+                    workspace.selectedTicket?.ticketId === ticket.ticketId ? "true" : undefined
+                  }
+                  key={ticket.ticketId}
                 >
                   <span role="cell">
                     <b className={`priority-code ${ticket.priority.toLowerCase()}`}>
                       {ticket.priority}
                     </b>
-                    <strong>{ticket.title}</strong>
+                    <strong>{ticket.subject}</strong>
                     <small>
-                      {ticket.id} · {ticket.age}
+                      {ticket.ticketNumber} · {ticket.age}
                     </small>
                   </span>
                   <span role="cell">
                     <strong>{ticket.location}</strong>
-                    <small>{ticket.impact}</small>
+                    <small>
+                      {ticket.requester} · {ticket.category}
+                    </small>
                   </span>
                   <span role="cell">
                     <span
-                      className={`mini-avatar${ticket.owner === "Unassigned" ? " neutral" : ""}`}
+                      className={`mini-avatar${ticket.assignee === "Unassigned" ? " neutral" : ""}`}
                     >
-                      {ticket.ownerInitials}
+                      {ticket.assigneeInitials}
                     </span>
-                    {ticket.owner}
+                    {ticket.assignee}
                   </span>
-                  <span className={`sla ${ticket.slaState}`} role="cell">
-                    {ticket.sla}
+                  <span
+                    className={`sla ${ticket.priority === "P1" ? "danger" : ticket.priority === "P2" ? "warning" : "normal"}`}
+                    role="cell"
+                  >
+                    <strong>{ticket.status}</strong>
+                    <small>{ticket.serviceIndicator}</small>
                   </span>
-                </button>
+                </Link>
               ))
             ) : (
               <div className="empty-state queue-empty-state">
-                <strong>No tickets in the queue</strong>
-                <p>Priority work will appear after authenticated ticket access is connected.</p>
+                <strong>{queueEmptyState(workspace.filter)}</strong>
+                <p>
+                  {workspace.filter === "at_risk" || workspace.filter === "breached"
+                    ? "Formal SLA timing is not implemented yet, so these placeholder views are intentionally empty."
+                    : "Tickets in this queue view will appear here when they match the selected filter."}
+                </p>
               </div>
             )}
           </div>
+          {workspace.tickets.length ? (
+            <nav className="pagination-bar" aria-label="Queue pages">
+              <span>
+                Page {workspace.page} of {workspace.totalPages}
+              </span>
+              <div className="tech-actions">
+                <Link
+                  className="secondary-button"
+                  href={pageHref(
+                    workspace.filter,
+                    Math.max(1, workspace.page - 1),
+                    workspace.selectedTicket?.ticketId,
+                  )}
+                  aria-disabled={workspace.page === 1}
+                >
+                  Previous
+                </Link>
+                <Link
+                  className="secondary-button"
+                  href={pageHref(
+                    workspace.filter,
+                    Math.min(workspace.totalPages, workspace.page + 1),
+                    workspace.selectedTicket?.ticketId,
+                  )}
+                  aria-disabled={workspace.page === workspace.totalPages}
+                >
+                  Next
+                </Link>
+              </div>
+            </nav>
+          ) : null}
         </section>
 
-        <aside className="context-panel" aria-label="Selected ticket context" aria-live="polite">
-          {selected ? (
-            <>
-              <div className="context-top">
-                <span className={`priority-code ${selected.priority.toLowerCase()}`}>
-                  {selected.priority} incident
-                </span>
-              </div>
-              <h2>{selected.title}</h2>
-              <p className="context-id">
-                {selected.id} · {selected.location}
-              </p>
-              <div className="context-status">
-                <span className="pulse-dot" aria-hidden="true" />
-                <div>
-                  <strong>Active impact</strong>
-                  <small>{selected.affected}</small>
-                </div>
-              </div>
-              <dl className="detail-list">
-                <div>
-                  <dt>Requester</dt>
-                  <dd>{selected.requester}</dd>
-                </div>
-                <div>
-                  <dt>Assigned to</dt>
-                  <dd>{selected.owner}</dd>
-                </div>
-                <div>
-                  <dt>Response due</dt>
-                  <dd className={selected.slaState === "danger" ? "danger-text" : ""}>
-                    {selected.sla}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Last update</dt>
-                  <dd>{selected.lastUpdate}</dd>
-                </div>
-              </dl>
-              <div className="device-card">
-                <div className="device-heading">
-                  <span>
-                    <small>LEVEL.IO DEVICE</small>
-                    <strong>{selected.device}</strong>
-                  </span>
-                  <span className="online-badge">Status unavailable</span>
-                </div>
-                <button className="secondary-button full-width" type="button" disabled>
-                  Level.io not connected
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="empty-context">
-              <p className="overline">Ticket context</p>
-              <h2>No ticket selected</h2>
-              <p>Ticket and device details will appear here when live services are connected.</p>
-            </div>
-          )}
-        </aside>
+        <DetailPanel
+          ticket={workspace.selectedTicket}
+          filter={workspace.filter}
+          page={workspace.page}
+          search={searchState}
+        />
       </div>
     </section>
   );
