@@ -259,7 +259,11 @@ function deadlineText(label: string, state: SlaState, dueAt: Date | null, timezo
 
 function serviceIndicatorFor(ticket: SlaTicket, now: Date) {
   const { policy, evaluation } = evaluateTicketSla(ticket, now);
-  if (!policy) return { label: fallbackServiceIndicatorFor(ticket.status as TicketStatus), state: "not_applicable" as const };
+  if (!policy)
+    return {
+      label: fallbackServiceIndicatorFor(ticket.status as TicketStatus),
+      state: "not_applicable" as const,
+    };
   const labels: Record<SlaState, string> = {
     breached: "SLA breached",
     at_risk: "SLA at risk",
@@ -445,15 +449,16 @@ export async function listTechnicianWorkspace(
   const normalizedPage = Math.min(page, totalPages);
 
   const selectedSlaTickets = filter === "at_risk" ? atRiskTickets : breachedTickets;
-  const tickets = filter === "at_risk" || filter === "breached"
-    ? selectedSlaTickets.slice((normalizedPage - 1) * pageSize, normalizedPage * pageSize)
-    : await database.ticket.findMany({
-      where: filterWhere(access, filter),
-      select: queueTicketSelect,
-    orderBy: orderByFor(filter),
-    skip: (normalizedPage - 1) * pageSize,
-    take: pageSize,
-    });
+  const tickets =
+    filter === "at_risk" || filter === "breached"
+      ? selectedSlaTickets.slice((normalizedPage - 1) * pageSize, normalizedPage * pageSize)
+      : await database.ticket.findMany({
+          where: filterWhere(access, filter),
+          select: queueTicketSelect,
+          orderBy: orderByFor(filter),
+          skip: (normalizedPage - 1) * pageSize,
+          take: pageSize,
+        });
 
   const selectedTicket = ticketId
     ? await getTechnicianTicketDetail(access, ticketId).catch(() => null)
@@ -474,21 +479,21 @@ export async function listTechnicianWorkspace(
     tickets: tickets.map((ticket) => {
       const indicator = serviceIndicatorFor(ticket, now);
       return {
-      ticketId: ticket.id,
-      ticketNumber: ticket.ticketNumber,
-      subject: ticket.summary,
-      requester: ticket.requester.displayName,
-      location: ticket.serviceLocation?.name ?? "Location not specified",
-      category: ticket.category.name,
-      priority: ticket.priority as TechnicianQueueListItem["priority"],
-      status: staffStatusFor(ticket.status as TicketStatus),
-      canonicalStatus: ticket.status as TicketStatus,
-      assignee: ticket.assignee?.displayName ?? "Unassigned",
-      assigneeInitials: initialsFor(ticket.assignee?.displayName ?? null),
-      age: formatAge(ticket.createdAt, now),
-      serviceIndicator: indicator.label,
-      serviceState: indicator.state,
-    };
+        ticketId: ticket.id,
+        ticketNumber: ticket.ticketNumber,
+        subject: ticket.summary,
+        requester: ticket.requester.displayName,
+        location: ticket.serviceLocation?.name ?? "Location not specified",
+        category: ticket.category.name,
+        priority: ticket.priority as TechnicianQueueListItem["priority"],
+        status: staffStatusFor(ticket.status as TicketStatus),
+        canonicalStatus: ticket.status as TicketStatus,
+        assignee: ticket.assignee?.displayName ?? "Unassigned",
+        assigneeInitials: initialsFor(ticket.assignee?.displayName ?? null),
+        age: formatAge(ticket.createdAt, now),
+        serviceIndicator: indicator.label,
+        serviceState: indicator.state,
+      };
     }),
     selectedTicket,
   };
@@ -628,8 +633,18 @@ export async function getTechnicianTicketDetail(access: AccessProfile, ticketId:
     serviceIndicator: indicator.label,
     sla: {
       state: evaluation.overall,
-      response: deadlineText("Response", evaluation.response, ticket.slaResponseDueAt, policy?.timezone ?? "UTC"),
-      resolution: deadlineText("Resolution", evaluation.resolution, ticket.slaResolutionDueAt, policy?.timezone ?? "UTC"),
+      response: deadlineText(
+        "Response",
+        evaluation.response,
+        ticket.slaResponseDueAt,
+        policy?.timezone ?? "UTC",
+      ),
+      resolution: deadlineText(
+        "Resolution",
+        evaluation.resolution,
+        ticket.slaResolutionDueAt,
+        policy?.timezone ?? "UTC",
+      ),
       policy: policy ? `${policy.name} · v${policy.version}` : "No policy snapshot",
       timezone: policy?.timezone ?? "UTC",
     },

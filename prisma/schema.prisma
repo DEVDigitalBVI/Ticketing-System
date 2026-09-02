@@ -10,37 +10,37 @@ datasource db {
 }
 
 model Organization {
-  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  slug        String       @unique
-  name        String
-  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  properties  Property[]
-  ticketCategories TicketCategory[]
-  tickets      Ticket[]
-  ticketActivities TicketActivity[]
-  ticketComments TicketComment[]
-  ticketAssignments TicketAssignment[]
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug               String               @unique
+  name               String
+  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  properties         Property[]
+  ticketCategories   TicketCategory[]
+  tickets            Ticket[]
+  ticketActivities   TicketActivity[]
+  ticketComments     TicketComment[]
+  ticketAssignments  TicketAssignment[]
   attachmentMetadata AttachmentMetadata[]
-  users       User[]
-  roles       Role[]
-  userRoles   UserRole[]
-  auditEvents AuditEvent[]
+  users              User[]
+  roles              Role[]
+  userRoles          UserRole[]
+  auditEvents        AuditEvent[]
 
   @@map("organizations")
   @@schema("service_desk")
 }
 
 model Property {
-  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String       @map("organization_id") @db.Uuid
-  code           String
-  name           String
-  timezone       String
-  isActive       Boolean      @default(true) @map("is_active")
-  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId   String            @map("organization_id") @db.Uuid
+  code             String
+  name             String
+  timezone         String
+  isActive         Boolean           @default(true) @map("is_active")
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   buildingAreas    BuildingArea[]
   departments      Department[]
   serviceLocations ServiceLocation[]
@@ -57,16 +57,16 @@ model Property {
 }
 
 model BuildingArea {
-  id             String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String            @map("organization_id") @db.Uuid
-  propertyId     String            @map("property_id") @db.Uuid
-  code           String
-  name           String
-  kind           String
-  isActive       Boolean           @default(true) @map("is_active")
-  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  property       Property          @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId   String            @map("organization_id") @db.Uuid
+  propertyId       String            @map("property_id") @db.Uuid
+  code             String
+  name             String
+  kind             String
+  isActive         Boolean           @default(true) @map("is_active")
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  property         Property          @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
   serviceLocations ServiceLocation[]
 
   @@unique([id, organizationId])
@@ -78,15 +78,15 @@ model BuildingArea {
 }
 
 model Department {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String   @map("organization_id") @db.Uuid
-  propertyId     String   @map("property_id") @db.Uuid
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String        @map("organization_id") @db.Uuid
+  propertyId     String        @map("property_id") @db.Uuid
   code           String
   name           String
-  isActive       Boolean  @default(true) @map("is_active")
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  property       Property @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  isActive       Boolean       @default(true) @map("is_active")
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  property       Property      @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
   supportTeams   SupportTeam[]
   tickets        Ticket[]
 
@@ -123,18 +123,18 @@ model ServiceLocation {
 }
 
 model SupportTeam {
-  id             String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String      @map("organization_id") @db.Uuid
-  propertyId     String      @map("property_id") @db.Uuid
-  departmentId   String?     @map("department_id") @db.Uuid
-  code           String
-  name           String
-  isActive       Boolean     @default(true) @map("is_active")
-  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  property       Property    @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  department     Department? @relation(fields: [departmentId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  tickets        Ticket[]
+  id                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId    String             @map("organization_id") @db.Uuid
+  propertyId        String             @map("property_id") @db.Uuid
+  departmentId      String?            @map("department_id") @db.Uuid
+  code              String
+  name              String
+  isActive          Boolean            @default(true) @map("is_active")
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  property          Property           @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  department        Department?        @relation(fields: [departmentId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  tickets           Ticket[]
   ticketAssignments TicketAssignment[]
 
   @@unique([id, organizationId])
@@ -147,16 +147,16 @@ model SupportTeam {
 }
 
 model TicketCategory {
-  id               String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId   String              @map("organization_id") @db.Uuid
-  code             String
-  name             String
-  isActive         Boolean             @default(true) @map("is_active")
-  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  organization     Organization        @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  subcategories    TicketSubcategory[]
-  tickets          Ticket[]
+  id             String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String              @map("organization_id") @db.Uuid
+  code           String
+  name           String
+  isActive       Boolean             @default(true) @map("is_active")
+  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  subcategories  TicketSubcategory[]
+  tickets        Ticket[]
 
   @@unique([id, organizationId])
   @@index([organizationId])
@@ -185,26 +185,26 @@ model TicketSubcategory {
 }
 
 model User {
-  id                 String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  authUserId         String?      @unique @map("auth_user_id") @db.Uuid
-  organizationId     String       @map("organization_id") @db.Uuid
-  email              String
-  displayName        String       @map("display_name")
-  isActive           Boolean      @default(true) @map("is_active")
-  mustChangePassword Boolean      @default(true) @map("must_change_password")
-  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  roles              UserRole[]
-  auditEvents        AuditEvent[]
-  requestedTickets   Ticket[]      @relation("TicketRequester")
-  affectedTickets    Ticket[]      @relation("TicketAffectedUser")
-  assignedTickets    Ticket[]      @relation("TicketAssignee")
-  ticketActivities   TicketActivity[] @relation("TicketActivityActor")
-  ticketComments     TicketComment[] @relation("TicketCommentAuthor")
-  ticketAssignmentsMade TicketAssignment[] @relation("TicketAssignmentActor")
-  ticketAssignmentsReceived TicketAssignment[] @relation("TicketAssignmentAssignee")
-  attachmentMetadata AttachmentMetadata[] @relation("AttachmentUploader")
+  id                        String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authUserId                String?              @unique @map("auth_user_id") @db.Uuid
+  organizationId            String               @map("organization_id") @db.Uuid
+  email                     String
+  displayName               String               @map("display_name")
+  isActive                  Boolean              @default(true) @map("is_active")
+  mustChangePassword        Boolean              @default(true) @map("must_change_password")
+  createdAt                 DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                 DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization              Organization         @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  roles                     UserRole[]
+  auditEvents               AuditEvent[]
+  requestedTickets          Ticket[]             @relation("TicketRequester")
+  affectedTickets           Ticket[]             @relation("TicketAffectedUser")
+  assignedTickets           Ticket[]             @relation("TicketAssignee")
+  ticketActivities          TicketActivity[]     @relation("TicketActivityActor")
+  ticketComments            TicketComment[]      @relation("TicketCommentAuthor")
+  ticketAssignmentsMade     TicketAssignment[]   @relation("TicketAssignmentActor")
+  ticketAssignmentsReceived TicketAssignment[]   @relation("TicketAssignmentAssignee")
+  attachmentMetadata        AttachmentMetadata[] @relation("AttachmentUploader")
 
   @@unique([id, organizationId])
   @@unique([organizationId, email])
@@ -278,60 +278,60 @@ model AuditEvent {
 }
 
 model Ticket {
-  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId   String             @map("organization_id") @db.Uuid
-  numberSequence   BigInt             @default(dbgenerated("nextval('service_desk.ticket_number_seq'::regclass)")) @map("number_sequence")
-  ticketNumber     String             @map("ticket_number")
-  summary          String
-  description      String
-  requesterUserId  String             @map("requester_user_id") @db.Uuid
-  affectedUserId   String?            @map("affected_user_id") @db.Uuid
-  propertyId       String             @map("property_id") @db.Uuid
-  serviceLocationId String?           @map("service_location_id") @db.Uuid
-  departmentId     String?            @map("department_id") @db.Uuid
-  categoryId       String             @map("category_id") @db.Uuid
-  subcategoryId    String?            @map("subcategory_id") @db.Uuid
-  impact           String
-  urgency          String
-  priority         String             @default("P3")
-  supportTeamId    String?            @map("support_team_id") @db.Uuid
-  assigneeUserId   String?            @map("assignee_user_id") @db.Uuid
-  source           String             @default("portal")
-  status           String             @default("new")
-  resolutionCode   String?            @map("resolution_code")
-  resolutionSummary String?           @map("resolution_summary")
-  closureDetails   String?            @map("closure_details")
-  slaPolicyId      String?            @map("sla_policy_id") @db.Uuid
-  slaPolicyVersion Int?               @map("sla_policy_version")
-  slaPolicySnapshot Json?              @map("sla_policy_snapshot")
-  slaResponseDueAt DateTime?          @map("sla_response_due_at") @db.Timestamptz(6)
-  slaRespondedAt   DateTime?          @map("sla_responded_at") @db.Timestamptz(6)
-  slaResolutionDueAt DateTime?        @map("sla_resolution_due_at") @db.Timestamptz(6)
-  slaWaitingAt     DateTime?          @map("sla_waiting_at") @db.Timestamptz(6)
-  slaPausedSeconds Int                @map("sla_paused_seconds") @default(0)
-  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  triagedAt        DateTime?          @map("triaged_at") @db.Timestamptz(6)
-  assignedAt       DateTime?          @map("assigned_at") @db.Timestamptz(6)
-  startedAt        DateTime?          @map("started_at") @db.Timestamptz(6)
-  resolvedAt       DateTime?          @map("resolved_at") @db.Timestamptz(6)
-  closedAt         DateTime?          @map("closed_at") @db.Timestamptz(6)
-  cancelledAt      DateTime?          @map("cancelled_at") @db.Timestamptz(6)
-  organization     Organization       @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  requester        User               @relation("TicketRequester", fields: [requesterUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  affectedUser     User?              @relation("TicketAffectedUser", fields: [affectedUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  property         Property           @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  serviceLocation  ServiceLocation?   @relation(fields: [serviceLocationId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  department       Department?        @relation(fields: [departmentId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  category         TicketCategory     @relation(fields: [categoryId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  subcategory      TicketSubcategory? @relation(fields: [subcategoryId, categoryId, organizationId], references: [id, categoryId, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  supportTeam      SupportTeam?       @relation(fields: [supportTeamId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  assignee         User?              @relation("TicketAssignee", fields: [assigneeUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  activities       TicketActivity[]
-  comments         TicketComment[]
-  assignments      TicketAssignment[]
-  attachments      AttachmentMetadata[]
-  slaPolicy        TicketSlaPolicy?   @relation(fields: [slaPolicyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId     String               @map("organization_id") @db.Uuid
+  numberSequence     BigInt               @default(dbgenerated("nextval('service_desk.ticket_number_seq'::regclass)")) @map("number_sequence")
+  ticketNumber       String               @map("ticket_number")
+  summary            String
+  description        String
+  requesterUserId    String               @map("requester_user_id") @db.Uuid
+  affectedUserId     String?              @map("affected_user_id") @db.Uuid
+  propertyId         String               @map("property_id") @db.Uuid
+  serviceLocationId  String?              @map("service_location_id") @db.Uuid
+  departmentId       String?              @map("department_id") @db.Uuid
+  categoryId         String               @map("category_id") @db.Uuid
+  subcategoryId      String?              @map("subcategory_id") @db.Uuid
+  impact             String
+  urgency            String
+  priority           String               @default("P3")
+  supportTeamId      String?              @map("support_team_id") @db.Uuid
+  assigneeUserId     String?              @map("assignee_user_id") @db.Uuid
+  source             String               @default("portal")
+  status             String               @default("new")
+  resolutionCode     String?              @map("resolution_code")
+  resolutionSummary  String?              @map("resolution_summary")
+  closureDetails     String?              @map("closure_details")
+  slaPolicyId        String?              @map("sla_policy_id") @db.Uuid
+  slaPolicyVersion   Int?                 @map("sla_policy_version")
+  slaPolicySnapshot  Json?                @map("sla_policy_snapshot")
+  slaResponseDueAt   DateTime?            @map("sla_response_due_at") @db.Timestamptz(6)
+  slaRespondedAt     DateTime?            @map("sla_responded_at") @db.Timestamptz(6)
+  slaResolutionDueAt DateTime?            @map("sla_resolution_due_at") @db.Timestamptz(6)
+  slaWaitingAt       DateTime?            @map("sla_waiting_at") @db.Timestamptz(6)
+  slaPausedSeconds   Int                  @default(0) @map("sla_paused_seconds")
+  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  triagedAt          DateTime?            @map("triaged_at") @db.Timestamptz(6)
+  assignedAt         DateTime?            @map("assigned_at") @db.Timestamptz(6)
+  startedAt          DateTime?            @map("started_at") @db.Timestamptz(6)
+  resolvedAt         DateTime?            @map("resolved_at") @db.Timestamptz(6)
+  closedAt           DateTime?            @map("closed_at") @db.Timestamptz(6)
+  cancelledAt        DateTime?            @map("cancelled_at") @db.Timestamptz(6)
+  organization       Organization         @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  requester          User                 @relation("TicketRequester", fields: [requesterUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  affectedUser       User?                @relation("TicketAffectedUser", fields: [affectedUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  property           Property             @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  serviceLocation    ServiceLocation?     @relation(fields: [serviceLocationId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  department         Department?          @relation(fields: [departmentId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  category           TicketCategory       @relation(fields: [categoryId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  subcategory        TicketSubcategory?   @relation(fields: [subcategoryId, categoryId, organizationId], references: [id, categoryId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  supportTeam        SupportTeam?         @relation(fields: [supportTeamId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  assignee           User?                @relation("TicketAssignee", fields: [assigneeUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  activities         TicketActivity[]
+  comments           TicketComment[]
+  assignments        TicketAssignment[]
+  attachments        AttachmentMetadata[]
+  slaPolicy          TicketSlaPolicy?     @relation(fields: [slaPolicyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
 
   @@unique([id, organizationId])
   @@unique([ticketNumber])
@@ -345,26 +345,26 @@ model Ticket {
 }
 
 model TicketSlaPolicy {
-  id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId    String           @map("organization_id") @db.Uuid
-  propertyId        String           @map("property_id") @db.Uuid
-  version           Int
-  name              String
-  isActive          Boolean          @default(false) @map("is_active")
-  description       String?
-  timezone          String
-  supportHours      Json             @map("support_hours")
-  holidays          Json             @map("holidays")
-  impactUrgencyRules Json            @map("impact_urgency_rules")
-  warningMinutes    Int              @map("warning_minutes") @default(30)
-  pauseStatuses     Json             @map("pause_statuses")
-  reopenBehavior    Json             @map("reopen_behavior")
-  responseTargets   Json             @map("response_targets")
-  resolutionTargets Json             @map("resolution_targets")
-  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  property          Property         @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  tickets           Ticket[]
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId     String   @map("organization_id") @db.Uuid
+  propertyId         String   @map("property_id") @db.Uuid
+  version            Int
+  name               String
+  isActive           Boolean  @default(false) @map("is_active")
+  description        String?
+  timezone           String
+  supportHours       Json     @map("support_hours")
+  holidays           Json     @map("holidays")
+  impactUrgencyRules Json     @map("impact_urgency_rules")
+  warningMinutes     Int      @default(30) @map("warning_minutes")
+  pauseStatuses      Json     @map("pause_statuses")
+  reopenBehavior     Json     @map("reopen_behavior")
+  responseTargets    Json     @map("response_targets")
+  resolutionTargets  Json     @map("resolution_targets")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  property           Property @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  tickets            Ticket[]
 
   @@unique([id, organizationId])
   @@unique([organizationId, propertyId, version])
@@ -375,19 +375,19 @@ model TicketSlaPolicy {
 }
 
 model TicketActivity {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String   @map("organization_id") @db.Uuid
-  ticketId       String   @map("ticket_id") @db.Uuid
-  actorUserId    String?  @map("actor_user_id") @db.Uuid
-  activityType   String   @map("activity_type")
-  fromStatus     String?  @map("from_status")
-  toStatus       String?  @map("to_status")
-  requesterVisible Boolean @default(false) @map("requester_visible")
-  metadata       Json     @default("{}")
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  ticket         Ticket   @relation(fields: [ticketId, organizationId], references: [id, organizationId], onDelete: Cascade, onUpdate: Cascade)
-  actor          User?    @relation("TicketActivityActor", fields: [actorUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId   String       @map("organization_id") @db.Uuid
+  ticketId         String       @map("ticket_id") @db.Uuid
+  actorUserId      String?      @map("actor_user_id") @db.Uuid
+  activityType     String       @map("activity_type")
+  fromStatus       String?      @map("from_status")
+  toStatus         String?      @map("to_status")
+  requesterVisible Boolean      @default(false) @map("requester_visible")
+  metadata         Json         @default("{}")
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  ticket           Ticket       @relation(fields: [ticketId, organizationId], references: [id, organizationId], onDelete: Cascade, onUpdate: Cascade)
+  actor            User?        @relation("TicketActivityActor", fields: [actorUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
 
   @@index([organizationId, createdAt])
   @@index([ticketId, organizationId, createdAt])
@@ -396,16 +396,16 @@ model TicketActivity {
 }
 
 model TicketComment {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String   @map("organization_id") @db.Uuid
-  ticketId       String   @map("ticket_id") @db.Uuid
-  authorUserId   String   @map("author_user_id") @db.Uuid
+  id             String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String               @map("organization_id") @db.Uuid
+  ticketId       String               @map("ticket_id") @db.Uuid
+  authorUserId   String               @map("author_user_id") @db.Uuid
   visibility     String
   body           String
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  ticket         Ticket   @relation(fields: [ticketId, organizationId], references: [id, organizationId], onDelete: Cascade, onUpdate: Cascade)
-  author         User     @relation("TicketCommentAuthor", fields: [authorUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  createdAt      DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  ticket         Ticket               @relation(fields: [ticketId, organizationId], references: [id, organizationId], onDelete: Cascade, onUpdate: Cascade)
+  author         User                 @relation("TicketCommentAuthor", fields: [authorUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
   attachments    AttachmentMetadata[]
 
   @@unique([id, organizationId])
@@ -417,19 +417,19 @@ model TicketComment {
 }
 
 model TicketAssignment {
-  id                  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId      String      @map("organization_id") @db.Uuid
-  ticketId            String      @map("ticket_id") @db.Uuid
-  assignedByUserId    String      @map("assigned_by_user_id") @db.Uuid
-  assignedUserId      String?     @map("assigned_user_id") @db.Uuid
-  assignedSupportTeamId String?   @map("assigned_support_team_id") @db.Uuid
-  note                String?
-  createdAt           DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
-  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  ticket              Ticket      @relation(fields: [ticketId, organizationId], references: [id, organizationId], onDelete: Cascade, onUpdate: Cascade)
-  assignedBy          User        @relation("TicketAssignmentActor", fields: [assignedByUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  assignedUser        User?       @relation("TicketAssignmentAssignee", fields: [assignedUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  assignedSupportTeam SupportTeam? @relation(fields: [assignedSupportTeamId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  id                    String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId        String       @map("organization_id") @db.Uuid
+  ticketId              String       @map("ticket_id") @db.Uuid
+  assignedByUserId      String       @map("assigned_by_user_id") @db.Uuid
+  assignedUserId        String?      @map("assigned_user_id") @db.Uuid
+  assignedSupportTeamId String?      @map("assigned_support_team_id") @db.Uuid
+  note                  String?
+  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  ticket                Ticket       @relation(fields: [ticketId, organizationId], references: [id, organizationId], onDelete: Cascade, onUpdate: Cascade)
+  assignedBy            User         @relation("TicketAssignmentActor", fields: [assignedByUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  assignedUser          User?        @relation("TicketAssignmentAssignee", fields: [assignedUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  assignedSupportTeam   SupportTeam? @relation(fields: [assignedSupportTeamId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
 
   @@index([organizationId, createdAt])
   @@index([ticketId, organizationId, createdAt])
@@ -438,21 +438,21 @@ model TicketAssignment {
 }
 
 model AttachmentMetadata {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String   @map("organization_id") @db.Uuid
-  ticketId       String   @map("ticket_id") @db.Uuid
-  commentId      String?  @map("comment_id") @db.Uuid
-  uploadedByUserId String @map("uploaded_by_user_id") @db.Uuid
-  visibility     String
-  fileName       String   @map("file_name")
-  contentType    String   @map("content_type")
-  byteSize       Int      @map("byte_size")
-  storagePath    String   @map("storage_path")
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  ticket         Ticket   @relation(fields: [ticketId, organizationId], references: [id, organizationId], onDelete: Cascade, onUpdate: Cascade)
-  comment        TicketComment? @relation(fields: [commentId, ticketId, organizationId], references: [id, ticketId, organizationId], onDelete: Cascade, onUpdate: Cascade)
-  uploadedBy     User     @relation("AttachmentUploader", fields: [uploadedByUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId   String         @map("organization_id") @db.Uuid
+  ticketId         String         @map("ticket_id") @db.Uuid
+  commentId        String?        @map("comment_id") @db.Uuid
+  uploadedByUserId String         @map("uploaded_by_user_id") @db.Uuid
+  visibility       String
+  fileName         String         @map("file_name")
+  contentType      String         @map("content_type")
+  byteSize         Int            @map("byte_size")
+  storagePath      String         @map("storage_path")
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization     Organization   @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  ticket           Ticket         @relation(fields: [ticketId, organizationId], references: [id, organizationId], onDelete: Cascade, onUpdate: Cascade)
+  comment          TicketComment? @relation(fields: [commentId, ticketId, organizationId], references: [id, ticketId, organizationId], onDelete: Cascade, onUpdate: Cascade)
+  uploadedBy       User           @relation("AttachmentUploader", fields: [uploadedByUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
 
   @@index([organizationId, createdAt])
   @@index([ticketId, organizationId, createdAt])

@@ -8,6 +8,7 @@ import { AuditEventRepository } from "@/server/repositories/audit-event-reposito
 import { TicketRepository } from "@/server/repositories/ticket-repository";
 import {
   calculateSlaDeadlines,
+  calculateReopenSla,
   parseSlaPolicySnapshot,
   priorityFor,
   resumeDeadline,
@@ -693,23 +694,27 @@ export async function transitionTicket(
           policy,
         );
         update.slaPausedSeconds = {
-          increment: Math.max(0, Math.floor((now.getTime() - ticket.slaWaitingAt.getTime()) / 1000)),
+          increment: Math.max(
+            0,
+            Math.floor((now.getTime() - ticket.slaWaitingAt.getTime()) / 1000),
+          ),
         };
         update.slaWaitingAt = null;
       }
 
-      const reopening = ["resolved", "closed", "cancelled"].includes(fromStatus) &&
+      const reopening =
+        ["resolved", "closed", "cancelled"].includes(fromStatus) &&
         !["resolved", "closed", "cancelled"].includes(input.toStatus);
       if (reopening) {
         const priority = ticket.priority as "P1" | "P2" | "P3" | "P4";
-        const deadlines = calculateSlaDeadlines(now, priority, policy);
-        if (policy.reopenBehavior.response === "reset") {
-          update.slaRespondedAt = null;
-          update.slaResponseDueAt = deadlines.responseDueAt;
-        }
-        if (policy.reopenBehavior.resolution === "reset") {
-          update.slaResolutionDueAt = deadlines.resolutionDueAt;
-        }
+        const reopened = calculateReopenSla(now, priority, policy, {
+          responseDueAt: ticket.slaResponseDueAt,
+          respondedAt: ticket.slaRespondedAt,
+          resolutionDueAt: ticket.slaResolutionDueAt,
+        });
+        update.slaRespondedAt = reopened.respondedAt;
+        update.slaResponseDueAt = reopened.responseDueAt;
+        update.slaResolutionDueAt = reopened.resolutionDueAt;
         update.slaWaitingAt = null;
       }
     }
@@ -735,7 +740,8 @@ export async function transitionTicket(
       requesterVisible: transitionActivityVisible(input.toStatus),
       metadata: toJsonObject({
         resolutionCode: input.resolutionCode,
-        slaWaitingAt: update.slaWaitingAt instanceof Date ? update.slaWaitingAt.toISOString() : null,
+        slaWaitingAt:
+          update.slaWaitingAt instanceof Date ? update.slaWaitingAt.toISOString() : null,
         hasClosureDetails: input.closureDetails ? true : undefined,
       }),
     });

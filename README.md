@@ -42,6 +42,8 @@ Step 7 adds the reviewed migration `20260901120000_step_7_configuration_taxonomy
 
 Step 8 adds the reviewed migration `20260901153000_step_8_ticket_domain`, which introduces the core ticket tables, human-readable `PIR-######` ticket numbering, append-only history records, validated lifecycle transitions, and placeholder priority calculation. See `docs/ticket-domain.md`.
 
+Step 13 adds versioned SLA policies, ticket-level policy snapshots, deterministic support-calendar deadlines, and operational warning/breach evaluation. See `docs/sla-policy.md`.
+
 ## Frontend routes
 
 - `/login`: responsive Supabase work-account sign-in with generic failure states.
@@ -52,7 +54,7 @@ Step 8 adds the reviewed migration `20260901153000_step_8_ticket_domain`, which 
 - `/`: staff overview and active requests.
 - `/new-ticket`: guided request form connected to authenticated ticket creation with controlled reference data and real ticket-number confirmation.
 - `/my-tickets`: requester-authorized ticket workspace with server-side filters, search, pagination, public history, replies, and resolution confirmation.
-- `/technician`: live technician queue with server-side views, pagination, assignment controls, conflict protection, and a real ticket detail panel. Formal SLA timing and Level.io remain placeholder states.
+- `/technician`: live technician queue with server-side views, pagination, assignment controls, conflict protection, precise SLA timing, and a real ticket detail panel. Level.io remains an explicit unavailable state.
 - `/health`: application-boundary health status.
 
 ## Quality gates

@@ -339,24 +339,26 @@ export async function getRequesterTicketDetail(access: AccessProfile, ticketId: 
     resolutionDueAt: ticket.slaResolutionDueAt,
     resolvedAt: ticket.resolvedAt,
   });
-  const expectationDate = sla.nextDeadline && slaPolicy
-    ? new Intl.DateTimeFormat("en-US", {
-        timeZone: slaPolicy.timezone,
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        timeZoneName: "short",
-      }).format(sla.nextDeadline)
-    : null;
-  const serviceExpectation = sla.overall === "paused"
-    ? "The service clock is paused while IT waits for the requested information or vendor action."
-    : expectationDate
-      ? `The next service target is ${expectationDate}. Support hours and approved holidays are included.`
-      : sla.overall === "met"
-        ? "The applicable response and resolution targets have been completed."
-        : "No active service target applies to this ticket.";
+  const expectationDate =
+    sla.nextDeadline && slaPolicy
+      ? new Intl.DateTimeFormat("en-US", {
+          timeZone: slaPolicy.timezone,
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          timeZoneName: "short",
+        }).format(sla.nextDeadline)
+      : null;
+  const serviceExpectation =
+    sla.overall === "paused"
+      ? "The service clock is paused while IT waits for the requested information or vendor action."
+      : expectationDate
+        ? `The next service target is ${expectationDate}. Support hours and approved holidays are included.`
+        : sla.overall === "met"
+          ? "The applicable response and resolution targets have been completed."
+          : "No active service target applies to this ticket.";
 
   assertPortalReadable(access, {
     organizationId: ticket.organizationId,
