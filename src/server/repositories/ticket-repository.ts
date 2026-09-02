@@ -67,6 +67,17 @@ export class TicketRepository {
     });
   }
 
+  findActiveSlaPolicyForProperty(propertyId: string, organizationId: string) {
+    return this.client.ticketSlaPolicy.findFirst({
+      where: {
+        organizationId,
+        propertyId,
+        isActive: true,
+      },
+      orderBy: { version: "desc" },
+    });
+  }
+
   createTicket(data: Prisma.TicketUncheckedCreateInput) {
     return this.client.ticket.create({ data });
   }

@@ -45,6 +45,7 @@ model Property {
   departments      Department[]
   serviceLocations ServiceLocation[]
   supportTeams     SupportTeam[]
+  slaPolicies      TicketSlaPolicy[]
   tickets          Ticket[]
   userRoles        UserRole[]
   auditEvents      AuditEvent[]
@@ -300,6 +301,13 @@ model Ticket {
   resolutionCode   String?            @map("resolution_code")
   resolutionSummary String?           @map("resolution_summary")
   closureDetails   String?            @map("closure_details")
+  slaPolicyId      String?            @map("sla_policy_id") @db.Uuid
+  slaPolicyVersion Int?               @map("sla_policy_version")
+  slaPolicySnapshot Json?              @map("sla_policy_snapshot")
+  slaResponseDueAt DateTime?          @map("sla_response_due_at") @db.Timestamptz(6)
+  slaResolutionDueAt DateTime?        @map("sla_resolution_due_at") @db.Timestamptz(6)
+  slaWaitingAt     DateTime?          @map("sla_waiting_at") @db.Timestamptz(6)
+  slaPausedSeconds Int                @map("sla_paused_seconds") @default(0)
   createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   triagedAt        DateTime?          @map("triaged_at") @db.Timestamptz(6)
@@ -322,6 +330,7 @@ model Ticket {
   comments         TicketComment[]
   assignments      TicketAssignment[]
   attachments      AttachmentMetadata[]
+  slaPolicy        TicketSlaPolicy?   @relation(fields: [slaPolicyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
 
   @@unique([id, organizationId])
   @@unique([ticketNumber])
@@ -331,6 +340,36 @@ model Ticket {
   @@index([requesterUserId, organizationId, createdAt])
   @@index([assigneeUserId, organizationId, updatedAt])
   @@map("tickets")
+  @@schema("service_desk")
+}
+
+model TicketSlaPolicy {
+  id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId    String           @map("organization_id") @db.Uuid
+  propertyId        String           @map("property_id") @db.Uuid
+  version           Int
+  name              String
+  isActive          Boolean          @default(false) @map("is_active")
+  description       String?
+  timezone          String
+  supportHours      Json             @map("support_hours")
+  holidays          Json             @map("holidays")
+  impactUrgencyRules Json            @map("impact_urgency_rules")
+  warningMinutes    Int              @map("warning_minutes") @default(30)
+  pauseStatuses     Json             @map("pause_statuses")
+  reopenBehavior    Json             @map("reopen_behavior")
+  responseTargets   Json             @map("response_targets")
+  resolutionTargets Json             @map("resolution_targets")
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  property          Property         @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  tickets           Ticket[]
+
+  @@unique([id, organizationId])
+  @@unique([organizationId, propertyId, version])
+  @@index([organizationId, propertyId, isActive])
+  @@index([organizationId, isActive])
+  @@map("ticket_sla_policies")
   @@schema("service_desk")
 }
 
