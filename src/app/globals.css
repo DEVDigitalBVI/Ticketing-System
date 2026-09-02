@@ -120,6 +120,16 @@ select:focus-visible {
   gap: 12px;
   padding: 0 10px 32px;
 }
+.resort-logo {
+  display: block;
+  width: auto;
+  object-fit: contain;
+}
+.sidebar-logo {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+}
 .brand-mark {
   width: 36px;
   height: 36px;
@@ -2019,8 +2029,10 @@ fieldset {
   align-items: center;
   gap: 14px;
 }
-.login-brand-mark {
+.login-resort-logo {
   flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
 }
 .login-brand small,
 .login-brand strong {

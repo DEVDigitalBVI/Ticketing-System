@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 
 import { LoginForm } from "@/modules/auth/components/login-form";
 
@@ -17,11 +18,14 @@ export default async function LoginPage({
     <main id="main-content" className="login-page">
       <section className="login-story" aria-labelledby="login-story-title">
         <div className="login-brand">
-          <span className="brand-mark login-brand-mark" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </span>
+          <Image
+            className="resort-logo login-resort-logo"
+            src="/brand/peter-island-resort.png"
+            width={3301}
+            height={3300}
+            alt="Peter Island Resort and Spa"
+            priority
+          />
           <span>
             <small>Peter Island Resort and Spa</small>
             <strong>IT Service Desk</strong>

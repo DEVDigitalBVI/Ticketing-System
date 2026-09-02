@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { AccessProfile } from "@/server/auth/access";
@@ -50,11 +51,14 @@ export function ServiceDeskShell({
           href="/"
           aria-label="Peter Island Resort and Spa IT Service Desk home"
         >
-          <span className="brand-mark" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </span>
+          <Image
+            className="resort-logo sidebar-logo"
+            src="/brand/peter-island-resort.png"
+            width={3301}
+            height={3300}
+            alt="Peter Island Resort and Spa"
+            priority
+          />
           <span>
             <span className="brand-eyebrow">Peter Island Resort</span>
             <span className="brand-name">IT Service Desk</span>
