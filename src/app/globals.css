@@ -2002,7 +2002,6 @@ fieldset {
   }
 }
 
-/* Authentication entry */
 .login-page {
   min-height: 100vh;
   display: grid;
@@ -2348,7 +2347,6 @@ fieldset {
   }
 }
 
-/* Authenticated account tasks extend the approved login surface. */
 .auth-task-page {
   min-height: 100vh;
   display: grid;

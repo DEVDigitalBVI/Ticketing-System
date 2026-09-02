@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import type { AuthorizationSubject } from "@/modules/auth/authorization";
 import {
-  calculatePriorityPlaceholder,
   canAddComment,
   canReadTicket,
   canTransitionStatus,
@@ -50,13 +49,6 @@ describe("ticket workflow", () => {
         );
       }
     }
-  });
-
-  it("calculates the placeholder priority matrix", () => {
-    expect(calculatePriorityPlaceholder("critical", "critical")).toBe("P1");
-    expect(calculatePriorityPlaceholder("high", "medium")).toBe("P2");
-    expect(calculatePriorityPlaceholder("medium", "low")).toBe("P3");
-    expect(calculatePriorityPlaceholder("low", "low")).toBe("P4");
   });
 
   it("lets requesters read and comment on their own tickets but not add internal notes", () => {

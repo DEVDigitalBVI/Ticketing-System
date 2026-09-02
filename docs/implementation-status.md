@@ -51,9 +51,9 @@ Steps 1 through 3 have been supplied. Add each later numbered step here before s
 
 - Added `Ticket`, `TicketActivity`, `TicketComment`, `TicketAssignment`, and `AttachmentMetadata` to Prisma with tenant-safe foreign keys back to users, resort hierarchy, and service taxonomy records. Ticket history relations are append-only by design.
 - Added reviewed migration `20260901153000_step_8_ticket_domain` with the `service_desk.ticket_number_seq` sequence, `PIR-######` ticket numbering trigger, scoped indexes, status/value constraints, resolution and closure checks, and immutable-history triggers for activities, comments, assignments, and attachment metadata.
-- Added `src/server/tickets/workflow.ts` for canonical statuses, allowed transitions, placeholder priority calculation, and permission-aware read/comment/assign/transition checks.
+- Added `src/server/tickets/workflow.ts` for canonical statuses, allowed transitions, and permission-aware read/comment/assign/transition checks.
 - Added `src/server/tickets/service.ts` and `src/server/repositories/ticket-repository.ts` for validated ticket creation, assignment, requester-visible comments, internal notes, state transitions, assignment history, and audit recording. Ticket creation now requires `ticket.submit`, and pre-assignment during creation also requires `ticket.assign`.
-- Added `tests/ticket-workflow.test.ts` to cover every allowed and denied lifecycle transition plus permission and priority rules.
+- Added `tests/ticket-workflow.test.ts` to cover every allowed and denied lifecycle transition plus permission rules.
 - Added `tests/database/ticket-domain.test.ts` to cover ticket identifiers, direct database constraints, requester-visible versus internal comment behavior, assignment history, lifecycle progression and reopening, immutable history tables, and service-level read guards.
 - Verification on 2026-09-01: `pnpm db:validate`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` passed. `pnpm test:database` did not complete because the configured local PostgreSQL target `127.0.0.1:54329` is not reachable in this environment.
 

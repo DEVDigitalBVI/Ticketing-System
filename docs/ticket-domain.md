@@ -6,7 +6,7 @@ Step 8 establishes the persistent ticket domain and server-side workflow without
 
 ## Data model
 
-- `tickets`: core request record with a human-readable `ticket_number`, requester, optional affected user, resort hierarchy links, service taxonomy links, impact, urgency, placeholder priority, assignment fields, lifecycle status, and terminal resolution/closure fields.
+- `tickets`: core request record with a human-readable `ticket_number`, requester, optional affected user, resort hierarchy links, service taxonomy links, impact, urgency, policy-derived priority, assignment fields, lifecycle status, and terminal resolution/closure fields.
 - `ticket_activities`: append-only lifecycle and system history with optional actor, from/to status values, requester visibility, and structured metadata.
 - `ticket_comments`: append-only free-text comments with either `requester` or `internal` visibility.
 - `ticket_assignments`: append-only assignment history capturing who assigned the ticket, the support team and/or user target, an optional note, and the timestamp.
@@ -59,5 +59,5 @@ Additional service-layer rules:
 
 ## Tests
 
-- `tests/ticket-workflow.test.ts` covers transition legality, placeholder priority calculation, and read/comment authorization.
+- `tests/ticket-workflow.test.ts` covers transition legality and read/comment authorization.
 - `tests/database/ticket-domain.test.ts` covers ticket numbering, direct constraints, comment visibility, assignment history, lifecycle progression and reopening, immutable history, and service-level read guards.

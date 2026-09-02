@@ -40,7 +40,7 @@ describe("versioned SLA policy", () => {
 
   it("uses the policy timezone, never the process timezone", () => {
     const tortola = policy({ timezone: "America/Tortola" });
-    const start = new Date("2026-09-07T12:00:00.000Z"); // 08:00 AST
+    const start = new Date("2026-09-07T12:00:00.000Z");
     expect(addSupportMinutes(start, 60, tortola).toISOString()).toBe("2026-09-07T13:00:00.000Z");
 
     const newYork = policy({ timezone: "America/New_York" });
@@ -51,7 +51,7 @@ describe("versioned SLA policy", () => {
 
   it("skips after-hours time, weekends, and configured holidays exactly", () => {
     const configured = policy({ holidays: ["2026-09-07"] });
-    const fridayAtClose = new Date("2026-09-04T20:30:00.000Z"); // 16:30 AST
+    const fridayAtClose = new Date("2026-09-04T20:30:00.000Z");
     expect(addSupportMinutes(fridayAtClose, 60, configured).toISOString()).toBe(
       "2026-09-08T12:30:00.000Z",
     );
@@ -145,7 +145,7 @@ describe("versioned SLA policy", () => {
 
   it("measures warning thresholds in support time across a weekend", () => {
     const configured = policy({ warningMinutes: 30 });
-    const due = new Date("2026-09-07T12:15:00.000Z"); // Monday 08:15 AST
+    const due = new Date("2026-09-07T12:15:00.000Z");
     const base = {
       status: "in_progress" as const,
       policy: configured,

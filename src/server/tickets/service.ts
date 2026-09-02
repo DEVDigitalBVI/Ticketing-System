@@ -26,7 +26,6 @@ import {
   ticketSourceValues,
   ticketStatuses,
   ticketUrgencyValues,
-  type TicketCommentVisibility,
   type TicketStatus,
 } from "@/server/tickets/workflow";
 import { z } from "zod";
@@ -292,10 +291,7 @@ function transitionUpdate(
     update.resolvedAt = null;
   }
 
-  return {
-    now,
-    update,
-  };
+  return update;
 }
 
 async function recordAudit(
@@ -667,7 +663,7 @@ export async function transitionTicket(
 
     const now = new Date();
     const fromStatus = ticket.status as TicketStatus;
-    const { update } = transitionUpdate(
+    const update = transitionUpdate(
       fromStatus,
       input.toStatus,
       input,
@@ -776,8 +772,4 @@ export async function getTicketForAccess(access: AccessProfile, ticketId: string
     departmentId: ticket.departmentId,
   });
   return ticket;
-}
-
-export function isRequesterVisibleComment(visibility: TicketCommentVisibility) {
-  return visibility === "requester";
 }

@@ -24,7 +24,6 @@ export const ticketPriorityValues = ["P1", "P2", "P3", "P4"] as const;
 export type TicketPriority = (typeof ticketPriorityValues)[number];
 
 export const ticketSourceValues = ["portal", "email", "phone", "walk_up", "system"] as const;
-export type TicketSource = (typeof ticketSourceValues)[number];
 
 export const ticketCommentVisibilityValues = ["requester", "internal"] as const;
 export type TicketCommentVisibility = (typeof ticketCommentVisibilityValues)[number];
@@ -38,8 +37,6 @@ export const ticketResolutionCodeValues = [
   "request_fulfilled",
   "cancelled",
 ] as const;
-export type TicketResolutionCode = (typeof ticketResolutionCodeValues)[number];
-
 export const validTicketTransitions: Record<TicketStatus, readonly TicketStatus[]> = {
   new: ["triage", "cancelled"],
   triage: ["assigned", "cancelled"],
@@ -62,20 +59,6 @@ export type TicketAccessResource = {
 
 export function canTransitionStatus(from: TicketStatus, to: TicketStatus) {
   return validTicketTransitions[from].includes(to);
-}
-
-export function calculatePriorityPlaceholder(
-  impact: TicketImpact,
-  urgency: TicketUrgency,
-): TicketPriority {
-  const score =
-    { low: 1, medium: 2, high: 3, critical: 4 }[impact] +
-    { low: 1, medium: 2, high: 3, critical: 4 }[urgency];
-
-  if (score >= 7) return "P1";
-  if (score >= 5) return "P2";
-  if (score >= 3) return "P3";
-  return "P4";
 }
 
 export function canReadTicket(subject: AuthorizationSubject, ticket: TicketAccessResource) {

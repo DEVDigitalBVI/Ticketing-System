@@ -43,7 +43,7 @@ export type StaffTicketListItem = {
   canonicalStatus: TicketStatus;
 };
 
-export type StaffTicketThreadEntry = {
+type StaffTicketThreadEntry = {
   id: string;
   kind: "activity" | "comment";
   title: string;

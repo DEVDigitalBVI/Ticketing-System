@@ -1,10 +1,8 @@
 import { z } from "zod";
 
 import {
-  ticketImpactValues,
   ticketPriorityValues,
   ticketStatuses,
-  ticketUrgencyValues,
   type TicketImpact,
   type TicketPriority,
   type TicketStatus,
@@ -445,11 +443,4 @@ export function resumeDeadline(
   if (!dueAt || pausedAt >= dueAt) return dueAt;
   const remaining = supportMillisecondsBetween(pausedAt, dueAt, policy);
   return addSupportMilliseconds(resumedAt, remaining, policy);
-}
-
-export function isTicketImpact(value: string): value is TicketImpact {
-  return (ticketImpactValues as readonly string[]).includes(value);
-}
-export function isTicketUrgency(value: string): value is TicketUrgency {
-  return (ticketUrgencyValues as readonly string[]).includes(value);
 }

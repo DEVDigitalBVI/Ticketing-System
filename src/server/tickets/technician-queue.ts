@@ -27,7 +27,7 @@ export type TechnicianQueueListItem = {
   serviceState: SlaState;
 };
 
-export type TechnicianHistoryEntry = {
+type TechnicianHistoryEntry = {
   id: string;
   kind: "activity" | "comment" | "assignment";
   title: string;

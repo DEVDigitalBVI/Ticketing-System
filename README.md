@@ -40,7 +40,7 @@ The empty Step 4 foundation is also migrated to Supabase project `Ticketing Syst
 
 Step 7 adds the reviewed migration `20260901120000_step_7_configuration_taxonomy`, which seeds fictional resort hierarchy values and useful IT categories/subcategories. Active-only uniqueness for configuration values is enforced in SQL so inactive historical records can remain referenced.
 
-Step 8 adds the reviewed migration `20260901153000_step_8_ticket_domain`, which introduces the core ticket tables, human-readable `PIR-######` ticket numbering, append-only history records, validated lifecycle transitions, and placeholder priority calculation. See `docs/ticket-domain.md`.
+Step 8 adds the reviewed migration `20260901153000_step_8_ticket_domain`, which introduces the core ticket tables, human-readable `PIR-######` ticket numbering, append-only history records, and validated lifecycle transitions. See `docs/ticket-domain.md`.
 
 Step 13 adds versioned SLA policies, ticket-level policy snapshots, deterministic support-calendar deadlines, and operational warning/breach evaluation. See `docs/sla-policy.md`.
 

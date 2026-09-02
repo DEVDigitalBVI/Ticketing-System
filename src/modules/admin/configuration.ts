@@ -11,10 +11,8 @@ export const configurationEntityTypes = [
 export type ConfigurationEntityType = (typeof configurationEntityTypes)[number];
 
 export const buildingAreaKinds = ["building", "area"] as const;
-export type BuildingAreaKind = (typeof buildingAreaKinds)[number];
 
 export const serviceLocationKinds = ["room", "service_location"] as const;
-export type ServiceLocationKind = (typeof serviceLocationKinds)[number];
 
 export const configurationEntityLabels: Record<ConfigurationEntityType, string> = {
   property: "Properties",
