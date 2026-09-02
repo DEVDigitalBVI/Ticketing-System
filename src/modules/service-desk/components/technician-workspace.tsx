@@ -14,6 +14,21 @@ function filterMessage(search: SearchState) {
   switch (search.status) {
     case "assigned":
       return { tone: "success" as const, text: "The ticket assignment was saved." };
+    case "commented":
+      return {
+        tone: "success" as const,
+        text: "Your public reply has been added to the ticket.",
+      };
+    case "noted":
+      return {
+        tone: "success" as const,
+        text: "Your internal note has been added to the ticket.",
+      };
+    case "transitioned":
+      return {
+        tone: "success" as const,
+        text: "The ticket lifecycle transition was applied.",
+      };
     case "conflict":
       return {
         tone: "error" as const,
@@ -60,6 +75,59 @@ function statusClass(status: string) {
   if (status === "Resolved" || status === "In progress") return "progress";
   return "waiting";
 }
+
+const transitionLabels: Record<string, string> = {
+  new: "New",
+  triage: "Triage",
+  assigned: "Assigned",
+  in_progress: "In progress",
+  waiting_for_requester: "Waiting for requester",
+  waiting_for_vendor: "Waiting for vendor",
+  resolved: "Resolved",
+  closed: "Closed",
+  cancelled: "Cancelled",
+};
+
+const transitionOptionsByStatus: Record<string, Array<{ value: string; label: string }>> = {
+  new: [
+    { value: "triage", label: transitionLabels.triage },
+    { value: "cancelled", label: transitionLabels.cancelled },
+  ],
+  triage: [
+    { value: "assigned", label: transitionLabels.assigned },
+    { value: "cancelled", label: transitionLabels.cancelled },
+  ],
+  assigned: [
+    { value: "triage", label: transitionLabels.triage },
+    { value: "in_progress", label: transitionLabels.in_progress },
+    { value: "cancelled", label: transitionLabels.cancelled },
+  ],
+  in_progress: [
+    { value: "assigned", label: transitionLabels.assigned },
+    { value: "waiting_for_requester", label: transitionLabels.waiting_for_requester },
+    { value: "waiting_for_vendor", label: transitionLabels.waiting_for_vendor },
+    { value: "resolved", label: transitionLabels.resolved },
+    { value: "cancelled", label: transitionLabels.cancelled },
+  ],
+  waiting_for_requester: [
+    { value: "in_progress", label: transitionLabels.in_progress },
+    { value: "resolved", label: transitionLabels.resolved },
+    { value: "cancelled", label: transitionLabels.cancelled },
+  ],
+  waiting_for_vendor: [
+    { value: "in_progress", label: transitionLabels.in_progress },
+    { value: "resolved", label: transitionLabels.resolved },
+    { value: "cancelled", label: transitionLabels.cancelled },
+  ],
+  resolved: [
+    { value: "closed", label: transitionLabels.closed },
+    { value: "triage", label: transitionLabels.triage },
+    { value: "assigned", label: transitionLabels.assigned },
+    { value: "in_progress", label: transitionLabels.in_progress },
+  ],
+  closed: [{ value: "triage", label: transitionLabels.triage }],
+  cancelled: [{ value: "triage", label: transitionLabels.triage }],
+};
 
 function queueEmptyState(filter: TechnicianQueueFilter) {
   switch (filter) {
@@ -128,12 +196,24 @@ function DetailPanel({
       <p>{ticket.description}</p>
       <dl className="detail-list">
         <div>
+          <dt>Ticket number</dt>
+          <dd>{ticket.ticketNumber}</dd>
+        </div>
+        <div>
           <dt>Requester</dt>
           <dd>{ticket.requester}</dd>
         </div>
         <div>
+          <dt>Location</dt>
+          <dd>{ticket.location}</dd>
+        </div>
+        <div>
           <dt>Affected user</dt>
           <dd>{ticket.affectedUser ?? "Same as requester"}</dd>
+        </div>
+        <div>
+          <dt>Property</dt>
+          <dd>{ticket.property}</dd>
         </div>
         <div>
           <dt>Support team</dt>
@@ -144,8 +224,16 @@ function DetailPanel({
           <dd>{ticket.assignee}</dd>
         </div>
         <div>
-          <dt>Property</dt>
-          <dd>{ticket.property}</dd>
+          <dt>Impact</dt>
+          <dd>{ticket.impact}</dd>
+        </div>
+        <div>
+          <dt>Urgency</dt>
+          <dd>{ticket.urgency}</dd>
+        </div>
+        <div>
+          <dt>Priority</dt>
+          <dd>{ticket.priority}</dd>
         </div>
         <div>
           <dt>Category</dt>
@@ -162,7 +250,19 @@ function DetailPanel({
           <dt>Source</dt>
           <dd>{ticket.source}</dd>
         </div>
+        <div>
+          <dt>Source</dt>
+          <dd>{ticket.source}</dd>
+        </div>
       </dl>
+      {ticket.resolutionSummary ? (
+        <div className="privacy-note">
+          <strong>Resolution summary</strong>
+          <p>{ticket.resolutionSummary}</p>
+          {ticket.closureDetails ? <p>{ticket.closureDetails}</p> : null}
+          {ticket.resolutionCode ? <small>Code: {ticket.resolutionCode}</small> : null}
+        </div>
+      ) : null}
       <form className="ticket-inline-form" action="/auth/technician-ticket" method="post">
         <input type="hidden" name="intent" value="assign" />
         <input type="hidden" name="ticketId" value={ticket.ticketId} />
@@ -207,6 +307,67 @@ function DetailPanel({
           </button>
         </div>
       </form>
+
+      <div className="ticket-inline-form">
+        <h3>Lifecycle controls</h3>
+        <form action="/auth/technician-ticket" method="post">
+          <input type="hidden" name="intent" value="transition" />
+          <input type="hidden" name="ticketId" value={ticket.ticketId} />
+          <input type="hidden" name="filter" value={filter} />
+          <input type="hidden" name="page" value={String(page)} />
+          <input type="hidden" name="expectedUpdatedAt" value={ticket.updatedAtToken} />
+          <label className="field-label" htmlFor="ticket-status">
+            Update status
+          </label>
+          <select id="ticket-status" name="toStatus" defaultValue="">
+            <option value="">Select lifecycle state</option>
+            {transitionOptionsByStatus[ticket.canonicalStatus]?.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <label className="field-label" htmlFor="transition-resolution-code">
+            Resolution code
+          </label>
+          <select id="transition-resolution-code" name="resolutionCode" defaultValue="">
+            <option value="">Select resolution code</option>
+            <option value="resolved">Resolved</option>
+            <option value="workaround">Workaround</option>
+            <option value="vendor_fix">Vendor fix</option>
+            <option value="duplicate">Duplicate</option>
+            <option value="no_issue_found">No issue found</option>
+            <option value="request_fulfilled">Request fulfilled</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <label className="field-label" htmlFor="transition-resolution-summary">
+            Resolution summary
+          </label>
+          <textarea
+            id="transition-resolution-summary"
+            name="resolutionSummary"
+            rows={3}
+            maxLength={2000}
+            placeholder="Summary is required when resolving."
+          />
+          <label className="field-label" htmlFor="transition-closure-details">
+            Closure details
+          </label>
+          <textarea
+            id="transition-closure-details"
+            name="closureDetails"
+            rows={3}
+            maxLength={2000}
+            placeholder="Required when closing or cancelling."
+          />
+          <div className="tech-actions">
+            <button className="secondary-button" type="submit">
+              Apply transition
+            </button>
+          </div>
+        </form>
+      </div>
+
       <div className="ticket-inline-form secondary-form">
         <form action="/auth/technician-ticket" method="post">
           <input type="hidden" name="intent" value="claim" />
@@ -219,6 +380,59 @@ function DetailPanel({
           </button>
         </form>
       </div>
+
+      <div className="ticket-inline-form">
+        <h3>Public reply</h3>
+        <form action="/auth/technician-ticket" method="post">
+          <input type="hidden" name="intent" value="comment" />
+          <input type="hidden" name="ticketId" value={ticket.ticketId} />
+          <input type="hidden" name="filter" value={filter} />
+          <input type="hidden" name="page" value={String(page)} />
+          <input type="hidden" name="expectedUpdatedAt" value={ticket.updatedAtToken} />
+          <input type="hidden" name="visibility" value="requester" />
+          <label className="field-label" htmlFor="public-reply">
+            Reply to requester
+          </label>
+          <textarea
+            id="public-reply"
+            name="body"
+            rows={4}
+            maxLength={4000}
+            placeholder="Write a clear update for the requester."
+            required
+          />
+          <button className="primary-button" type="submit">
+            Send public reply
+          </button>
+        </form>
+      </div>
+
+      <div className="ticket-inline-form secondary-form">
+        <h3>Internal note</h3>
+        <form action="/auth/technician-ticket" method="post">
+          <input type="hidden" name="intent" value="comment" />
+          <input type="hidden" name="ticketId" value={ticket.ticketId} />
+          <input type="hidden" name="filter" value={filter} />
+          <input type="hidden" name="page" value={String(page)} />
+          <input type="hidden" name="expectedUpdatedAt" value={ticket.updatedAtToken} />
+          <input type="hidden" name="visibility" value="internal" />
+          <label className="field-label" htmlFor="internal-note">
+            Private technician note
+          </label>
+          <textarea
+            id="internal-note"
+            name="body"
+            rows={4}
+            maxLength={4000}
+            placeholder="Add internal details not visible to requesters."
+            required
+          />
+          <button className="secondary-button" type="submit">
+            Add note
+          </button>
+        </form>
+      </div>
+
       <div className="ticket-thread">
         <h3>Activity history</h3>
         <ol className="thread-list">
@@ -234,14 +448,22 @@ function DetailPanel({
       <div className="device-card">
         <div className="device-heading">
           <span>
-            <small>LEVEL.IO DEVICE</small>
-            <strong>Not connected</strong>
+            <small>RELATED TICKETS</small>
+            <strong>Placeholder</strong>
           </span>
-          <span className="online-badge">Status unavailable</span>
+          <span className="online-badge">Not available</span>
         </div>
-        <button className="secondary-button full-width" type="button" disabled>
-          Level.io not connected
-        </button>
+        <p>Related ticket suggestions will appear here once ticket dependency links are enabled.</p>
+      </div>
+      <div className="device-card">
+        <div className="device-heading">
+          <span>
+            <small>ATTACHMENTS</small>
+            <strong>Coming soon</strong>
+          </span>
+          <span className="online-badge">Pending</span>
+        </div>
+        <p>Attachment upload and history will be available in this ticket context.</p>
       </div>
     </aside>
   );

@@ -54,7 +54,17 @@ const transitionSchema = z.object({
   intent: z.literal("transition"),
   ticketId: z.string().uuid(),
   expectedUpdatedAt: z.string().datetime({ offset: true }),
-  toStatus: z.enum(["new", "triage", "assigned", "in_progress", "waiting_for_requester", "waiting_for_vendor", "resolved", "closed", "cancelled"]),
+  toStatus: z.enum([
+    "new",
+    "triage",
+    "assigned",
+    "in_progress",
+    "waiting_for_requester",
+    "waiting_for_vendor",
+    "resolved",
+    "closed",
+    "cancelled",
+  ]),
   resolutionCode: z.string().optional(),
   resolutionSummary: z.string().trim().max(2000).optional(),
   closureDetails: z.string().trim().max(2000).optional(),
@@ -95,7 +105,7 @@ export async function POST(request: NextRequest) {
   const intent = formData.get("intent");
 
   try {
-  if (intent === "claim") {
+    if (intent === "claim") {
       const input = claimSchema.parse(raw);
       await assignTicket(
         access,

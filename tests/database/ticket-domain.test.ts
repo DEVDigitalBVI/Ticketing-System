@@ -460,6 +460,282 @@ describe("Step 8 ticket domain", () => {
     ]);
   });
 
+  it("uses optimistic concurrency checks for stale comments and transitions", async () => {
+    const ticket = await createTicket(
+      requesterAccess,
+      {
+        summary: "Poolside kiosk intermittently drops connections",
+        description:
+          "The public kiosk in front of the pool intermittently drops requests and loses session state.",
+        propertyId: ids.property,
+        serviceLocationId: ids.serviceLocation,
+        departmentId: ids.department,
+        categoryId: ids.category,
+        subcategoryId: ids.subcategory,
+        impact: "high",
+        urgency: "high",
+        source: "phone",
+      },
+      crypto.randomUUID(),
+    );
+
+    const staleUpdatedAt = ticket.updatedAt.toISOString();
+
+    await assignTicket(
+      technicianAccess,
+      {
+        ticketId: ticket.id,
+        assignedUserId: ids.technicianUser,
+        assignedSupportTeamId: ids.supportTeam,
+      },
+      crypto.randomUUID(),
+    );
+
+    await expect(
+      addTicketComment(
+        technicianAccess,
+        {
+          ticketId: ticket.id,
+          visibility: "internal",
+          body: "Attempted a reset of session state.",
+          expectedUpdatedAt: staleUpdatedAt,
+        },
+        crypto.randomUUID(),
+      ),
+    ).rejects.toMatchObject({ code: "conflict" });
+
+    await expect(
+      transitionTicket(
+        technicianAccess,
+        {
+          ticketId: ticket.id,
+          toStatus: "triage",
+          expectedUpdatedAt: staleUpdatedAt,
+        },
+        crypto.randomUUID(),
+      ),
+    ).rejects.toMatchObject({ code: "conflict" });
+  });
+
+  it("requires both resolution code and meaningful summary before resolving", async () => {
+    const ticket = await createTicket(
+      requesterAccess,
+      {
+        summary: "Rooftop Wi-Fi SSID missing from kiosk",
+        description:
+          "Guest portal login fails intermittently; kiosk returns unauthorized after retry.",
+        propertyId: ids.property,
+        serviceLocationId: ids.serviceLocation,
+        departmentId: ids.department,
+        categoryId: "85d2eb57-2995-4831-9c71-840685618f98",
+        subcategoryId: "c43455ef-c878-4450-b35b-61975c3c6eb7",
+        impact: "medium",
+        urgency: "medium",
+        source: "walk_up",
+      },
+      crypto.randomUUID(),
+    );
+
+    await transitionTicket(
+      technicianAccess,
+      { ticketId: ticket.id, toStatus: "triage" },
+      crypto.randomUUID(),
+    );
+
+    await assignTicket(
+      technicianAccess,
+      {
+        ticketId: ticket.id,
+        assignedUserId: ids.technicianUser,
+        assignedSupportTeamId: ids.supportTeam,
+      },
+      crypto.randomUUID(),
+    );
+
+    await transitionTicket(
+      technicianAccess,
+      { ticketId: ticket.id, toStatus: "in_progress" },
+      crypto.randomUUID(),
+    );
+
+    await expect(
+      transitionTicket(
+        technicianAccess,
+        {
+          ticketId: ticket.id,
+          toStatus: "resolved",
+          resolutionCode: "resolved",
+        },
+        crypto.randomUUID(),
+      ),
+    ).rejects.toMatchObject({ code: "resolution_required" });
+
+    await expect(
+      transitionTicket(
+        technicianAccess,
+        {
+          ticketId: ticket.id,
+          toStatus: "resolved",
+          resolutionSummary: "Configured captive portal and restarted services.",
+        },
+        crypto.randomUUID(),
+      ),
+    ).rejects.toMatchObject({ code: "resolution_required" });
+
+    const resolved = await transitionTicket(
+      technicianAccess,
+      {
+        ticketId: ticket.id,
+        toStatus: "resolved",
+        resolutionCode: "resolved",
+        resolutionSummary: "Reissued the captive portal profile and service restored.",
+      },
+      crypto.randomUUID(),
+    );
+
+    expect(resolved.status).toBe("resolved");
+    expect(resolved.resolutionCode).toBe("resolved");
+    expect(resolved.resolutionSummary).toBe(
+      "Reissued the captive portal profile and service restored.",
+    );
+  });
+
+  it("supports reopening closed tickets and clears closure metadata", async () => {
+    const ticket = await createTicket(
+      requesterAccess,
+      {
+        summary: "Spa thermostat stuck on high temperature",
+        description:
+          "The thermostat on the spa floor remains above threshold despite expected schedule.",
+        propertyId: ids.property,
+        serviceLocationId: ids.serviceLocation,
+        departmentId: ids.department,
+        categoryId: ids.category,
+        subcategoryId: ids.subcategory,
+        impact: "medium",
+        urgency: "high",
+        source: "system",
+      },
+      crypto.randomUUID(),
+    );
+
+    await transitionTicket(
+      technicianAccess,
+      { ticketId: ticket.id, toStatus: "triage" },
+      crypto.randomUUID(),
+    );
+    await assignTicket(
+      technicianAccess,
+      {
+        ticketId: ticket.id,
+        assignedUserId: ids.technicianUser,
+        assignedSupportTeamId: ids.supportTeam,
+      },
+      crypto.randomUUID(),
+    );
+    await transitionTicket(
+      technicianAccess,
+      { ticketId: ticket.id, toStatus: "in_progress" },
+      crypto.randomUUID(),
+    );
+    await transitionTicket(
+      technicianAccess,
+      {
+        ticketId: ticket.id,
+        toStatus: "resolved",
+        resolutionCode: "vendor_fix",
+        resolutionSummary: "Updated room controller firmware and restarted thermostat service.",
+      },
+      crypto.randomUUID(),
+    );
+    const closed = await transitionTicket(
+      technicianAccess,
+      {
+        ticketId: ticket.id,
+        toStatus: "closed",
+        closureDetails: "Requester confirmed temperature is stable.",
+      },
+      crypto.randomUUID(),
+    );
+
+    expect(closed.status).toBe("closed");
+    expect(closed.closedAt).toBeTruthy();
+    expect(closed.closureDetails).toBe("Requester confirmed temperature is stable.");
+
+    const reopened = await transitionTicket(
+      technicianAccess,
+      { ticketId: ticket.id, toStatus: "triage" },
+      crypto.randomUUID(),
+    );
+
+    expect(reopened.status).toBe("triage");
+    expect(reopened.closedAt).toBeNull();
+    expect(reopened.resolutionSummary).toBeNull();
+    expect(reopened.resolutionCode).toBeNull();
+    expect(reopened.closureDetails).toBeNull();
+  });
+
+  it("prevents requester users from closing tickets without queue permissions", async () => {
+    const ticket = await createTicket(
+      requesterAccess,
+      {
+        summary: "Lobby display reports low brightness",
+        description: "Lobby monitor looks dim after recent firmware update.",
+        propertyId: ids.property,
+        serviceLocationId: ids.serviceLocation,
+        departmentId: ids.department,
+        categoryId: ids.category,
+        subcategoryId: ids.subcategory,
+        impact: "low",
+        urgency: "low",
+        source: "portal",
+      },
+      crypto.randomUUID(),
+    );
+
+    await transitionTicket(
+      technicianAccess,
+      { ticketId: ticket.id, toStatus: "triage" },
+      crypto.randomUUID(),
+    );
+    await assignTicket(
+      technicianAccess,
+      {
+        ticketId: ticket.id,
+        assignedUserId: ids.technicianUser,
+        assignedSupportTeamId: ids.supportTeam,
+      },
+      crypto.randomUUID(),
+    );
+    await transitionTicket(
+      technicianAccess,
+      { ticketId: ticket.id, toStatus: "in_progress" },
+      crypto.randomUUID(),
+    );
+    await transitionTicket(
+      technicianAccess,
+      {
+        ticketId: ticket.id,
+        toStatus: "resolved",
+        resolutionCode: "resolved",
+        resolutionSummary: "Display contrast adjusted and firmware corrected.",
+      },
+      crypto.randomUUID(),
+    );
+
+    await expect(
+      transitionTicket(
+        requesterAccess,
+        {
+          ticketId: ticket.id,
+          toStatus: "closed",
+          closureDetails: "I would like to close this.",
+        },
+        crypto.randomUUID(),
+      ),
+    ).rejects.toMatchObject({ code: "denied" });
+  });
+
   it("keeps append-only ticket history immutable", async () => {
     const comment = await client.ticketComment.findFirstOrThrow({
       where: { organizationId: ids.organization },
@@ -483,6 +759,101 @@ describe("Step 8 ticket domain", () => {
     await expect(
       client.$executeRaw`update service_desk.ticket_activities set activity_type = 'changed' where id = ${activity.id}::uuid`,
     ).rejects.toBeTruthy();
+  });
+
+  it("writes activity and audit trail entries for state-changing ticket actions", async () => {
+    const ticket = await createTicket(
+      requesterAccess,
+      {
+        summary: "Elevator button panel is unresponsive",
+        description: "All calls from the control panel are delayed by several minutes.",
+        propertyId: ids.property,
+        serviceLocationId: ids.serviceLocation,
+        departmentId: ids.department,
+        categoryId: ids.category,
+        subcategoryId: ids.subcategory,
+        impact: "high",
+        urgency: "high",
+        source: "walk_up",
+      },
+      crypto.randomUUID(),
+    );
+
+    await addTicketComment(
+      requesterAccess,
+      {
+        ticketId: ticket.id,
+        visibility: "requester",
+        body: "No elevator panel tests have worked since shift change.",
+      },
+      crypto.randomUUID(),
+    );
+
+    await addTicketComment(
+      technicianAccess,
+      {
+        ticketId: ticket.id,
+        visibility: "internal",
+        body: "Escalated to facilities and requesting hardware check.",
+      },
+      crypto.randomUUID(),
+    );
+
+    await transitionTicket(
+      technicianAccess,
+      { ticketId: ticket.id, toStatus: "triage" },
+      crypto.randomUUID(),
+    );
+    await assignTicket(
+      technicianAccess,
+      {
+        ticketId: ticket.id,
+        assignedUserId: ids.technicianUser,
+        assignedSupportTeamId: ids.supportTeam,
+      },
+      crypto.randomUUID(),
+    );
+    await transitionTicket(
+      technicianAccess,
+      {
+        ticketId: ticket.id,
+        toStatus: "in_progress",
+      },
+      crypto.randomUUID(),
+    );
+    const resolved = await transitionTicket(
+      technicianAccess,
+      {
+        ticketId: ticket.id,
+        toStatus: "resolved",
+        resolutionCode: "vendor_fix",
+        resolutionSummary: "Hardware inspection scheduled, and panel controls restored.",
+      },
+      crypto.randomUUID(),
+    );
+
+    const activityTypes = (
+      await client.ticketActivity.findMany({
+        where: { ticketId: ticket.id, organizationId: ids.organization },
+        orderBy: { createdAt: "asc" },
+      })
+    ).map((activity) => activity.activityType);
+
+    const auditActions = (
+      await client.auditEvent.findMany({
+        where: { entityId: ticket.id, organizationId: ids.organization },
+        orderBy: { createdAt: "asc" },
+      })
+    ).map((event) => event.action);
+
+    expect(resolved.status).toBe("resolved");
+    expect(activityTypes).toContain("status_changed");
+    expect(activityTypes).toContain("comment_added");
+    expect(activityTypes).toContain("internal_note_added");
+    expect(auditActions).toContain("ticket.comment_added");
+    expect(auditActions).toContain("ticket.note_added");
+    expect(auditActions).toContain("ticket.transitioned");
+    expect(auditActions).toContain("ticket.assigned");
   });
 
   it("limits direct read access to the requester or queue staff through the service guard", async () => {
