@@ -51,8 +51,13 @@ export type TechnicianQueueDetail = {
   canonicalStatus: TicketStatus;
   assignee: string;
   supportTeam: string;
+  impact: string;
+  urgency: string;
   age: string;
   source: string;
+  resolutionCode: string | null;
+  resolutionSummary: string | null;
+  closureDetails: string | null;
   serviceIndicator: string;
   history: TechnicianHistoryEntry[];
   assignmentOptions: {
@@ -520,12 +525,17 @@ export async function getTechnicianTicketDetail(access: AccessProfile, ticketId:
     category: ticket.category.name,
     subcategory: ticket.subcategory?.name ?? null,
     priority: ticket.priority as TechnicianQueueDetail["priority"],
+    impact: ticket.impact,
+    urgency: ticket.urgency,
     status: staffStatusFor(ticket.status as TicketStatus),
     canonicalStatus: ticket.status as TicketStatus,
     assignee: ticket.assignee?.displayName ?? "Unassigned",
     supportTeam: ticket.supportTeam?.name ?? "Unassigned",
     age: formatAge(ticket.createdAt),
     source: ticket.source.replaceAll("_", " "),
+    resolutionCode: ticket.resolutionCode ?? null,
+    resolutionSummary: ticket.resolutionSummary ?? null,
+    closureDetails: ticket.closureDetails ?? null,
     serviceIndicator: serviceIndicatorFor(ticket.status as TicketStatus),
     history,
     assignmentOptions: { supportTeams, technicians },

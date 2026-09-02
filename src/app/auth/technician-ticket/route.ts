@@ -4,7 +4,12 @@ import { z } from "zod";
 import { createSupabaseRouteClient } from "@/lib/supabase/route";
 import { readCurrentAccess } from "@/server/auth/access";
 import { requestCorrelationId } from "@/server/audit/correlation";
-import { assignTicket, TicketServiceError } from "@/server/tickets/service";
+import {
+  addTicketComment,
+  assignTicket,
+  transitionTicket,
+  TicketServiceError,
+} from "@/server/tickets/service";
 
 const assignSchema = z.object({
   intent: z.literal("assign"),
@@ -35,6 +40,28 @@ const claimSchema = z.object({
   page: z.string().optional(),
 });
 
+const commentSchema = z.object({
+  intent: z.literal("comment"),
+  ticketId: z.string().uuid(),
+  visibility: z.enum(["requester", "internal"]),
+  body: z.string().trim().min(2).max(4000),
+  expectedUpdatedAt: z.string().datetime({ offset: true }),
+  filter: assignSchema.shape.filter,
+  page: z.string().optional(),
+});
+
+const transitionSchema = z.object({
+  intent: z.literal("transition"),
+  ticketId: z.string().uuid(),
+  expectedUpdatedAt: z.string().datetime({ offset: true }),
+  toStatus: z.enum(["new", "triage", "assigned", "in_progress", "waiting_for_requester", "waiting_for_vendor", "resolved", "closed", "cancelled"]),
+  resolutionCode: z.string().optional(),
+  resolutionSummary: z.string().trim().max(2000).optional(),
+  closureDetails: z.string().trim().max(2000).optional(),
+  filter: assignSchema.shape.filter,
+  page: z.string().optional(),
+});
+
 function normalizedValue(value?: string) {
   return value && value.trim() ? value : undefined;
 }
@@ -42,7 +69,7 @@ function normalizedValue(value?: string) {
 function redirectTo(
   request: NextRequest,
   values: { filter?: string; page?: string; ticketId?: string },
-  status: "assigned" | "conflict" | "failed",
+  status: "assigned" | "conflict" | "failed" | "commented" | "noted" | "transitioned",
 ) {
   const url = new URL("/technician", request.url);
   if (values.filter && values.filter !== "unassigned")
@@ -68,7 +95,7 @@ export async function POST(request: NextRequest) {
   const intent = formData.get("intent");
 
   try {
-    if (intent === "claim") {
+  if (intent === "claim") {
       const input = claimSchema.parse(raw);
       await assignTicket(
         access,
@@ -85,6 +112,52 @@ export async function POST(request: NextRequest) {
           request,
           { filter: input.filter, page: input.page, ticketId: input.ticketId },
           "assigned",
+        ),
+      );
+    }
+
+    if (intent === "comment") {
+      const input = commentSchema.parse(raw);
+      await addTicketComment(
+        access,
+        {
+          ticketId: input.ticketId,
+          visibility: input.visibility,
+          body: input.body,
+          expectedUpdatedAt: input.expectedUpdatedAt,
+        },
+        requestCorrelationId(request),
+      );
+
+      return finalize(
+        redirectTo(
+          request,
+          { filter: input.filter, page: input.page, ticketId: input.ticketId },
+          input.visibility === "internal" ? "noted" : "commented",
+        ),
+      );
+    }
+
+    if (intent === "transition") {
+      const input = transitionSchema.parse(raw);
+      await transitionTicket(
+        access,
+        {
+          ticketId: input.ticketId,
+          expectedUpdatedAt: input.expectedUpdatedAt,
+          toStatus: input.toStatus,
+          resolutionCode: normalizedValue(input.resolutionCode),
+          resolutionSummary: normalizedValue(input.resolutionSummary),
+          closureDetails: normalizedValue(input.closureDetails),
+        },
+        requestCorrelationId(request),
+      );
+
+      return finalize(
+        redirectTo(
+          request,
+          { filter: input.filter, page: input.page, ticketId: input.ticketId },
+          "transitioned",
         ),
       );
     }

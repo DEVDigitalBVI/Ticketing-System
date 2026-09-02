@@ -65,11 +65,19 @@ const commentSchema = z.object({
   ticketId: uuidSchema,
   visibility: z.enum(ticketCommentVisibilityValues),
   body: nonBlankTextSchema.max(4000),
+  expectedUpdatedAt: z.preprocess(
+    (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+    z.string().datetime({ offset: true }).optional(),
+  ),
 });
 
 const transitionSchema = z.object({
   ticketId: uuidSchema,
   toStatus: z.enum(ticketStatuses),
+  expectedUpdatedAt: z.preprocess(
+    (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+    z.string().datetime({ offset: true }).optional(),
+  ),
   resolutionCode: z.preprocess(
     (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
     z.enum(ticketResolutionCodeValues).optional(),
@@ -527,6 +535,13 @@ export async function addTicketComment(
     const ticket = await repository.findTicket(input.ticketId, access.organizationId);
     if (!ticket) throw new TicketServiceError("not_found", input.ticketId);
 
+    if (
+      input.expectedUpdatedAt &&
+      ticket.updatedAt.getTime() !== new Date(input.expectedUpdatedAt).getTime()
+    ) {
+      throw new TicketServiceError("conflict", input.ticketId);
+    }
+
     const subject = subjectFromAccess(access);
     if (
       !canAddComment(
@@ -609,7 +624,16 @@ export async function transitionTicket(
       assigneeUserId: ticket.assigneeUserId,
     });
 
-    const updated = await repository.updateTicket(ticket.id, access.organizationId, update);
+    const updated = input.expectedUpdatedAt
+      ? await repository.updateTicketIfCurrent(
+          ticket.id,
+          access.organizationId,
+          new Date(input.expectedUpdatedAt),
+          update,
+        )
+      : await repository.updateTicket(ticket.id, access.organizationId, update);
+
+    if (!updated) throw new TicketServiceError("conflict", input.ticketId);
 
     await repository.createActivity({
       organizationId: access.organizationId,
