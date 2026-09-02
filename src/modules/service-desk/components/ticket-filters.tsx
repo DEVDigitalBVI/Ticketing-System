@@ -104,6 +104,10 @@ function DetailPanel({
         <small>Internal status: {ticket.canonicalStatus.replaceAll("_", " ")}</small>
       </div>
       <p>{ticket.title}</p>
+      <div className="service-expectation">
+        <strong>What to expect</strong>
+        <p>{ticket.serviceExpectation}</p>
+      </div>
       <dl className="detail-list">
         <div>
           <dt>Property</dt>

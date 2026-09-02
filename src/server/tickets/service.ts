@@ -7,7 +7,13 @@ import { database } from "@/server/database/client";
 import { AuditEventRepository } from "@/server/repositories/audit-event-repository";
 import { TicketRepository } from "@/server/repositories/ticket-repository";
 import {
-  calculatePriorityPlaceholder,
+  calculateSlaDeadlines,
+  parseSlaPolicySnapshot,
+  priorityFor,
+  resumeDeadline,
+  snapshotSlaPolicy,
+} from "@/server/sla/policy";
+import {
   canAddComment,
   canAssignTicket,
   canMutateTicketStatus,
@@ -214,6 +220,7 @@ function transitionUpdate(
     supportTeamId: string | null;
     assigneeUserId: string | null;
   },
+  now: Date,
 ) {
   if (!canTransitionStatus(fromStatus, toStatus)) {
     throw new TicketServiceError("transition_invalid", input.ticketId);
@@ -227,7 +234,6 @@ function transitionUpdate(
     throw new TicketServiceError("assignment_required", input.ticketId);
   }
 
-  const now = new Date();
   const update: Prisma.TicketUncheckedUpdateInput = {
     status: toStatus,
     closedAt: null,
@@ -347,6 +353,15 @@ export async function createTicket(
 
     await assertActiveLinkedRecords(repository, access.organizationId, input);
 
+    const now = new Date();
+    const storedPolicy = await repository.findActiveSlaPolicyForProperty(
+      input.propertyId,
+      access.organizationId,
+    );
+    const slaPolicy = snapshotSlaPolicy(storedPolicy);
+    const priority = priorityFor(slaPolicy, input.impact, input.urgency);
+    const deadlines = calculateSlaDeadlines(now, priority, slaPolicy);
+
     const ticket = await repository.createTicket({
       organizationId: access.organizationId,
       ticketNumber: "",
@@ -361,12 +376,17 @@ export async function createTicket(
       subcategoryId: input.subcategoryId,
       impact: input.impact,
       urgency: input.urgency,
-      priority: calculatePriorityPlaceholder(input.impact, input.urgency),
+      priority,
       supportTeamId: input.supportTeamId,
       assigneeUserId: input.assigneeUserId,
       source: input.source,
       status: input.supportTeamId || input.assigneeUserId ? "assigned" : "new",
-      assignedAt: input.supportTeamId || input.assigneeUserId ? new Date() : undefined,
+      assignedAt: input.supportTeamId || input.assigneeUserId ? now : undefined,
+      slaPolicyId: storedPolicy?.id,
+      slaPolicyVersion: slaPolicy.version,
+      slaPolicySnapshot: slaPolicy as unknown as Prisma.InputJsonObject,
+      slaResponseDueAt: deadlines.responseDueAt,
+      slaResolutionDueAt: deadlines.resolutionDueAt,
     });
 
     await repository.createActivity({
@@ -380,6 +400,9 @@ export async function createTicket(
         ticketNumber: ticket.ticketNumber,
         source: ticket.source,
         priority: ticket.priority,
+        slaPolicyVersion: ticket.slaPolicyVersion,
+        slaResponseDueAt: ticket.slaResponseDueAt?.toISOString(),
+        slaResolutionDueAt: ticket.slaResolutionDueAt?.toISOString(),
       }),
     });
 
@@ -558,6 +581,27 @@ export async function addTicketComment(
       throw new TicketServiceError("denied", input.ticketId);
     }
 
+    const now = new Date();
+    const isTechnicianResponse =
+      input.visibility === "requester" &&
+      accessCan(access, "ticket.queue.read", {
+        organizationId: ticket.organizationId,
+        propertyId: ticket.propertyId,
+        departmentId: ticket.departmentId ?? undefined,
+      });
+    const ticketUpdate: Prisma.TicketUncheckedUpdateInput = { updatedAt: now };
+    if (isTechnicianResponse && !ticket.slaRespondedAt) ticketUpdate.slaRespondedAt = now;
+
+    const touchedTicket = input.expectedUpdatedAt
+      ? await repository.updateTicketIfCurrent(
+          ticket.id,
+          access.organizationId,
+          new Date(input.expectedUpdatedAt),
+          ticketUpdate,
+        )
+      : await repository.updateTicket(ticket.id, access.organizationId, ticketUpdate);
+    if (!touchedTicket) throw new TicketServiceError("conflict", input.ticketId);
+
     const comment = await repository.createComment({
       organizationId: access.organizationId,
       ticketId: ticket.id,
@@ -575,6 +619,7 @@ export async function addTicketComment(
       metadata: toJsonObject({
         commentId: comment.id,
         visibility: input.visibility,
+        firstResponseRecorded: isTechnicianResponse && !ticket.slaRespondedAt,
       }),
     });
 
@@ -619,10 +664,55 @@ export async function transitionTicket(
       throw new TicketServiceError("denied", input.ticketId);
     }
 
-    const { update } = transitionUpdate(ticket.status as TicketStatus, input.toStatus, input, {
-      supportTeamId: ticket.supportTeamId,
-      assigneeUserId: ticket.assigneeUserId,
-    });
+    const now = new Date();
+    const fromStatus = ticket.status as TicketStatus;
+    const { update } = transitionUpdate(
+      fromStatus,
+      input.toStatus,
+      input,
+      {
+        supportTeamId: ticket.supportTeamId,
+        assigneeUserId: ticket.assigneeUserId,
+      },
+      now,
+    );
+
+    const policy = parseSlaPolicySnapshot(ticket.slaPolicySnapshot);
+    if (policy) {
+      const wasPaused = policy.pauseStatuses.includes(fromStatus);
+      const willPause = policy.pauseStatuses.includes(input.toStatus);
+      if (!wasPaused && willPause) update.slaWaitingAt = now;
+      if (wasPaused && !willPause && ticket.slaWaitingAt) {
+        update.slaResponseDueAt = ticket.slaRespondedAt
+          ? ticket.slaResponseDueAt
+          : resumeDeadline(ticket.slaWaitingAt, now, ticket.slaResponseDueAt, policy);
+        update.slaResolutionDueAt = resumeDeadline(
+          ticket.slaWaitingAt,
+          now,
+          ticket.slaResolutionDueAt,
+          policy,
+        );
+        update.slaPausedSeconds = {
+          increment: Math.max(0, Math.floor((now.getTime() - ticket.slaWaitingAt.getTime()) / 1000)),
+        };
+        update.slaWaitingAt = null;
+      }
+
+      const reopening = ["resolved", "closed", "cancelled"].includes(fromStatus) &&
+        !["resolved", "closed", "cancelled"].includes(input.toStatus);
+      if (reopening) {
+        const priority = ticket.priority as "P1" | "P2" | "P3" | "P4";
+        const deadlines = calculateSlaDeadlines(now, priority, policy);
+        if (policy.reopenBehavior.response === "reset") {
+          update.slaRespondedAt = null;
+          update.slaResponseDueAt = deadlines.responseDueAt;
+        }
+        if (policy.reopenBehavior.resolution === "reset") {
+          update.slaResolutionDueAt = deadlines.resolutionDueAt;
+        }
+        update.slaWaitingAt = null;
+      }
+    }
 
     const updated = input.expectedUpdatedAt
       ? await repository.updateTicketIfCurrent(
@@ -645,6 +735,7 @@ export async function transitionTicket(
       requesterVisible: transitionActivityVisible(input.toStatus),
       metadata: toJsonObject({
         resolutionCode: input.resolutionCode,
+        slaWaitingAt: update.slaWaitingAt instanceof Date ? update.slaWaitingAt.toISOString() : null,
         hasClosureDetails: input.closureDetails ? true : undefined,
       }),
     });

@@ -4,6 +4,7 @@ import { Prisma } from "@/generated/prisma/client";
 import type { AccessProfile } from "@/server/auth/access";
 import { database } from "@/server/database/client";
 import { AuditEventRepository } from "@/server/repositories/audit-event-repository";
+import { evaluateSla, parseSlaPolicySnapshot } from "@/server/sla/policy";
 import { addTicketComment, TicketServiceError } from "@/server/tickets/service";
 import { canReadTicket, type TicketStatus } from "@/server/tickets/workflow";
 
@@ -68,6 +69,7 @@ export type StaffTicketDetail = {
   resolutionSummary: string | null;
   closureDetails: string | null;
   canConfirmResolution: boolean;
+  serviceExpectation: string;
   thread: StaffTicketThreadEntry[];
 };
 
@@ -300,6 +302,7 @@ export async function listRequesterTicketWorkspace(
 }
 
 export async function getRequesterTicketDetail(access: AccessProfile, ticketId: string) {
+  const now = new Date();
   const ticket = await database.ticket.findFirst({
     where: {
       ...accessibleTicketWhere(access),
@@ -325,6 +328,35 @@ export async function getRequesterTicketDetail(access: AccessProfile, ticketId: 
   });
 
   if (!ticket) return null;
+
+  const slaPolicy = parseSlaPolicySnapshot(ticket.slaPolicySnapshot);
+  const sla = evaluateSla({
+    now,
+    status: ticket.status as TicketStatus,
+    policy: slaPolicy,
+    responseDueAt: ticket.slaResponseDueAt,
+    respondedAt: ticket.slaRespondedAt,
+    resolutionDueAt: ticket.slaResolutionDueAt,
+    resolvedAt: ticket.resolvedAt,
+  });
+  const expectationDate = sla.nextDeadline && slaPolicy
+    ? new Intl.DateTimeFormat("en-US", {
+        timeZone: slaPolicy.timezone,
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZoneName: "short",
+      }).format(sla.nextDeadline)
+    : null;
+  const serviceExpectation = sla.overall === "paused"
+    ? "The service clock is paused while IT waits for the requested information or vendor action."
+    : expectationDate
+      ? `The next service target is ${expectationDate}. Support hours and approved holidays are included.`
+      : sla.overall === "met"
+        ? "The applicable response and resolution targets have been completed."
+        : "No active service target applies to this ticket.";
 
   assertPortalReadable(access, {
     organizationId: ticket.organizationId,
@@ -356,6 +388,7 @@ export async function getRequesterTicketDetail(access: AccessProfile, ticketId: 
     resolutionSummary: ticket.resolutionSummary,
     closureDetails: ticket.closureDetails,
     canConfirmResolution: ticket.status === "resolved",
+    serviceExpectation,
     thread,
   } satisfies StaffTicketDetail;
 }

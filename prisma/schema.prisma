@@ -305,6 +305,7 @@ model Ticket {
   slaPolicyVersion Int?               @map("sla_policy_version")
   slaPolicySnapshot Json?              @map("sla_policy_snapshot")
   slaResponseDueAt DateTime?          @map("sla_response_due_at") @db.Timestamptz(6)
+  slaRespondedAt   DateTime?          @map("sla_responded_at") @db.Timestamptz(6)
   slaResolutionDueAt DateTime?        @map("sla_resolution_due_at") @db.Timestamptz(6)
   slaWaitingAt     DateTime?          @map("sla_waiting_at") @db.Timestamptz(6)
   slaPausedSeconds Int                @map("sla_paused_seconds") @default(0)

@@ -35,6 +35,7 @@ alter table service_desk.tickets
   add column sla_policy_version int,
   add column sla_policy_snapshot jsonb,
   add column sla_response_due_at timestamptz(6),
+  add column sla_responded_at timestamptz(6),
   add column sla_resolution_due_at timestamptz(6),
   add column sla_waiting_at timestamptz(6),
   add column sla_paused_seconds int not null default 0;

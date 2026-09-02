@@ -4,6 +4,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { accessCan } from "@/server/auth/authorization";
 import type { AccessProfile } from "@/server/auth/access";
 import { database } from "@/server/database/client";
+import { evaluateSla, parseSlaPolicySnapshot, type SlaState } from "@/server/sla/policy";
 import type { TicketStatus } from "@/server/tickets/workflow";
 
 export type TechnicianQueueFilter =
@@ -23,6 +24,7 @@ export type TechnicianQueueListItem = {
   assigneeInitials: string;
   age: string;
   serviceIndicator: string;
+  serviceState: SlaState;
 };
 
 export type TechnicianHistoryEntry = {
@@ -59,6 +61,13 @@ export type TechnicianQueueDetail = {
   resolutionSummary: string | null;
   closureDetails: string | null;
   serviceIndicator: string;
+  sla: {
+    state: SlaState;
+    response: string;
+    resolution: string;
+    policy: string;
+    timezone: string;
+  };
   history: TechnicianHistoryEntry[];
   assignmentOptions: {
     supportTeams: Array<{ id: string; name: string }>;
@@ -100,6 +109,23 @@ const waitingStatuses = [
   "waiting_for_vendor",
 ] as const satisfies readonly TicketStatus[];
 const recentlyResolvedStatuses = ["resolved", "closed"] as const satisfies readonly TicketStatus[];
+const queueTicketSelect = {
+  id: true,
+  ticketNumber: true,
+  summary: true,
+  createdAt: true,
+  status: true,
+  priority: true,
+  requester: { select: { displayName: true } },
+  serviceLocation: { select: { name: true } },
+  category: { select: { name: true } },
+  assignee: { select: { displayName: true } },
+  slaPolicySnapshot: true,
+  slaResponseDueAt: true,
+  slaRespondedAt: true,
+  slaResolutionDueAt: true,
+  resolvedAt: true,
+} satisfies Prisma.TicketSelect;
 const ticketDateFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
   day: "numeric",
@@ -143,8 +169,8 @@ function formatDate(value: Date) {
   return ticketDateFormatter.format(value);
 }
 
-function formatAge(value: Date) {
-  const minutes = Math.max(1, Math.floor((Date.now() - value.getTime()) / 60_000));
+function formatAge(value: Date, now: Date) {
+  const minutes = Math.max(1, Math.floor((now.getTime() - value.getTime()) / 60_000));
   if (minutes < 60) return `${minutes}m`;
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h`;
@@ -175,7 +201,7 @@ function staffStatusFor(status: TicketStatus) {
   }
 }
 
-function serviceIndicatorFor(status: TicketStatus) {
+function fallbackServiceIndicatorFor(status: TicketStatus) {
   switch (status) {
     case "waiting_for_requester":
       return "Waiting on requester";
@@ -190,6 +216,59 @@ function serviceIndicatorFor(status: TicketStatus) {
     default:
       return "Technician action";
   }
+}
+
+type SlaTicket = {
+  status: string;
+  slaPolicySnapshot: unknown;
+  slaResponseDueAt: Date | null;
+  slaRespondedAt: Date | null;
+  slaResolutionDueAt: Date | null;
+  resolvedAt: Date | null;
+};
+
+function evaluateTicketSla(ticket: SlaTicket, now: Date) {
+  const policy = parseSlaPolicySnapshot(ticket.slaPolicySnapshot);
+  return {
+    policy,
+    evaluation: evaluateSla({
+      now,
+      status: ticket.status as TicketStatus,
+      policy,
+      responseDueAt: ticket.slaResponseDueAt,
+      respondedAt: ticket.slaRespondedAt,
+      resolutionDueAt: ticket.slaResolutionDueAt,
+      resolvedAt: ticket.resolvedAt,
+    }),
+  };
+}
+
+function deadlineText(label: string, state: SlaState, dueAt: Date | null, timezone: string) {
+  if (!dueAt) return `${label}: not applicable`;
+  const timestamp = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(dueAt);
+  const stateLabel = state.replaceAll("_", " ");
+  return `${label}: ${stateLabel} · ${timestamp}`;
+}
+
+function serviceIndicatorFor(ticket: SlaTicket, now: Date) {
+  const { policy, evaluation } = evaluateTicketSla(ticket, now);
+  if (!policy) return { label: fallbackServiceIndicatorFor(ticket.status as TicketStatus), state: "not_applicable" as const };
+  const labels: Record<SlaState, string> = {
+    breached: "SLA breached",
+    at_risk: "SLA at risk",
+    paused: "SLA paused",
+    on_track: "SLA on track",
+    met: "SLA targets met",
+    not_applicable: "No active SLA clock",
+  };
+  return { label: labels[evaluation.overall], state: evaluation.overall };
 }
 
 function baseWhere(access: AccessProfile) {
@@ -238,7 +317,7 @@ function filterWhere(access: AccessProfile, filter: TechnicianQueueFilter) {
     case "at_risk":
     case "breached":
       return {
-        AND: [base, { id: { equals: "__no_sla_placeholder__" } }],
+        AND: [base, { status: { in: [...actionableQueueStatuses, ...waitingStatuses] } }],
       } satisfies Prisma.TicketWhereInput;
     case "recently_resolved":
       return {
@@ -332,47 +411,49 @@ export async function listTechnicianWorkspace(
 
   const { filter, page, ticketId } = parseSearch(search);
   const pageSize = 10;
-  const [unassigned, myWork, teamWork, waiting, atRisk, breached, recentlyResolved] =
+  const now = new Date();
+  const [unassigned, myWork, teamWork, waiting, slaCandidates, recentlyResolved] =
     await Promise.all([
       database.ticket.count({ where: filterWhere(access, "unassigned") }),
       database.ticket.count({ where: filterWhere(access, "my_work") }),
       database.ticket.count({ where: filterWhere(access, "team_work") }),
       database.ticket.count({ where: filterWhere(access, "waiting") }),
-      database.ticket.count({ where: filterWhere(access, "at_risk") }),
-      database.ticket.count({ where: filterWhere(access, "breached") }),
+      database.ticket.findMany({
+        where: filterWhere(access, "at_risk"),
+        select: queueTicketSelect,
+        orderBy: orderByFor("at_risk"),
+      }),
       database.ticket.count({ where: filterWhere(access, "recently_resolved") }),
     ]);
+  const atRiskTickets = slaCandidates.filter(
+    (ticket) => evaluateTicketSla(ticket, now).evaluation.overall === "at_risk",
+  );
+  const breachedTickets = slaCandidates.filter(
+    (ticket) => evaluateTicketSla(ticket, now).evaluation.overall === "breached",
+  );
   const counts = {
     unassigned,
     my_work: myWork,
     team_work: teamWork,
     waiting,
-    at_risk: atRisk,
-    breached,
+    at_risk: atRiskTickets.length,
+    breached: breachedTickets.length,
     recently_resolved: recentlyResolved,
   } satisfies Record<TechnicianQueueFilter, number>;
 
   const totalPages = Math.max(1, Math.ceil(counts[filter] / pageSize));
   const normalizedPage = Math.min(page, totalPages);
 
-  const tickets = await database.ticket.findMany({
-    where: filterWhere(access, filter),
-    select: {
-      id: true,
-      ticketNumber: true,
-      summary: true,
-      createdAt: true,
-      status: true,
-      priority: true,
-      requester: { select: { displayName: true } },
-      serviceLocation: { select: { name: true } },
-      category: { select: { name: true } },
-      assignee: { select: { displayName: true } },
-    },
+  const selectedSlaTickets = filter === "at_risk" ? atRiskTickets : breachedTickets;
+  const tickets = filter === "at_risk" || filter === "breached"
+    ? selectedSlaTickets.slice((normalizedPage - 1) * pageSize, normalizedPage * pageSize)
+    : await database.ticket.findMany({
+      where: filterWhere(access, filter),
+      select: queueTicketSelect,
     orderBy: orderByFor(filter),
     skip: (normalizedPage - 1) * pageSize,
     take: pageSize,
-  });
+    });
 
   const selectedTicket = ticketId
     ? await getTechnicianTicketDetail(access, ticketId).catch(() => null)
@@ -390,7 +471,9 @@ export async function listTechnicianWorkspace(
       waiting: counts.waiting,
       recentlyResolved: counts.recently_resolved,
     },
-    tickets: tickets.map((ticket) => ({
+    tickets: tickets.map((ticket) => {
+      const indicator = serviceIndicatorFor(ticket, now);
+      return {
       ticketId: ticket.id,
       ticketNumber: ticket.ticketNumber,
       subject: ticket.summary,
@@ -402,14 +485,17 @@ export async function listTechnicianWorkspace(
       canonicalStatus: ticket.status as TicketStatus,
       assignee: ticket.assignee?.displayName ?? "Unassigned",
       assigneeInitials: initialsFor(ticket.assignee?.displayName ?? null),
-      age: formatAge(ticket.createdAt),
-      serviceIndicator: serviceIndicatorFor(ticket.status as TicketStatus),
-    })),
+      age: formatAge(ticket.createdAt, now),
+      serviceIndicator: indicator.label,
+      serviceState: indicator.state,
+    };
+    }),
     selectedTicket,
   };
 }
 
 export async function getTechnicianTicketDetail(access: AccessProfile, ticketId: string) {
+  const now = new Date();
   const ticket = await database.ticket.findFirst({
     where: {
       ...baseWhere(access),
@@ -460,6 +546,9 @@ export async function getTechnicianTicketDetail(access: AccessProfile, ticketId:
   });
 
   if (!ticket) return null;
+
+  const { policy, evaluation } = evaluateTicketSla(ticket, now);
+  const indicator = serviceIndicatorFor(ticket, now);
 
   const [supportTeams, technicians] = await Promise.all([
     loadAssignableSupportTeams(access, ticket.propertyId, ticket.departmentId),
@@ -531,12 +620,19 @@ export async function getTechnicianTicketDetail(access: AccessProfile, ticketId:
     canonicalStatus: ticket.status as TicketStatus,
     assignee: ticket.assignee?.displayName ?? "Unassigned",
     supportTeam: ticket.supportTeam?.name ?? "Unassigned",
-    age: formatAge(ticket.createdAt),
+    age: formatAge(ticket.createdAt, now),
     source: ticket.source.replaceAll("_", " "),
     resolutionCode: ticket.resolutionCode ?? null,
     resolutionSummary: ticket.resolutionSummary ?? null,
     closureDetails: ticket.closureDetails ?? null,
-    serviceIndicator: serviceIndicatorFor(ticket.status as TicketStatus),
+    serviceIndicator: indicator.label,
+    sla: {
+      state: evaluation.overall,
+      response: deadlineText("Response", evaluation.response, ticket.slaResponseDueAt, policy?.timezone ?? "UTC"),
+      resolution: deadlineText("Resolution", evaluation.resolution, ticket.slaResolutionDueAt, policy?.timezone ?? "UTC"),
+      policy: policy ? `${policy.name} · v${policy.version}` : "No policy snapshot",
+      timezone: policy?.timezone ?? "UTC",
+    },
     history,
     assignmentOptions: { supportTeams, technicians },
   } satisfies TechnicianQueueDetail;

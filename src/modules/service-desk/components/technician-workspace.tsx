@@ -193,6 +193,12 @@ function DetailPanel({
           <small>Internal status: {ticket.canonicalStatus.replaceAll("_", " ")}</small>
         </div>
       </div>
+      <div className={`sla-detail sla-${ticket.sla.state}`} aria-label="SLA target status">
+        <strong>{ticket.sla.policy}</strong>
+        <span>{ticket.sla.response}</span>
+        <span>{ticket.sla.resolution}</span>
+        <small>Calculated in {ticket.sla.timezone}</small>
+      </div>
       <p>{ticket.description}</p>
       <dl className="detail-list">
         <div>
@@ -245,10 +251,6 @@ function DetailPanel({
         <div>
           <dt>Age</dt>
           <dd>{ticket.age}</dd>
-        </div>
-        <div>
-          <dt>Source</dt>
-          <dd>{ticket.source}</dd>
         </div>
         <div>
           <dt>Source</dt>
@@ -638,7 +640,7 @@ export function TechnicianWorkspace({
                     {ticket.assignee}
                   </span>
                   <span
-                    className={`sla ${ticket.priority === "P1" ? "danger" : ticket.priority === "P2" ? "warning" : "normal"}`}
+                    className={`sla ${ticket.serviceState === "breached" ? "danger" : ticket.serviceState === "at_risk" ? "warning" : "normal"}`}
                     role="cell"
                   >
                     <strong>{ticket.status}</strong>
@@ -650,9 +652,7 @@ export function TechnicianWorkspace({
               <div className="empty-state queue-empty-state">
                 <strong>{queueEmptyState(workspace.filter)}</strong>
                 <p>
-                  {workspace.filter === "at_risk" || workspace.filter === "breached"
-                    ? "Formal SLA timing is not implemented yet, so these placeholder views are intentionally empty."
-                    : "Tickets in this queue view will appear here when they match the selected filter."}
+                  Tickets in this queue view will appear here when they match the selected filter.
                 </p>
               </div>
             )}

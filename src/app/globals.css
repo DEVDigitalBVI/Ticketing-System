@@ -1281,6 +1281,29 @@ button:disabled:hover {
 .sla.warning {
   color: var(--warning);
 }
+.sla-detail,
+.service-expectation {
+  display: grid;
+  gap: 5px;
+  margin: 14px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  font-size: 11px;
+}
+.sla-detail span,
+.sla-detail small,
+.service-expectation p {
+  margin: 0;
+  color: var(--ink-soft);
+}
+.sla-detail.sla-at_risk {
+  border-left-color: var(--warning);
+}
+.sla-detail.sla-breached {
+  border-left-color: var(--danger);
+}
 .context-panel {
   padding: 24px;
   background: var(--surface-raised);
