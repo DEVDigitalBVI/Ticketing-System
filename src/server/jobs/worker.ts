@@ -91,9 +91,11 @@ export async function runWorkerLoop(input: {
   now?: () => Date;
   leaseMs?: number;
   idleMs?: number;
+  beforePoll?: (now: Date) => Promise<void>;
 }) {
   const now = input.now ?? (() => new Date());
   while (!input.signal.aborted) {
+    await input.beforePoll?.(now());
     await input.store.dispatchOutbox(now(), 100);
     if (input.signal.aborted) break;
     const result = await runNextJob({
