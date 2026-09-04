@@ -9,7 +9,7 @@ if (!connectionString) throw new Error("TEST_DATABASE_URL is required for databa
 const client = createDatabaseClient(connectionString);
 const store = new PrismaLevelInventoryStore();
 const organizationId = "18b8d97e-9622-4ca7-b344-6230ad863e84";
-const propertyId = "e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f";
+const propertyId = "ab9c2f07-e909-4f9d-9092-49ad4e06df1f";
 
 beforeAll(async () => client.$connect());
 afterAll(async () => client.$disconnect());

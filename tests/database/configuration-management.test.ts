@@ -12,7 +12,7 @@ const client = createDatabaseClient(connectionString);
 
 const ids = {
   organization: "18b8d97e-9622-4ca7-b344-6230ad863e84",
-  property: "e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f",
+  property: "ab9c2f07-e909-4f9d-9092-49ad4e06df1f",
   adminUser: "4f8fa463-fda0-4f40-9256-a8dc6e1ca2c5",
   requesterUser: "f5e0445e-c273-4165-b739-f9f0f60dd638",
   auditCorrelation: "0c94c36a-24f7-4c6d-9928-7cfad8615c3a",

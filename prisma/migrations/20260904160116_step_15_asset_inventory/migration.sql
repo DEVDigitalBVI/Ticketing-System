@@ -1,9 +1,5 @@
 -- Step 15: business-owned asset inventory and immutable movement history.
 
-alter table service_desk.service_locations
-  add constraint service_locations_id_building_area_id_property_id_organization_id_key
-  unique (id, building_area_id, property_id, organization_id);
-
 create table service_desk.asset_types (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null,

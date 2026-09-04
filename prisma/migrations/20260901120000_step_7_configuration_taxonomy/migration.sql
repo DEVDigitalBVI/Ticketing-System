@@ -228,12 +228,12 @@ for each row execute function service_desk.set_updated_at();
 
 insert into service_desk.departments (id, organization_id, property_id, code, name)
 values
-  ('56b9da6f-ab84-48d1-8b88-c0dd55092b76', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', 'front_office', 'Front Office'),
-  ('16bd6d77-b7c6-47fb-b9d7-3d44fe9bbd54', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', 'food_and_beverage', 'Food and Beverage'),
-  ('4f4fc4bc-c0cc-42c1-9d72-30fb4e2a4c16', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', 'housekeeping', 'Housekeeping'),
-  ('6d93e5bf-c2db-4d42-a53a-b0ee460efb8d', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', 'spa_and_wellness', 'Spa and Wellness'),
-  ('ee6f38e3-a91d-4dd8-85c3-12e1f91dd4c9', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', 'marine_and_recreation', 'Marine and Recreation'),
-  ('dd5dcb32-7eb0-4127-9be0-46dfd53bd418', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', 'finance_and_admin', 'Finance and Administration')
+  ('56b9da6f-ab84-48d1-8b88-c0dd55092b76', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', 'front_office', 'Front Office'),
+  ('16bd6d77-b7c6-47fb-b9d7-3d44fe9bbd54', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', 'food_and_beverage', 'Food and Beverage'),
+  ('4f4fc4bc-c0cc-42c1-9d72-30fb4e2a4c16', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', 'housekeeping', 'Housekeeping'),
+  ('6d93e5bf-c2db-4d42-a53a-b0ee460efb8d', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', 'spa_and_wellness', 'Spa and Wellness'),
+  ('ee6f38e3-a91d-4dd8-85c3-12e1f91dd4c9', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', 'marine_and_recreation', 'Marine and Recreation'),
+  ('dd5dcb32-7eb0-4127-9be0-46dfd53bd418', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', 'finance_and_admin', 'Finance and Administration')
 on conflict (id, organization_id) do update
 set property_id = excluded.property_id,
     code = excluded.code,
@@ -242,11 +242,11 @@ set property_id = excluded.property_id,
 
 insert into service_desk.building_areas (id, organization_id, property_id, code, name, kind)
 values
-  ('8c452bab-cc6d-4615-b73c-7b7fb5dc9ac0', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', 'great_harbour_arrivals', 'Great Harbour Arrivals', 'area'),
-  ('b63ba9c4-a898-451b-afbe-a232615b8a60', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', 'beachfront_villas', 'Beachfront Villas', 'building'),
-  ('778aa7a2-b1f8-4949-aaee-3317f618aa8c', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', 'spa_pavilion', 'Spa Pavilion', 'building'),
-  ('44cb695f-64c6-454e-8b98-756f4a7558a0', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', 'marina_village', 'Marina Village', 'area'),
-  ('50ec4331-13dc-4d09-ac83-c8f1d89e0d90', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', 'the_drake_restaurant', 'The Drake Restaurant', 'building')
+  ('8c452bab-cc6d-4615-b73c-7b7fb5dc9ac0', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', 'great_harbour_arrivals', 'Great Harbour Arrivals', 'area'),
+  ('b63ba9c4-a898-451b-afbe-a232615b8a60', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', 'beachfront_villas', 'Beachfront Villas', 'building'),
+  ('778aa7a2-b1f8-4949-aaee-3317f618aa8c', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', 'spa_pavilion', 'Spa Pavilion', 'building'),
+  ('44cb695f-64c6-454e-8b98-756f4a7558a0', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', 'marina_village', 'Marina Village', 'area'),
+  ('50ec4331-13dc-4d09-ac83-c8f1d89e0d90', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', 'the_drake_restaurant', 'The Drake Restaurant', 'building')
 on conflict (id, organization_id) do update
 set property_id = excluded.property_id,
     code = excluded.code,
@@ -258,12 +258,12 @@ insert into service_desk.service_locations (
   id, organization_id, property_id, building_area_id, code, name, kind
 )
 values
-  ('c7a17b7c-55e1-49d4-aac4-d0e56cfa15f7', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', '8c452bab-cc6d-4615-b73c-7b7fb5dc9ac0', 'arrival_lounge', 'Arrival Lounge', 'service_location'),
-  ('940549de-fdde-45e8-8138-f53f7737532c', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', 'b63ba9c4-a898-451b-afbe-a232615b8a60', 'villa_101', 'Villa 101', 'room'),
-  ('27be8cb5-a1d8-4ce5-b9de-c565ae483bc6', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', 'b63ba9c4-a898-451b-afbe-a232615b8a60', 'villa_102', 'Villa 102', 'room'),
-  ('b2eb0210-0592-47f4-a997-5c2c83dce9bb', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', '778aa7a2-b1f8-4949-aaee-3317f618aa8c', 'treatment_suite_a', 'Treatment Suite A', 'service_location'),
-  ('4ff4dfa2-032e-4d4a-98a2-ded702f0c0d1', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', '44cb695f-64c6-454e-8b98-756f4a7558a0', 'dock_master_office', 'Dock Master Office', 'service_location'),
-  ('c3ed9c91-7c7e-4f5b-9976-b7f33735a1a5', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', '50ec4331-13dc-4d09-ac83-c8f1d89e0d90', 'host_stand', 'Host Stand', 'service_location')
+  ('c7a17b7c-55e1-49d4-aac4-d0e56cfa15f7', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', '8c452bab-cc6d-4615-b73c-7b7fb5dc9ac0', 'arrival_lounge', 'Arrival Lounge', 'service_location'),
+  ('940549de-fdde-45e8-8138-f53f7737532c', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', 'b63ba9c4-a898-451b-afbe-a232615b8a60', 'villa_101', 'Villa 101', 'room'),
+  ('27be8cb5-a1d8-4ce5-b9de-c565ae483bc6', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', 'b63ba9c4-a898-451b-afbe-a232615b8a60', 'villa_102', 'Villa 102', 'room'),
+  ('b2eb0210-0592-47f4-a997-5c2c83dce9bb', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', '778aa7a2-b1f8-4949-aaee-3317f618aa8c', 'treatment_suite_a', 'Treatment Suite A', 'service_location'),
+  ('4ff4dfa2-032e-4d4a-98a2-ded702f0c0d1', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', '44cb695f-64c6-454e-8b98-756f4a7558a0', 'dock_master_office', 'Dock Master Office', 'service_location'),
+  ('c3ed9c91-7c7e-4f5b-9976-b7f33735a1a5', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', '50ec4331-13dc-4d09-ac83-c8f1d89e0d90', 'host_stand', 'Host Stand', 'service_location')
 on conflict (id, organization_id) do update
 set property_id = excluded.property_id,
     building_area_id = excluded.building_area_id,
@@ -274,10 +274,10 @@ set property_id = excluded.property_id,
 
 insert into service_desk.support_teams (id, organization_id, property_id, department_id, code, name)
 values
-  ('74049d0c-4a07-4af5-b0c1-7dfec09b5f79', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', '56b9da6f-ab84-48d1-8b88-c0dd55092b76', 'front_office_support', 'Front Office Support'),
-  ('900f7c4d-9370-4a17-b34b-e4940b9ec71e', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', '16bd6d77-b7c6-47fb-b9d7-3d44fe9bbd54', 'pos_and_payments', 'POS and Payments'),
-  ('3687d8d9-3ccd-44eb-959a-2ee7122d5373', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', '4f4fc4bc-c0cc-42c1-9d72-30fb4e2a4c16', 'guest_rooms_and_housekeeping', 'Guest Rooms and Housekeeping'),
-  ('8d1a7cc7-fcf9-4535-b0bc-fbaad0327b73', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f', null, 'core_it_operations', 'Core IT Operations')
+  ('74049d0c-4a07-4af5-b0c1-7dfec09b5f79', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', '56b9da6f-ab84-48d1-8b88-c0dd55092b76', 'front_office_support', 'Front Office Support'),
+  ('900f7c4d-9370-4a17-b34b-e4940b9ec71e', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', '16bd6d77-b7c6-47fb-b9d7-3d44fe9bbd54', 'pos_and_payments', 'POS and Payments'),
+  ('3687d8d9-3ccd-44eb-959a-2ee7122d5373', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', '4f4fc4bc-c0cc-42c1-9d72-30fb4e2a4c16', 'guest_rooms_and_housekeeping', 'Guest Rooms and Housekeeping'),
+  ('8d1a7cc7-fcf9-4535-b0bc-fbaad0327b73', '18b8d97e-9622-4ca7-b344-6230ad863e84', 'ab9c2f07-e909-4f9d-9092-49ad4e06df1f', null, 'core_it_operations', 'Core IT Operations')
 on conflict (id, organization_id) do update
 set property_id = excluded.property_id,
     department_id = excluded.department_id,

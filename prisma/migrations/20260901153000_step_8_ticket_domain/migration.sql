@@ -1,5 +1,22 @@
 -- Step 8: core ticket domain, lifecycle, and append-only history.
 
+-- These composite candidate keys are required by tenant- and hierarchy-consistent
+-- foreign keys below. Step 7 created the matching Prisma relations but omitted
+-- their database constraints.
+alter table service_desk.service_locations
+  add constraint service_locations_id_property_id_organization_id_key
+    unique (id, property_id, organization_id),
+  add constraint service_locations_id_building_area_id_property_id_organization_id_key
+    unique (id, building_area_id, property_id, organization_id);
+
+alter table service_desk.support_teams
+  add constraint support_teams_id_property_id_organization_id_key
+    unique (id, property_id, organization_id);
+
+alter table service_desk.ticket_subcategories
+  add constraint ticket_subcategories_id_category_id_organization_id_key
+    unique (id, category_id, organization_id);
+
 create sequence if not exists service_desk.ticket_number_seq
   as bigint
   start with 1001
