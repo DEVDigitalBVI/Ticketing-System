@@ -1,7 +1,7 @@
 # Peter Island Resort and Spa IT Service Desk — System Context
 
 Last updated: 2026-09-04
-Status: Application foundation and PostgreSQL job boundary confirmed; remaining product and deployment scope pending
+Status: Hosted schema through Step 21 and Level read-only access confirmed; runtime database connection pending
 
 ## Product scope
 
@@ -19,17 +19,17 @@ The blueprint must confirm the user roles and their permissions. The likely role
 
 ## Integrations
 
-| Integration                         | Current status                               | Intended boundary                                                                                                                                     |
-| ----------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Next.js application                 | Step 2 foundation implemented and verified   | Hosts the application routes, shared UI, and future server-side application boundary.                                                                 |
-| PostgreSQL / Prisma                 | Step 4 local and test foundation implemented | Private `service_desk` schema contains organisation, property, department, identity, role membership, and audit foundations.                          |
-| Supabase project `Ticketing System` | Hosted identity foundation implemented       | Project `zwcmljkjoxrfzfyphdtc` hosts the private `service_desk` schema. Runtime credentials, Data API exposure, and RLS policies are not configured.  |
-| Supabase Storage                    | Private ticket bucket implemented in Step 14 | Stores ticket attachments behind server-side ticket authorization, quarantine, type/size validation, and retention cleanup.                           |
-| PostgreSQL job queue                | Transactional outbox implemented in Step 17  | Private tables carry leased, retryable notification, SLA, synchronization, and webhook work without connecting provider adapters.                     |
-| Level.io Public API                 | Read-only boundary implemented in Step 20    | Server-only typed client can perform an administrator-triggered one-record health read; no device data is stored and no provider mutation is enabled. |
-| Hosting platform                    | Target undecided                             | Runs the web/server application and its deployment pipeline.                                                                                          |
+| Integration                         | Current status                               | Intended boundary                                                                                                                         |
+| ----------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Next.js application                 | Step 2 foundation implemented and verified   | Hosts the application routes, shared UI, and future server-side application boundary.                                                     |
+| PostgreSQL / Prisma                 | Domain schema through Step 21 implemented    | Private `service_desk` schema contains identity, tickets, SLA, attachments, assets, jobs, and Level inventory.                            |
+| Supabase project `Ticketing System` | Hosted migrations through Step 21 applied    | Project `zwcmljkjoxrfzfyphdtc` hosts the private schema; the app runtime connection strings are not yet configured.                       |
+| Supabase Storage                    | Private ticket bucket implemented in Step 14 | Stores ticket attachments behind server-side ticket authorization, quarantine, type/size validation, and retention cleanup.               |
+| PostgreSQL job queue                | Transactional outbox implemented in Step 17  | Private tables carry leased, retryable notification, SLA, synchronization, and webhook work; the Level inventory consumer is implemented. |
+| Level.io Public API                 | Read-only inventory access verified          | Health and full pagination succeed with the server credential; durable snapshots await the application database connection.               |
+| Hosting platform                    | Target undecided                             | Runs the web/server application and its deployment pipeline.                                                                              |
 
-The hosted database currently contains the Step 6 foundation. Supabase Storage is the approved attachment provider in application code, while its Step 14 bucket migration must follow the prerequisite ticket-domain migrations in the normal forward-only deployment sequence.
+The hosted database contains the approved forward migration sequence through Step 21, including the private attachment bucket and Level inventory constraints. The first durable inventory synchronization awaits runtime database connection strings for the hosted project.
 
 ## System boundary
 

@@ -201,9 +201,9 @@ The baseline was reverified at commit `ba8e67a` on 2026-08-31. All automated qua
 - **Status:** Accepted
 - **Date:** 2026-09-04
 - **Owners:** Product / Engineering
-- **Context:** The application needs a verified provider boundary before it can consider importing device context. Current official documentation defines a public v2 API and webhooks, while this tenant has no API key configured and undocumented UI links or remote actions cannot be assumed.
+- **Context:** The application needs a verified provider boundary before it can consider importing device context. Current official documentation defines a public v2 API and webhooks; undocumented UI links or remote actions cannot be assumed.
 - **Decision:** Use a dedicated server-only `LevelClient` with the fixed official HTTPS base URL, raw API-key authorization, runtime response validation, bounded request timeouts/retries, capped `Retry-After` waits, cursor safeguards, correlation IDs, controlled errors, and allowlisted logs. Store the dedicated read-only key only in `LEVEL_API_KEY` through the deployment secret environment. Limit Step 20 production behavior to an administrator-triggered `GET /v2/devices?limit=1` health check that discards device data and records only safe audit evidence.
-- **Consequences:** The browser never receives provider credentials or device payloads. Authentication, permission, throttling, timeout, network, and schema failures remain distinguishable without leaking provider details. Tenant scope stays unknown until a read-only key is supplied and checked. Device synchronization, webhook registration/receiving, deep links, write methods, and remote actions require later explicit decisions.
+- **Consequences:** The browser never receives provider credentials or device payloads. Authentication, permission, throttling, timeout, network, and schema failures remain distinguishable without leaking provider details. The supplied read-only key has passed live health and pagination checks. Webhook registration/receiving, deep links, write methods, and remote actions require later explicit decisions.
 - **Evidence:** `docs/integrations/level.md`, `src/server/integrations/level/`, `/auth/level-health`, the Level status panel in `/admin/configuration`, and Step 20 fixture-based tests.
 
 ## ADR-016: Separate Level operational identity from resort asset ownership
