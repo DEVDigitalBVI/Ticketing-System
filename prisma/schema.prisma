@@ -34,6 +34,10 @@ model Organization {
   vendors              Vendor[]
   procurementMetadata  ProcurementMetadata[]
   externalSystemLinks  ExternalSystemLink[]
+  outboxEvents         OutboxEvent[]
+  backgroundJobs       BackgroundJob[]
+  jobAttempts          BackgroundJobAttempt[]
+  jobEffects           BackgroundJobEffect[]
 
   @@map("organizations")
   @@schema("service_desk")
@@ -706,5 +710,109 @@ model ExternalSystemLink {
   @@unique([organizationId, systemKey, externalId])
   @@index([assetId, organizationId])
   @@map("external_system_links")
+  @@schema("service_desk")
+}
+
+model OutboxEvent {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String         @map("organization_id") @db.Uuid
+  category       String
+  eventType      String         @map("event_type")
+  aggregateType  String?        @map("aggregate_type")
+  aggregateId    String?        @map("aggregate_id")
+  payload        Json           @default("{}")
+  correlationId  String         @map("correlation_id") @db.Uuid
+  idempotencyKey String         @map("idempotency_key")
+  occurredAt     DateTime       @map("occurred_at") @db.Timestamptz(6)
+  dispatchedAt   DateTime?      @map("dispatched_at") @db.Timestamptz(6)
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  job            BackgroundJob?
+
+  @@unique([id, organizationId])
+  @@unique([organizationId, idempotencyKey])
+  @@index([organizationId, dispatchedAt, occurredAt])
+  @@map("outbox_events")
+  @@schema("service_desk")
+}
+
+model BackgroundJob {
+  id               String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId   String                 @map("organization_id") @db.Uuid
+  outboxEventId    String?                @unique @map("outbox_event_id") @db.Uuid
+  replayOfJobId    String?                @map("replay_of_job_id") @db.Uuid
+  category         String
+  jobType          String                 @map("job_type")
+  payload          Json                   @default("{}")
+  correlationId    String                 @map("correlation_id") @db.Uuid
+  idempotencyKey   String                 @map("idempotency_key")
+  effectKey        String                 @map("effect_key")
+  status           String                 @default("queued")
+  attempts         Int                    @default(0)
+  maxAttempts      Int                    @default(5) @map("max_attempts")
+  availableAt      DateTime               @map("available_at") @db.Timestamptz(6)
+  lockedAt         DateTime?              @map("locked_at") @db.Timestamptz(6)
+  lockedUntil      DateTime?              @map("locked_until") @db.Timestamptz(6)
+  lockToken        String?                @map("lock_token") @db.Uuid
+  workerId         String?                @map("worker_id")
+  lastErrorCode    String?                @map("last_error_code")
+  lastErrorMessage String?                @map("last_error_message")
+  completedAt      DateTime?              @map("completed_at") @db.Timestamptz(6)
+  deadLetteredAt   DateTime?              @map("dead_lettered_at") @db.Timestamptz(6)
+  createdAt        DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization     Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  outboxEvent      OutboxEvent?           @relation(fields: [outboxEventId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  replayOf         BackgroundJob?         @relation("BackgroundJobReplay", fields: [replayOfJobId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  replays          BackgroundJob[]        @relation("BackgroundJobReplay")
+  attemptsHistory  BackgroundJobAttempt[]
+  effects          BackgroundJobEffect[]
+
+  @@unique([id, organizationId])
+  @@unique([outboxEventId, organizationId])
+  @@unique([organizationId, idempotencyKey])
+  @@index([organizationId, status, availableAt])
+  @@index([status, lockedUntil])
+  @@index([replayOfJobId, organizationId])
+  @@index([correlationId])
+  @@map("background_jobs")
+  @@schema("service_desk")
+}
+
+model BackgroundJobAttempt {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String        @map("organization_id") @db.Uuid
+  jobId          String        @map("job_id") @db.Uuid
+  attemptNumber  Int           @map("attempt_number")
+  workerId       String        @map("worker_id")
+  startedAt      DateTime      @map("started_at") @db.Timestamptz(6)
+  completedAt    DateTime?     @map("completed_at") @db.Timestamptz(6)
+  outcome        String        @default("running")
+  errorCode      String?       @map("error_code")
+  errorMessage   String?       @map("error_message")
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  job            BackgroundJob @relation(fields: [jobId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([jobId, attemptNumber])
+  @@index([organizationId, startedAt])
+  @@index([jobId, organizationId, startedAt])
+  @@map("background_job_attempts")
+  @@schema("service_desk")
+}
+
+model BackgroundJobEffect {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String        @map("organization_id") @db.Uuid
+  jobId          String        @map("job_id") @db.Uuid
+  effectKey      String        @map("effect_key")
+  result         Json          @default("{}")
+  completedAt    DateTime      @map("completed_at") @db.Timestamptz(6)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  job            BackgroundJob @relation(fields: [jobId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([organizationId, effectKey])
+  @@index([jobId, organizationId])
+  @@map("background_job_effects")
   @@schema("service_desk")
 }

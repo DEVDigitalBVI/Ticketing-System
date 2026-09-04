@@ -33,6 +33,10 @@ describe("administrator navigation", () => {
       "href",
       "/admin/configuration",
     );
+    expect(screen.getByRole("link", { name: "Background jobs" })).toHaveAttribute(
+      "href",
+      "/admin/jobs",
+    );
   });
 
   it("hides administration links from non-admin users", () => {
@@ -61,5 +65,6 @@ describe("administrator navigation", () => {
     expect(screen.queryByRole("link", { name: "User administration" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Configuration" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Audit trail" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Background jobs" })).not.toBeInTheDocument();
   });
 });

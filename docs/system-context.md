@@ -1,7 +1,7 @@
 # Peter Island Resort and Spa IT Service Desk — System Context
 
-Last updated: 2026-08-31
-Status: Application foundation confirmed; product and integration scope pending blueprint and architecture approval
+Last updated: 2026-09-04
+Status: Application foundation and PostgreSQL job boundary confirmed; remaining product and deployment scope pending
 
 ## Product scope
 
@@ -25,7 +25,7 @@ The blueprint must confirm the user roles and their permissions. The likely role
 | PostgreSQL / Prisma                 | Step 4 local and test foundation implemented | Private `service_desk` schema contains organisation, property, department, identity, role membership, and audit foundations.                         |
 | Supabase project `Ticketing System` | Hosted identity foundation implemented       | Project `zwcmljkjoxrfzfyphdtc` hosts the private `service_desk` schema. Runtime credentials, Data API exposure, and RLS policies are not configured. |
 | Supabase Storage                    | Private ticket bucket implemented in Step 14 | Stores ticket attachments behind server-side ticket authorization, quarantine, type/size validation, and retention cleanup.                          |
-| Queue                               | Technology undecided                         | Carries durable asynchronous work such as notifications and integration retries.                                                                     |
+| PostgreSQL job queue                | Transactional outbox implemented in Step 17  | Private tables carry leased, retryable notification, SLA, synchronization, and webhook work without connecting provider adapters.                    |
 | Hosting platform                    | Target undecided                             | Runs the web/server application and its deployment pipeline.                                                                                         |
 
 The hosted database currently contains the Step 6 foundation. Supabase Storage is the approved attachment provider in application code, while its Step 14 bucket migration must follow the prerequisite ticket-domain migrations in the normal forward-only deployment sequence.
@@ -56,8 +56,8 @@ The hosted database currently contains the Step 6 foundation. Supabase Storage i
 - The application must not trust client-supplied role or property claims; authorization must be enforced at server and database boundaries.
 - Any Supabase tables exposed through the Data API will require row-level security and least-privilege policies designed around the approved user/property model.
 - Secrets and privileged Supabase credentials must remain server-side and outside version control.
-- External identity, storage, queue, and messaging providers remain separate trust boundaries and require explicit failure/retry and audit behavior.
+- External identity, storage, and messaging providers remain separate trust boundaries and require explicit failure/retry and audit behavior. The job queue itself stays inside the private database boundary.
 
 ## Baseline architecture status
 
-ADR-002 confirms the Next.js App Router, React, strict TypeScript, pnpm, Tailwind CSS pipeline, and quality-gate foundation. ADR-004 records removal of unused shadcn scaffolding after the approved custom interface replaced the earlier component experiment. ADR-007 accepts the local PostgreSQL/Prisma identity foundation and property-aware schema, and ADR-008 accepts the named Supabase project as its hosted database. Hosting, storage, queue, runtime connection mode, least-privilege role, RLS policy, and launch-property decisions remain open because the blueprint was unavailable and the full approval checkpoint has not been completed. Once confirmed, this document should replace candidate language with the exact users, integrations, boundaries, hosting model, and launch property scope from the blueprint.
+ADR-002 confirms the Next.js App Router, React, strict TypeScript, pnpm, Tailwind CSS pipeline, and quality-gate foundation. ADR-004 records removal of unused shadcn scaffolding after the approved custom interface replaced the earlier component experiment. ADR-007 accepts the local PostgreSQL/Prisma identity foundation and property-aware schema, ADR-008 accepts the named Supabase project as its hosted database, and ADR-014 accepts the PostgreSQL-native transactional outbox and leased worker. Hosting, runtime connection mode, least-privilege role, launch-property behavior, and production alert thresholds remain open because the blueprint was unavailable and the full approval checkpoint has not been completed.

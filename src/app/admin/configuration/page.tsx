@@ -1,20 +1,23 @@
 import type { Metadata } from "next";
 
 import { ConfigurationConsole } from "@/modules/admin/components/configuration-console";
+import { LevelIntegrationStatus } from "@/modules/admin/components/level-integration-status";
 import { ServiceDeskShell } from "@/modules/service-desk/components/service-desk-shell";
 import { requireCurrentAccess } from "@/server/auth/authorization";
 import { isDatabaseUnavailableError } from "@/server/database/errors";
 import { listConfigurationCatalog } from "@/server/configuration/service";
+import { getLevelConfigurationStatus } from "@/server/integrations/level/configuration";
 
 export const metadata: Metadata = { title: "Configuration" };
 
 export default async function ConfigurationPage({
   searchParams,
 }: {
-  searchParams: Promise<{ entity?: string; id?: string; status?: string }>;
+  searchParams: Promise<{ entity?: string; id?: string; status?: string; level?: string }>;
 }) {
   const access = await requireCurrentAccess("configuration.manage");
   const search = await searchParams;
+  const levelStatus = getLevelConfigurationStatus();
   let catalog;
 
   try {
@@ -25,7 +28,8 @@ export default async function ConfigurationPage({
 
   return (
     <ServiceDeskShell access={access}>
-      <div className="page-shell audit-page configuration-page">
+      <div className="page-shell audit-page configuration-page configuration-stack">
+        <LevelIntegrationStatus status={levelStatus} check={search.level} />
         {catalog ? (
           <ConfigurationConsole catalog={catalog} search={search} />
         ) : (

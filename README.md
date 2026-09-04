@@ -17,6 +17,7 @@ If `pnpm` is not installed globally, commands can be run with `npx --yes pnpm@11
 3. Start PostgreSQL with `pnpm db:up`.
 4. Apply migrations with `pnpm db:migrate:deploy`.
 5. Start the application with `pnpm dev` and open `http://127.0.0.1:3000`.
+6. In a second terminal, start the durable background worker with `pnpm worker`.
 
 `NEXT_PUBLIC_APP_URL` is browser-safe. `DATABASE_URL`, `DATABASE_DIRECT_URL`, and `TEST_DATABASE_URL` are server-only and must never use the `NEXT_PUBLIC_` prefix. Startup validation reports invalid variable names without printing their values.
 
@@ -44,6 +45,8 @@ Step 8 adds the reviewed migration `20260901153000_step_8_ticket_domain`, which 
 
 Step 13 adds versioned SLA policies, ticket-level policy snapshots, deterministic support-calendar deadlines, and operational warning/breach evaluation. See `docs/sla-policy.md`.
 
+Step 17 adds the PostgreSQL transactional outbox, leased background worker, bounded retries, duplicate-effect protection, dead-letter replay, and an authorized operations view. See `docs/background-jobs.md`.
+
 ## Frontend routes
 
 - `/login`: responsive Supabase work-account sign-in with generic failure states.
@@ -51,6 +54,7 @@ Step 13 adds versioned SLA policies, ticket-level policy snapshots, deterministi
 - `/account/mfa`: authenticator enrollment and verification screen retained for future login hardening.
 - `/admin/users/new`: permission-gated account creation and SMTP credential delivery.
 - `/admin/configuration`: permission-gated hierarchy and service-taxonomy administration.
+- `/admin/jobs`: organisation-scoped background backlog and dead-letter inspection with administrator-only replay.
 - `/`: staff overview and active requests.
 - `/new-ticket`: guided request form connected to authenticated ticket creation with controlled reference data and real ticket-number confirmation.
 - `/my-tickets`: requester-authorized ticket workspace with server-side filters, search, pagination, public history, replies, and resolution confirmation.
@@ -73,6 +77,7 @@ Use `pnpm format` and `pnpm lint:fix` for safe local fixes. Never commit `.env.l
 - `src/app/`: App Router routes, layouts, metadata, and global design tokens.
 - `src/modules/service-desk/`: reusable domain components, typed view contracts, and explicit empty states.
 - `src/server/`: server-only infrastructure and integration adapters.
+- `scripts/worker.ts`: independent durable worker process entry point.
 - `prisma/`: schema and reviewed SQL migrations.
 - `docker/postgres/` and `compose.yaml`: pinned PostgreSQL 17.11 local infrastructure.
 - `scripts/`: guarded development and test database workflows.

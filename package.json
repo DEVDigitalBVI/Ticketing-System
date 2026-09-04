@@ -12,6 +12,7 @@
     "dev": "next dev",
     "build": "prisma generate && next build --webpack",
     "start": "next start",
+    "worker": "NODE_OPTIONS=--conditions=react-server tsx scripts/worker.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",

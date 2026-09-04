@@ -25,6 +25,8 @@ export const permissions = [
   "audit.read",
   "user.manage",
   "configuration.manage",
+  "job.read",
+  "job.replay",
 ] as const;
 
 export type Permission = (typeof permissions)[number];
@@ -53,9 +55,10 @@ export const rolePermissionMatrix = {
     "level.context.read",
     "level.action.execute",
     "report.read",
+    "job.read",
   ],
   system_administrator: permissions,
-  report_viewer: ["report.read", "audit.read"],
+  report_viewer: ["report.read", "audit.read", "job.read"],
   department_approver: ["ticket.submit", "ticket.read.own", "ticket.department.approve"],
 } as const satisfies Record<RoleKey, readonly Permission[]>;
 

@@ -29,6 +29,13 @@ const authServerEnvironmentSchema = z.object({
   SMTP_FROM: z.string().email(),
 });
 
+const levelServerEnvironmentSchema = z.object({
+  LEVEL_API_KEY: z.preprocess(
+    (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+    z.string().min(1).optional(),
+  ),
+});
+
 let cachedEnvironment: z.infer<typeof serverEnvironmentSchema> | undefined;
 
 export function getServerEnvironment() {
@@ -62,5 +69,13 @@ export function getAuthServerEnvironment() {
     const fields = [...new Set(result.error.issues.map((issue) => issue.path.join(".")))];
     throw new Error(`Invalid authentication server configuration: ${fields.join(", ")}.`);
   }
+  return result.data;
+}
+
+export function getLevelServerEnvironment() {
+  const result = levelServerEnvironmentSchema.safeParse({
+    LEVEL_API_KEY: process.env.LEVEL_API_KEY,
+  });
+  if (!result.success) throw new Error("Invalid Level integration server configuration.");
   return result.data;
 }

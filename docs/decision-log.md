@@ -174,6 +174,7 @@ The baseline was reverified at commit `ba8e67a` on 2026-08-31. All automated qua
 - **Decision:** Use a non-public Supabase Storage bucket with no browser-facing object policies. Generate UUID-based object paths without filenames; accept only signature-verified PNG, JPEG, WebP, PDF, and UTF-8 text files up to 10 MiB; and perform upload and streamed download through authenticated server routes that re-evaluate ticket access. Store immutable ticket/uploader/file identity with mutable quarantine, scan, upload, and retention lifecycle fields. Permit only the uploader to retrieve pending or failed-scan content, block infected content for everyone, and retain metadata after object cleanup.
 - **Consequences:** Knowing an attachment UUID or object path grants no access. The server-only Supabase credential remains a high-trust boundary, cleanup workers must receive an explicit clock, and other ticket participants cannot retrieve new attachments until a future scanner marks them clean. Office archive formats remain unsupported until their contents can be validated safely.
 - **Evidence:** `docs/attachment-policy.md`, migration `20260904154437_step_14_private_ticket_attachments`, attachment policy/service and route modules, staff/technician integration, and Step 14 tests/status evidence.
+- **Supersedes:** ADR-001 only where it described attachment storage as proposed or undecided.
 
 ### ADR-013 — Keep business asset identity and history application-owned
 
@@ -184,4 +185,13 @@ The baseline was reverified at commit `ba8e67a` on 2026-08-31. All automated qua
 - **Consequences:** IT can reconstruct current and historical accountability without trusting an external monitoring platform. Level.io may later own live device telemetry while the service desk remains authoritative for business identity and placement. Asset and history rows cannot be hard-deleted through supported workflows.
 - **Evidence:** `docs/asset-inventory.md`, migration `20260904160116_step_15_asset_inventory`, asset policy/service modules, asset routes and interfaces, and Step 15 tests/status evidence.
 
-- **Supersedes:** ADR-001 only where it described attachment storage as proposed or undecided.
+## ADR-014: Use a PostgreSQL-native transactional outbox and leased worker
+
+- **Status:** Accepted
+- **Date:** 2026-09-04
+- **Owners:** Product / Engineering
+- **Context:** Domain writes and resulting asynchronous work must commit atomically, survive process interruption, and behave identically in local PostgreSQL and the hosted database. Provider connections are deliberately outside Step 17.
+- **Decision:** Store an immutable transactional outbox, durable jobs, attempt history, and idempotent effect ledger in the private `service_desk` schema. Dispatch and claim with short `FOR UPDATE SKIP LOCKED` transactions. Use explicit availability clocks, bounded leases, unique lock tokens, deterministic bounded exponential backoff, five default attempts, retained dead letters, and organisation-scoped audited replay. Run the worker as a separate process using the same versioned application build. Keep handlers provider-neutral until an integration step approves each adapter.
+- **Consequences:** No additional queue service is required, and database commit is the durability boundary. Worker replicas can scale horizontally. Database availability affects both web writes and job progress. Application effects are duplicate-safe through a unique effect key; future calls to non-transactional providers must also use provider idempotency. Production must run and monitor at least one worker process.
+- **Evidence:** `docs/background-jobs.md`, migration `20260904162215_step_17_transactional_outbox_jobs`, `src/server/jobs/`, `scripts/worker.ts`, `/admin/jobs`, and Step 17 synthetic/unit/database tests.
+- **Supersedes:** ADR-001's undecided queue proposal and Open Question 5.
