@@ -60,10 +60,7 @@ export function ServiceDeskShell({
             alt="Peter Island Resort and Spa"
             priority
           />
-          <span>
-            <span className="brand-eyebrow">Peter Island Resort</span>
-            <span className="brand-name">IT Service Desk</span>
-          </span>
+          <span className="brand-name">IT Service Desk</span>
         </Link>
 
         <nav className="nav-list" aria-label="Primary navigation">

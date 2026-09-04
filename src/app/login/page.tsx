@@ -26,10 +26,7 @@ export default async function LoginPage({
             alt="Peter Island Resort and Spa"
             priority
           />
-          <span>
-            <small>Peter Island Resort and Spa</small>
-            <strong>IT Service Desk</strong>
-          </span>
+          <strong>IT Service Desk</strong>
         </div>
 
         <div className="login-story-copy">
@@ -57,7 +54,7 @@ export default async function LoginPage({
           <div className="login-card-heading">
             <p className="overline">Welcome back</p>
             <h2 id="login-title">Sign in to continue</h2>
-            <p>Use your Peter Island Resort and Spa work credentials.</p>
+            <p>Use your assigned resort work credentials.</p>
           </div>
           <LoginForm error={error} next={next} />
           <p className="login-support-note">
@@ -66,8 +63,6 @@ export default async function LoginPage({
         </div>
 
         <footer className="login-footer">
-          <span>Peter Island Resort and Spa</span>
-          <span aria-hidden="true">·</span>
           <span>IT Service Desk</span>
         </footer>
       </section>

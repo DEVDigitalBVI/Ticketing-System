@@ -14,7 +14,7 @@ export default function HealthPage() {
           <span aria-hidden="true">←</span>Return to Service Desk
         </Link>
         <div className="utility-topline">
-          <p className="overline">Peter Island Resort and Spa</p>
+          <p className="overline">IT operations</p>
           <span className="status-pill progress">
             <span className="status-light" aria-hidden="true" />
             Operational

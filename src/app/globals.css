@@ -132,9 +132,12 @@ select:focus-visible {
 }
 .brand-lockup {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 0 10px 32px;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 10px 25px;
+  text-align: center;
 }
 .resort-logo {
   display: block;
@@ -143,8 +146,9 @@ select:focus-visible {
 }
 .sidebar-logo {
   flex: 0 0 auto;
-  width: 46px;
-  height: 46px;
+  width: 94px;
+  height: 94px;
+  filter: drop-shadow(0 8px 18px rgba(3, 15, 33, 0.24));
 }
 .brand-mark {
   width: 36px;
@@ -183,10 +187,10 @@ select:focus-visible {
   text-transform: uppercase;
 }
 .brand-name {
-  margin-top: 2px;
-  font-size: 17px;
-  font-weight: 650;
-  letter-spacing: -0.01em;
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
 }
 
 .nav-list {
@@ -2168,13 +2172,15 @@ fieldset {
 }
 .login-brand {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
 }
 .login-resort-logo {
   flex: 0 0 auto;
-  width: 48px;
-  height: 48px;
+  width: 104px;
+  height: 104px;
+  filter: drop-shadow(0 12px 24px rgba(3, 15, 33, 0.3));
 }
 .login-brand small,
 .login-brand strong {
@@ -2188,9 +2194,9 @@ fieldset {
   text-transform: uppercase;
 }
 .login-brand strong {
-  margin-top: 3px;
-  font-size: 18px;
-  letter-spacing: -0.02em;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 .login-story-copy {
   max-width: 560px;
