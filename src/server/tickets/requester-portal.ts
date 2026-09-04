@@ -1,6 +1,7 @@
 import "server-only";
 
 import { Prisma } from "@/generated/prisma/client";
+import { listTicketAttachments, type TicketAttachmentView } from "@/server/attachments/service";
 import type { AccessProfile } from "@/server/auth/access";
 import { database } from "@/server/database/client";
 import { AuditEventRepository } from "@/server/repositories/audit-event-repository";
@@ -70,6 +71,7 @@ export type StaffTicketDetail = {
   closureDetails: string | null;
   canConfirmResolution: boolean;
   serviceExpectation: string;
+  attachments: TicketAttachmentView[];
   thread: StaffTicketThreadEntry[];
 };
 
@@ -368,6 +370,8 @@ export async function getRequesterTicketDetail(access: AccessProfile, ticketId: 
     departmentId: ticket.departmentId,
   });
 
+  const attachments = await listTicketAttachments(access, ticket.id);
+
   const thread = [...ticket.activities, ...ticket.comments]
     .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime())
     .map((entry) => mapThreadEntry(access, entry));
@@ -391,6 +395,7 @@ export async function getRequesterTicketDetail(access: AccessProfile, ticketId: 
     closureDetails: ticket.closureDetails,
     canConfirmResolution: ticket.status === "resolved",
     serviceExpectation,
+    attachments,
     thread,
   } satisfies StaffTicketDetail;
 }

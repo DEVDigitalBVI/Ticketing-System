@@ -17,6 +17,7 @@ const navigation = [
     symbol: "⌁",
     permission: "ticket.queue.read",
   },
+  { href: "/assets", label: "Assets", symbol: "▦", permission: "asset.read" },
 ] as const;
 
 export function ServiceDeskShell({

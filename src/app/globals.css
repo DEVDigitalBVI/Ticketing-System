@@ -1304,6 +1304,110 @@ button:disabled:hover {
 .sla-detail.sla-breached {
   border-left-color: var(--danger);
 }
+.attachment-panel {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--surface);
+}
+.attachment-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.attachment-heading h3,
+.attachment-heading p {
+  margin: 0;
+}
+.attachment-heading > span {
+  min-width: 24px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+}
+.attachment-list {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.attachment-list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: var(--surface-raised);
+}
+.attachment-list strong,
+.attachment-list small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.attachment-list small,
+.attachment-empty,
+.attachment-note,
+.attachment-upload > small {
+  color: var(--ink-soft);
+  font-size: 10px;
+  line-height: 1.5;
+}
+.attachment-list a,
+.attachment-locked {
+  font-size: 10px;
+  font-weight: 800;
+}
+.attachment-locked {
+  color: var(--warning);
+}
+.attachment-file {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--palette-sand);
+  color: var(--palette-indigo);
+  font-weight: 900;
+}
+.attachment-empty,
+.attachment-note {
+  margin: 0;
+}
+.attachment-upload {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.attachment-upload label {
+  display: grid;
+  gap: 6px;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 800;
+}
+.attachment-upload input[type="file"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px dashed var(--line-strong);
+  background: var(--surface-raised);
+  font-size: 10px;
+}
+.attachment-upload .secondary-button {
+  justify-self: start;
+}
 .context-panel {
   padding: 24px;
   background: var(--surface-raised);
@@ -2401,6 +2505,246 @@ fieldset {
   border-radius: 10px;
   font-size: 12px;
   line-height: 1.55;
+}
+
+/* Asset inventory extends the established service-desk hierarchy with a denser,
+   ledger-like register suited to physical equipment. */
+.asset-filter {
+  grid-template-columns: minmax(15rem, 1.7fr) repeat(3, minmax(9rem, 1fr)) auto;
+}
+
+.asset-register {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.asset-register-row {
+  display: grid;
+  grid-template-columns:
+    7.5rem minmax(12rem, 1.25fr) minmax(12rem, 1.3fr) minmax(10rem, 1fr)
+    auto 1rem;
+  gap: 1rem;
+  align-items: center;
+  min-height: 5.25rem;
+  padding: 1rem 1.25rem;
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+  transition:
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+.asset-register-row:last-child {
+  border-bottom: 0;
+}
+.asset-register-row:hover {
+  background: var(--surface-muted);
+  transform: translateX(2px);
+}
+.asset-register-row small {
+  display: block;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+.asset-tag {
+  font-family: var(--font-mono);
+  font-weight: 760;
+  letter-spacing: 0.055em;
+  color: var(--brand-deep);
+}
+.asset-cell-label {
+  margin: 0 0 0.25rem !important;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.asset-form-layout {
+  grid-template-columns: minmax(0, 48rem);
+  justify-content: center;
+}
+.asset-form {
+  padding: 0;
+}
+.asset-form .form-section-content {
+  padding: clamp(1.25rem, 3vw, 2.25rem);
+}
+.asset-form-divider {
+  margin-top: 2.25rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+.asset-money-field {
+  display: grid;
+  grid-template-columns: 5rem 1fr;
+  gap: 0.5rem;
+}
+
+.asset-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 0.8fr);
+  gap: 1rem;
+}
+.asset-detail-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.asset-detail-heading h2 {
+  margin: 0.25rem 0 0;
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+}
+.asset-detail-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.asset-description {
+  margin: 1.25rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+  color: var(--text-muted);
+  white-space: pre-wrap;
+}
+.asset-procurement-card .detail-list {
+  margin-top: 1rem;
+}
+
+.asset-actions {
+  margin-top: 2rem;
+}
+.asset-action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.compact-asset-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+.compact-asset-form h3 {
+  margin: 0;
+}
+.compact-asset-form p {
+  margin: 0;
+  color: var(--text-muted);
+}
+.compact-asset-form button {
+  align-self: flex-start;
+  margin-top: auto;
+}
+.retire-form {
+  border-color: color-mix(in srgb, var(--danger) 28%, var(--line));
+}
+.danger-button {
+  min-height: 2.75rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  background: transparent;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.asset-history-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.asset-timeline {
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem 0 0;
+}
+.asset-timeline li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1rem 1fr;
+  gap: 0.75rem;
+  padding-bottom: 1.25rem;
+}
+.asset-timeline li:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 0.3rem;
+  top: 0.65rem;
+  bottom: -0.15rem;
+  width: 1px;
+  background: var(--line-strong);
+}
+.timeline-mark {
+  position: relative;
+  z-index: 1;
+  width: 0.65rem;
+  height: 0.65rem;
+  margin-top: 0.25rem;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 4px var(--surface);
+}
+.asset-timeline p {
+  margin: 0.2rem 0;
+  color: var(--text-muted);
+}
+.asset-timeline small {
+  color: var(--text-subtle);
+}
+
+@media (max-width: 1100px) {
+  .asset-register-row {
+    grid-template-columns: 7rem 1fr 1fr auto;
+  }
+  .asset-register-row > :nth-child(4) {
+    display: none;
+  }
+  .asset-action-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .retire-form {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .asset-filter,
+  .asset-detail-grid,
+  .asset-action-grid,
+  .asset-history-grid {
+    grid-template-columns: 1fr;
+  }
+  .asset-register-row {
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem;
+  }
+  .asset-register-row > :nth-child(3),
+  .asset-register-row > :nth-child(4),
+  .asset-register-row > :nth-child(5) {
+    display: none;
+  }
+  .asset-tag {
+    grid-column: 1;
+  }
+  .asset-register-name {
+    grid-column: 1;
+  }
+  .asset-register-row > :last-child {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+  .asset-detail-list {
+    grid-template-columns: 1fr;
+  }
+  .retire-form {
+    grid-column: auto;
+  }
 }
 .form-error {
   border: 1px solid rgba(154, 51, 39, 0.22);

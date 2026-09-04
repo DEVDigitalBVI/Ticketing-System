@@ -10,45 +10,57 @@ datasource db {
 }
 
 model Organization {
-  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  slug               String               @unique
-  name               String
-  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  properties         Property[]
-  ticketCategories   TicketCategory[]
-  tickets            Ticket[]
-  ticketActivities   TicketActivity[]
-  ticketComments     TicketComment[]
-  ticketAssignments  TicketAssignment[]
-  attachmentMetadata AttachmentMetadata[]
-  users              User[]
-  roles              Role[]
-  userRoles          UserRole[]
-  auditEvents        AuditEvent[]
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug                 String                 @unique
+  name                 String
+  createdAt            DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  properties           Property[]
+  ticketCategories     TicketCategory[]
+  tickets              Ticket[]
+  ticketActivities     TicketActivity[]
+  ticketComments       TicketComment[]
+  ticketAssignments    TicketAssignment[]
+  attachmentMetadata   AttachmentMetadata[]
+  users                User[]
+  roles                Role[]
+  userRoles            UserRole[]
+  auditEvents          AuditEvent[]
+  assetTypes           AssetType[]
+  assetStatuses        AssetStatus[]
+  assets               Asset[]
+  assetAssignments     AssetAssignment[]
+  assetLocationHistory AssetLocationHistory[]
+  vendors              Vendor[]
+  procurementMetadata  ProcurementMetadata[]
+  externalSystemLinks  ExternalSystemLink[]
 
   @@map("organizations")
   @@schema("service_desk")
 }
 
 model Property {
-  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId   String            @map("organization_id") @db.Uuid
-  code             String
-  name             String
-  timezone         String
-  isActive         Boolean           @default(true) @map("is_active")
-  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  buildingAreas    BuildingArea[]
-  departments      Department[]
-  serviceLocations ServiceLocation[]
-  supportTeams     SupportTeam[]
-  slaPolicies      TicketSlaPolicy[]
-  tickets          Ticket[]
-  userRoles        UserRole[]
-  auditEvents      AuditEvent[]
+  id                 String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId     String                 @map("organization_id") @db.Uuid
+  code               String
+  name               String
+  timezone           String
+  isActive           Boolean                @default(true) @map("is_active")
+  createdAt          DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization       Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  buildingAreas      BuildingArea[]
+  departments        Department[]
+  serviceLocations   ServiceLocation[]
+  supportTeams       SupportTeam[]
+  slaPolicies        TicketSlaPolicy[]
+  tickets            Ticket[]
+  userRoles          UserRole[]
+  auditEvents        AuditEvent[]
+  assets             Asset[]
+  assetLocationsFrom AssetLocationHistory[] @relation("AssetMoveFromProperty")
+  assetLocationsTo   AssetLocationHistory[] @relation("AssetMoveToProperty")
+  assetAssignments   AssetAssignment[]
 
   @@unique([id, organizationId])
   @@index([organizationId])
@@ -57,17 +69,20 @@ model Property {
 }
 
 model BuildingArea {
-  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId   String            @map("organization_id") @db.Uuid
-  propertyId       String            @map("property_id") @db.Uuid
-  code             String
-  name             String
-  kind             String
-  isActive         Boolean           @default(true) @map("is_active")
-  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  property         Property          @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  serviceLocations ServiceLocation[]
+  id                 String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId     String                 @map("organization_id") @db.Uuid
+  propertyId         String                 @map("property_id") @db.Uuid
+  code               String
+  name               String
+  kind               String
+  isActive           Boolean                @default(true) @map("is_active")
+  createdAt          DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  property           Property               @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  serviceLocations   ServiceLocation[]
+  assets             Asset[]
+  assetLocationsFrom AssetLocationHistory[] @relation("AssetMoveFromBuilding")
+  assetLocationsTo   AssetLocationHistory[] @relation("AssetMoveToBuilding")
 
   @@unique([id, organizationId])
   @@unique([id, propertyId, organizationId])
@@ -78,17 +93,19 @@ model BuildingArea {
 }
 
 model Department {
-  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String        @map("organization_id") @db.Uuid
-  propertyId     String        @map("property_id") @db.Uuid
-  code           String
-  name           String
-  isActive       Boolean       @default(true) @map("is_active")
-  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  property       Property      @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  supportTeams   SupportTeam[]
-  tickets        Ticket[]
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId   String            @map("organization_id") @db.Uuid
+  propertyId       String            @map("property_id") @db.Uuid
+  code             String
+  name             String
+  isActive         Boolean           @default(true) @map("is_active")
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  property         Property          @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  supportTeams     SupportTeam[]
+  tickets          Ticket[]
+  assets           Asset[]
+  assetAssignments AssetAssignment[]
 
   @@unique([id, organizationId])
   @@unique([id, propertyId, organizationId])
@@ -99,22 +116,26 @@ model Department {
 }
 
 model ServiceLocation {
-  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String       @map("organization_id") @db.Uuid
-  propertyId     String       @map("property_id") @db.Uuid
-  buildingAreaId String       @map("building_area_id") @db.Uuid
-  code           String
-  name           String
-  kind           String
-  isActive       Boolean      @default(true) @map("is_active")
-  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  property       Property     @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  buildingArea   BuildingArea @relation(fields: [buildingAreaId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  tickets        Ticket[]
+  id                 String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId     String                 @map("organization_id") @db.Uuid
+  propertyId         String                 @map("property_id") @db.Uuid
+  buildingAreaId     String                 @map("building_area_id") @db.Uuid
+  code               String
+  name               String
+  kind               String
+  isActive           Boolean                @default(true) @map("is_active")
+  createdAt          DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  property           Property               @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  buildingArea       BuildingArea           @relation(fields: [buildingAreaId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  tickets            Ticket[]
+  assets             Asset[]
+  assetLocationsFrom AssetLocationHistory[] @relation("AssetMoveFromServiceLocation")
+  assetLocationsTo   AssetLocationHistory[] @relation("AssetMoveToServiceLocation")
 
   @@unique([id, organizationId])
   @@unique([id, propertyId, organizationId])
+  @@unique([id, buildingAreaId, propertyId, organizationId])
   @@index([organizationId])
   @@index([propertyId, organizationId])
   @@index([buildingAreaId, propertyId, organizationId])
@@ -185,26 +206,30 @@ model TicketSubcategory {
 }
 
 model User {
-  id                        String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  authUserId                String?              @unique @map("auth_user_id") @db.Uuid
-  organizationId            String               @map("organization_id") @db.Uuid
+  id                        String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authUserId                String?                @unique @map("auth_user_id") @db.Uuid
+  organizationId            String                 @map("organization_id") @db.Uuid
   email                     String
-  displayName               String               @map("display_name")
-  isActive                  Boolean              @default(true) @map("is_active")
-  mustChangePassword        Boolean              @default(true) @map("must_change_password")
-  createdAt                 DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt                 DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  organization              Organization         @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  displayName               String                 @map("display_name")
+  isActive                  Boolean                @default(true) @map("is_active")
+  mustChangePassword        Boolean                @default(true) @map("must_change_password")
+  createdAt                 DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                 DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization              Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   roles                     UserRole[]
   auditEvents               AuditEvent[]
-  requestedTickets          Ticket[]             @relation("TicketRequester")
-  affectedTickets           Ticket[]             @relation("TicketAffectedUser")
-  assignedTickets           Ticket[]             @relation("TicketAssignee")
-  ticketActivities          TicketActivity[]     @relation("TicketActivityActor")
-  ticketComments            TicketComment[]      @relation("TicketCommentAuthor")
-  ticketAssignmentsMade     TicketAssignment[]   @relation("TicketAssignmentActor")
-  ticketAssignmentsReceived TicketAssignment[]   @relation("TicketAssignmentAssignee")
-  attachmentMetadata        AttachmentMetadata[] @relation("AttachmentUploader")
+  requestedTickets          Ticket[]               @relation("TicketRequester")
+  affectedTickets           Ticket[]               @relation("TicketAffectedUser")
+  assignedTickets           Ticket[]               @relation("TicketAssignee")
+  ticketActivities          TicketActivity[]       @relation("TicketActivityActor")
+  ticketComments            TicketComment[]        @relation("TicketCommentAuthor")
+  ticketAssignmentsMade     TicketAssignment[]     @relation("TicketAssignmentActor")
+  ticketAssignmentsReceived TicketAssignment[]     @relation("TicketAssignmentAssignee")
+  attachmentMetadata        AttachmentMetadata[]   @relation("AttachmentUploader")
+  custodiedAssets           Asset[]                @relation("AssetCustodian")
+  assetAssignmentsReceived  AssetAssignment[]      @relation("AssetAssignmentCustodian")
+  assetAssignmentsMade      AssetAssignment[]      @relation("AssetAssignmentActor")
+  assetMovesMade            AssetLocationHistory[] @relation("AssetMoveActor")
 
   @@unique([id, organizationId])
   @@unique([organizationId, email])
@@ -447,7 +472,15 @@ model AttachmentMetadata {
   fileName         String         @map("file_name")
   contentType      String         @map("content_type")
   byteSize         Int            @map("byte_size")
-  storagePath      String         @map("storage_path")
+  storagePath      String         @unique @map("storage_path")
+  uploadStatus     String         @default("pending") @map("upload_status")
+  scanStatus       String         @default("pending") @map("scan_status")
+  checksumSha256   String?        @map("checksum_sha256")
+  uploadExpiresAt  DateTime       @map("upload_expires_at") @db.Timestamptz(6)
+  uploadedAt       DateTime?      @map("uploaded_at") @db.Timestamptz(6)
+  scanCompletedAt  DateTime?      @map("scan_completed_at") @db.Timestamptz(6)
+  retentionUntil   DateTime       @map("retention_until") @db.Timestamptz(6)
+  deletedAt        DateTime?      @map("deleted_at") @db.Timestamptz(6)
   createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   organization     Organization   @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   ticket           Ticket         @relation(fields: [ticketId, organizationId], references: [id, organizationId], onDelete: Cascade, onUpdate: Cascade)
@@ -457,6 +490,221 @@ model AttachmentMetadata {
   @@index([organizationId, createdAt])
   @@index([ticketId, organizationId, createdAt])
   @@index([commentId, organizationId])
+  @@index([uploadStatus, uploadExpiresAt])
+  @@index([uploadStatus, retentionUntil])
   @@map("attachment_metadata")
+  @@schema("service_desk")
+}
+
+model AssetType {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  code           String
+  name           String
+  isActive       Boolean      @default(true) @map("is_active")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  assets         Asset[]
+
+  @@unique([id, organizationId])
+  @@unique([organizationId, code])
+  @@index([organizationId, isActive])
+  @@map("asset_types")
+  @@schema("service_desk")
+}
+
+model AssetStatus {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  code           String
+  name           String
+  isTerminal     Boolean      @default(false) @map("is_terminal")
+  isActive       Boolean      @default(true) @map("is_active")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  assets         Asset[]
+
+  @@unique([id, organizationId])
+  @@unique([organizationId, code])
+  @@index([organizationId, isActive])
+  @@map("asset_statuses")
+  @@schema("service_desk")
+}
+
+model Asset {
+  id                String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId    String                 @map("organization_id") @db.Uuid
+  assetTag          String                 @map("asset_tag")
+  serialNumber      String?                @map("serial_number")
+  name              String
+  description       String?
+  assetTypeId       String                 @map("asset_type_id") @db.Uuid
+  assetStatusId     String                 @map("asset_status_id") @db.Uuid
+  propertyId        String                 @map("property_id") @db.Uuid
+  buildingAreaId    String?                @map("building_area_id") @db.Uuid
+  serviceLocationId String?                @map("service_location_id") @db.Uuid
+  departmentId      String?                @map("department_id") @db.Uuid
+  custodianUserId   String?                @map("custodian_user_id") @db.Uuid
+  criticality       String                 @default("standard")
+  manufacturer      String?
+  model             String?
+  acquiredAt        DateTime?              @map("acquired_at") @db.Date
+  retiredAt         DateTime?              @map("retired_at") @db.Timestamptz(6)
+  retirementReason  String?                @map("retirement_reason")
+  createdAt         DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization      Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  assetType         AssetType              @relation(fields: [assetTypeId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  assetStatus       AssetStatus            @relation(fields: [assetStatusId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  property          Property               @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  buildingArea      BuildingArea?          @relation(fields: [buildingAreaId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  serviceLocation   ServiceLocation?       @relation(fields: [serviceLocationId, buildingAreaId, propertyId, organizationId], references: [id, buildingAreaId, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  department        Department?            @relation(fields: [departmentId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  custodian         User?                  @relation("AssetCustodian", fields: [custodianUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  assignments       AssetAssignment[]
+  locationHistory   AssetLocationHistory[]
+  procurement       ProcurementMetadata?
+  externalLinks     ExternalSystemLink[]
+
+  @@unique([id, organizationId])
+  @@index([organizationId, assetTag])
+  @@index([propertyId, assetStatusId, updatedAt])
+  @@index([assetTypeId, organizationId])
+  @@index([assetStatusId, organizationId])
+  @@index([buildingAreaId, propertyId, organizationId])
+  @@index([serviceLocationId, propertyId, organizationId])
+  @@index([departmentId, propertyId, organizationId])
+  @@index([custodianUserId, organizationId])
+  @@map("assets")
+  @@schema("service_desk")
+}
+
+model AssetAssignment {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId   String       @map("organization_id") @db.Uuid
+  assetId          String       @map("asset_id") @db.Uuid
+  propertyId       String       @map("property_id") @db.Uuid
+  custodianUserId  String?      @map("custodian_user_id") @db.Uuid
+  departmentId     String?      @map("department_id") @db.Uuid
+  assignedByUserId String       @map("assigned_by_user_id") @db.Uuid
+  note             String?
+  assignedAt       DateTime     @map("assigned_at") @db.Timestamptz(6)
+  endedAt          DateTime?    @map("ended_at") @db.Timestamptz(6)
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  asset            Asset        @relation(fields: [assetId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  property         Property     @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  custodian        User?        @relation("AssetAssignmentCustodian", fields: [custodianUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  department       Department?  @relation(fields: [departmentId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  assignedBy       User         @relation("AssetAssignmentActor", fields: [assignedByUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([assetId, organizationId, assignedAt])
+  @@index([propertyId, organizationId])
+  @@index([custodianUserId, organizationId])
+  @@index([departmentId, propertyId, organizationId])
+  @@index([assignedByUserId, organizationId])
+  @@map("asset_assignments")
+  @@schema("service_desk")
+}
+
+model AssetLocationHistory {
+  id                    String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId        String           @map("organization_id") @db.Uuid
+  assetId               String           @map("asset_id") @db.Uuid
+  fromPropertyId        String?          @map("from_property_id") @db.Uuid
+  fromBuildingAreaId    String?          @map("from_building_area_id") @db.Uuid
+  fromServiceLocationId String?          @map("from_service_location_id") @db.Uuid
+  toPropertyId          String           @map("to_property_id") @db.Uuid
+  toBuildingAreaId      String?          @map("to_building_area_id") @db.Uuid
+  toServiceLocationId   String?          @map("to_service_location_id") @db.Uuid
+  movedByUserId         String           @map("moved_by_user_id") @db.Uuid
+  reason                String
+  movedAt               DateTime         @map("moved_at") @db.Timestamptz(6)
+  organization          Organization     @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  asset                 Asset            @relation(fields: [assetId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  fromProperty          Property?        @relation("AssetMoveFromProperty", fields: [fromPropertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  fromBuildingArea      BuildingArea?    @relation("AssetMoveFromBuilding", fields: [fromBuildingAreaId, fromPropertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  fromServiceLocation   ServiceLocation? @relation("AssetMoveFromServiceLocation", fields: [fromServiceLocationId, fromBuildingAreaId, fromPropertyId, organizationId], references: [id, buildingAreaId, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  toProperty            Property         @relation("AssetMoveToProperty", fields: [toPropertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  toBuildingArea        BuildingArea?    @relation("AssetMoveToBuilding", fields: [toBuildingAreaId, toPropertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  toServiceLocation     ServiceLocation? @relation("AssetMoveToServiceLocation", fields: [toServiceLocationId, toBuildingAreaId, toPropertyId, organizationId], references: [id, buildingAreaId, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  movedBy               User             @relation("AssetMoveActor", fields: [movedByUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([assetId, organizationId, movedAt])
+  @@index([fromPropertyId, organizationId])
+  @@index([fromBuildingAreaId, fromPropertyId, organizationId])
+  @@index([fromServiceLocationId, fromBuildingAreaId, fromPropertyId, organizationId])
+  @@index([toPropertyId, organizationId])
+  @@index([toBuildingAreaId, toPropertyId, organizationId])
+  @@index([toServiceLocationId, toBuildingAreaId, toPropertyId, organizationId])
+  @@index([movedByUserId, organizationId])
+  @@map("asset_location_history")
+  @@schema("service_desk")
+}
+
+model Vendor {
+  id             String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String                @map("organization_id") @db.Uuid
+  name           String
+  contactName    String?               @map("contact_name")
+  email          String?
+  phone          String?
+  isActive       Boolean               @default(true) @map("is_active")
+  createdAt      DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  procurement    ProcurementMetadata[]
+
+  @@unique([id, organizationId])
+  @@index([organizationId, isActive, name])
+  @@map("vendors")
+  @@schema("service_desk")
+}
+
+model ProcurementMetadata {
+  id                String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId    String       @map("organization_id") @db.Uuid
+  assetId           String       @unique @map("asset_id") @db.Uuid
+  vendorId          String?      @map("vendor_id") @db.Uuid
+  purchaseDate      DateTime?    @map("purchase_date") @db.Date
+  purchaseCost      Decimal?     @map("purchase_cost") @db.Decimal(12, 2)
+  currencyCode      String?      @map("currency_code") @db.Char(3)
+  purchaseOrder     String?      @map("purchase_order")
+  warrantyStart     DateTime?    @map("warranty_start") @db.Date
+  warrantyEnd       DateTime?    @map("warranty_end") @db.Date
+  warrantyReference String?      @map("warranty_reference")
+  notes             String?
+  createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  asset             Asset        @relation(fields: [assetId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  vendor            Vendor?      @relation(fields: [vendorId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([assetId, organizationId])
+  @@index([organizationId])
+  @@index([vendorId, organizationId])
+  @@index([warrantyEnd])
+  @@map("procurement_metadata")
+  @@schema("service_desk")
+}
+
+model ExternalSystemLink {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  assetId        String       @map("asset_id") @db.Uuid
+  systemKey      String       @map("system_key")
+  externalId     String       @map("external_id")
+  externalUrl    String?      @map("external_url")
+  metadata       Json         @default("{}")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  asset          Asset        @relation(fields: [assetId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([assetId, systemKey])
+  @@unique([organizationId, systemKey, externalId])
+  @@index([assetId, organizationId])
+  @@map("external_system_links")
   @@schema("service_desk")
 }

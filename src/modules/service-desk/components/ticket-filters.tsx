@@ -7,12 +7,22 @@ import type {
 } from "@/server/tickets/requester-portal";
 
 import { StaffTicketList } from "./staff-ticket-list";
+import { AttachmentPanel } from "./attachment-panel";
 
 type SearchState = {
   status?: string;
+  attachment?: string;
 };
 
 function searchStatusMessage(search: SearchState) {
+  if (search.attachment === "uploaded")
+    return { tone: "success" as const, text: "Your file was uploaded privately and quarantined." };
+  if (search.attachment === "denied")
+    return { tone: "error" as const, text: "You do not have access to attach a file here." };
+  if (search.attachment === "invalid")
+    return { tone: "error" as const, text: "That file type or size is not allowed." };
+  if (search.attachment === "failed")
+    return { tone: "error" as const, text: "The private upload could not be completed." };
   switch (search.status) {
     case "commented":
       return { tone: "success" as const, text: "Your reply was added to the ticket." };
@@ -154,6 +164,13 @@ function DetailPanel({
           {ticket.closureDetails ? <p>{ticket.closureDetails}</p> : null}
         </div>
       ) : null}
+      <AttachmentPanel
+        ticketId={ticket.ticketId}
+        attachments={ticket.attachments ?? []}
+        returnTo="staff"
+        filter={filter}
+        page={page}
+      />
       <form className="ticket-inline-form" action="/auth/my-ticket" method="post">
         <input type="hidden" name="intent" value="comment" />
         <input type="hidden" name="ticketId" value={ticket.ticketId} />

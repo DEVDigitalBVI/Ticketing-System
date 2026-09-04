@@ -38,7 +38,7 @@ Allowed statuses: `Proposed`, `Accepted`, `Superseded`, `Rejected`.
 - **Date:** 2026-08-30
 - **Owners:** Product / Engineering
 - **Context:** The current repository has no application code or configuration. The project owner identified the product as the Peter Island Resort and Spa IT Service Desk, the Git repository as `Ticketing System`, and the Supabase project as `Ticketing system`. The referenced project blueprint was not available during inspection, so this record cannot yet claim to be the blueprint's approved baseline.
-- **Decision:** The Next.js, React, TypeScript, pnpm, and application-shell portion is accepted in ADR-002. Continue to recommend Supabase for PostgreSQL and related managed backend capabilities, deployment to Vercel, Microsoft Entra ID using Peter Island Resort and Spa's organizational tenant, Supabase Storage for ticket attachments, Supabase Queues (`pgmq`) for durable asynchronous jobs, and a multi-property-capable data model with Peter Island Resort and Spa enabled at initial launch. These remaining integration, hosting, and property-model choices stay proposed until the approval checkpoint and blueprint review.
+- **Decision:** The Next.js, React, TypeScript, pnpm, and application-shell portion is accepted in ADR-002. Continue to recommend Supabase for PostgreSQL and related managed backend capabilities, deployment to Vercel, Supabase Storage for ticket attachments, Supabase Queues (`pgmq`) for durable asynchronous jobs, and a multi-property-capable data model with Peter Island Resort and Spa enabled at initial launch. These remaining integration, hosting, and property-model choices stay proposed until the approval checkpoint and blueprint review.
 - **Consequences:** This provides a cohesive managed stack and preserves a path from a Peter Island Resort and Spa launch to multiple properties. It also makes authorization/RLS design, tenant configuration, regional/data-residency review, queue consumers, and vendor limits explicit implementation concerns.
 - **Evidence:** Repository inspection in `docs/implementation-status.md`; owner-provided repository and Supabase project names. Blueprint evidence is missing.
 - **Supersedes:** None.
@@ -91,7 +91,7 @@ These identifiers are working context rather than architecture choices:
 - **Owners:** Product / Engineering
 - **Context:** The approved four-view interface is complete, and Step 3 must establish a stable baseline before authentication, persistence, or external integrations alter its behavior.
 - **Decision:** Treat `docs/design-contract.md`, the production components and styles under `src/`, and the retained files in `design-prototype 2/` as the ordered frontend contract. Backend steps may replace mock data and local-only handlers behind the existing components, but must preserve the accepted route purposes, hierarchy, typography, tokens, spacing, responsive transitions, control names, focus treatment, interaction feedback, and display-only Level.io panel unless Product explicitly approves a design change.
-- **Consequences:** Backend implementation has a clear compatibility boundary and cannot quietly redesign the product. Material visual or interaction changes require an explicit decision-log entry, updated contract evidence, and desktop/mobile regression verification. Current placeholder actions do not imply that authentication, persistence, Microsoft 365, or Level.io behavior exists.
+- **Consequences:** Backend implementation has a clear compatibility boundary and cannot quietly redesign the product. Material visual or interaction changes require an explicit decision-log entry, updated contract evidence, and desktop/mobile regression verification. Current placeholder actions do not imply that authentication, persistence, or Level.io behavior exists.
 - **Evidence:** Step 3 audit and passing checks in `docs/implementation-status.md`; `docs/design-contract.md`; ADR-003; retained design handoff and prototype files.
 - **Supersedes:** None.
 
@@ -119,7 +119,7 @@ The baseline was reverified at commit `ba8e67a` on 2026-08-31. All automated qua
 - **Decision:** Use PostgreSQL 17.11 locally through pinned Docker Compose and Prisma ORM 7.10.0 with the `pg` driver adapter. Keep application tables in a private `service_desk` schema. Model one organisation with multiple properties, property-owned departments, organisation-owned users and roles, property-scoped role assignments, and immutable audit events. Use UUID database defaults, timezone-aware timestamps, explicit constraints, tenant-consistent composite foreign keys, restricted parent deletion, indexed foreign keys, and repositories as the application access boundary. Keep migrations on a direct database URL while allowing the runtime URL to use a pooler later.
 - **Consequences:** Local and test databases have reproducible create/migrate/seed/reset workflows, and future authentication or ticket work can depend on stable identity/property relationships. Production Supabase connection, RLS policies, separate least-privilege database roles, pooler settings, and deployment migration automation remain later decisions. The private schema avoids accidental Data API exposure before those controls exist.
 - **Evidence:** `compose.yaml`, `prisma/schema.prisma`, the initial migration and seed, server configuration/repositories, database constraint tests, and Step 4 verification in `docs/implementation-status.md`.
-- **Supersedes:** The database and property-model portions of ADR-001; its hosting, storage, queue, Microsoft, and deployment proposals remain undecided.
+- **Supersedes:** The database and property-model portions of ADR-001; its hosting, storage, queue, and deployment proposals remain undecided.
 
 ## ADR-008: Host the identity foundation in Supabase
 
@@ -149,7 +149,7 @@ The baseline was reverified at commit `ba8e67a` on 2026-08-31. All automated qua
 - **Date:** 2026-08-31
 - **Owners:** Product / Engineering
 - **Context:** The owner requested a login screen before an authentication provider, session model, recovery flow, or authorization policy has been approved.
-- **Decision:** Add `/login` as a responsive, accessible extension of the approved resort design. Present conventional work-email/password controls for product review, but prevent submission locally and explicitly state that credentials are not sent or stored. Keep provider integration behind a future authentication boundary; this screen does not select Supabase Auth, Microsoft Entra ID, or another provider.
+- **Decision:** Add `/login` as a responsive, accessible extension of the approved resort design. Present conventional work-email/password controls for product review, but prevent submission locally and explicitly state that credentials are not sent or stored. Keep provider integration behind a future authentication boundary; this screen does not select an authentication provider.
 - **Consequences:** Product can review the login experience without creating a false security boundary. The credential controls may need an approved change if federated-only sign-in is selected. No existing application route is protected until authentication, sessions, authorization, and RLS are implemented together.
 - **Evidence:** `src/app/login/page.tsx`, `src/modules/auth/components/login-form.tsx`, login tests, responsive styles, and the updated design contract.
 - **Supersedes:** None.
@@ -164,3 +164,24 @@ The baseline was reverified at commit `ba8e67a` on 2026-08-31. All automated qua
 - **Consequences:** Future ticket, asset, reporting, Level.io, administration, and configuration services must call this policy rather than inventing route-local role checks. Department Approver is defined but cannot be assigned until department scope is represented. Auditor / Report Viewer has read-only report and audit permission. System Administrator is organisation-wide but cannot cross tenants. Audit context cannot contain credentials, secrets, tokens, sessions, cookies, file contents, authorization values, or private provider payloads.
 - **Evidence:** `src/modules/auth/authorization.ts`, server authorization and audit services, migration `20260901011947_step_6_authorization_and_audit`, `/admin/audit`, `docs/role-permission-matrix.md`, 44 application tests, eight database tests, and hosted Supabase readback/advisors.
 - **Supersedes:** Legacy `staff`/`admin` role naming and route-local authorization checks. ADR-007's append-only audit decision remains in force.
+
+## ADR-012: Keep ticket attachments private behind the application boundary
+
+- **Status:** Accepted
+- **Date:** 2026-09-04
+- **Owners:** Product / Engineering
+- **Context:** Step 14 approves private object storage for ticket screenshots and documents. Attachment URLs and object identifiers must not bypass the ticket-level authorization already enforced by the application, and malware scanning infrastructure is not yet available.
+- **Decision:** Use a non-public Supabase Storage bucket with no browser-facing object policies. Generate UUID-based object paths without filenames; accept only signature-verified PNG, JPEG, WebP, PDF, and UTF-8 text files up to 10 MiB; and perform upload and streamed download through authenticated server routes that re-evaluate ticket access. Store immutable ticket/uploader/file identity with mutable quarantine, scan, upload, and retention lifecycle fields. Permit only the uploader to retrieve pending or failed-scan content, block infected content for everyone, and retain metadata after object cleanup.
+- **Consequences:** Knowing an attachment UUID or object path grants no access. The server-only Supabase credential remains a high-trust boundary, cleanup workers must receive an explicit clock, and other ticket participants cannot retrieve new attachments until a future scanner marks them clean. Office archive formats remain unsupported until their contents can be validated safely.
+- **Evidence:** `docs/attachment-policy.md`, migration `20260904154437_step_14_private_ticket_attachments`, attachment policy/service and route modules, staff/technician integration, and Step 14 tests/status evidence.
+
+### ADR-013 — Keep business asset identity and history application-owned
+
+- **Date:** 2026-09-04
+- **Status:** Accepted
+- **Context:** Tickets and a later Level.io integration need one stable resort inventory record. Resort tags, manufacturer serials, external platform identifiers, live telemetry, physical location, responsibility, and commercial data have different owners and lifecycles.
+- **Decision:** Make the service desk authoritative for the resort asset tag, type, lifecycle, hierarchy location, custodian/department assignment, criticality, purchase/warranty data, and append-only move history. Store serial numbers and namespaced external IDs separately. Require property-scoped `asset.read`/`asset.manage`, optimistic mutation checks, composite tenant/hierarchy foreign keys, audit events, and retirement rather than deletion. Reserve `ExternalSystemLink` for future integrations without creating a Level.io link or client in Step 15.
+- **Consequences:** IT can reconstruct current and historical accountability without trusting an external monitoring platform. Level.io may later own live device telemetry while the service desk remains authoritative for business identity and placement. Asset and history rows cannot be hard-deleted through supported workflows.
+- **Evidence:** `docs/asset-inventory.md`, migration `20260904160116_step_15_asset_inventory`, asset policy/service modules, asset routes and interfaces, and Step 15 tests/status evidence.
+
+- **Supersedes:** ADR-001 only where it described attachment storage as proposed or undecided.

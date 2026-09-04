@@ -25,4 +25,4 @@ Then open [http://127.0.0.1:43127/](http://127.0.0.1:43127/).
 - `app.js`: prototype navigation and interactions
 - `DESIGN_NOTES.md`: human interface principles and design rationale
 
-This package is an interactive design prototype. It does not yet include authentication, a database, ticket persistence, Microsoft 365, or live Level.io integration.
+This package is an interactive design prototype. It does not yet include authentication, a database, ticket persistence, or live Level.io integration.

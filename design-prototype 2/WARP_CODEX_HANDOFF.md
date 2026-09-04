@@ -56,7 +56,7 @@ Implementation approach:
 - Create design tokens for colors, typography, spacing, radii, shadows, and motion so branding can be changed later without restructuring the interface.
 - Prefer semantic HTML and native controls. Use a proven accessible primitive only when a native element is insufficient.
 - Preserve the visual proportions and content hierarchy from the reference rather than accepting component-library defaults.
-- Use mock typed data for this design implementation. Do not add authentication, a database, Microsoft 365, Level.io API calls, or backend ticket persistence in this task.
+- Use mock typed data for this design implementation. Do not add authentication, a database, Level.io API calls, or backend ticket persistence in this task.
 - The Level.io panel is display-only mock context in this step.
 - Preserve unrelated user changes.
 

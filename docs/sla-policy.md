@@ -32,6 +32,8 @@ The priority matrix is stored as impact rows and urgency columns:
 
 All functions receive an explicit `Date` instant and use the policy's IANA time zone. The server's local time zone is never consulted. Support time advances only inside configured local windows and skips weekends, configured holidays, and closed periods. The support-window start is inclusive and the end is exclusive. A target is at risk exactly one configured warning threshold of support time before its deadline and breached exactly at the deadline.
 
+Policy snapshots are rejected before calculation when the time zone is not a valid IANA identifier, every day is closed, a support window ends at or before its start, or same-day windows overlap. Adjacent windows are allowed. These checks prevent an invalid or ambiguous administrator-authored calendar from producing environment-dependent deadlines.
+
 The first requester-visible reply written by an authorized technician records `slaRespondedAt`. Requester replies and internal notes do not complete the response clock. Resolution records `resolvedAt` through the existing lifecycle service.
 
 When a ticket enters a configured waiting status, evaluation reports `paused`. On exit, each open deadline is recalculated from the exact support duration that remained when the pause began. Reopening a resolved, closed, or cancelled ticket applies the snapshotted policy's independent response and resolution behavior: `reset` starts a fresh target at the reopen instant; `preserve` retains the previous deadline and completion time.

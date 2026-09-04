@@ -6,11 +6,22 @@ import type {
   TechnicianWorkspaceData,
 } from "@/server/tickets/technician-queue";
 
+import { AttachmentPanel } from "./attachment-panel";
+
 type SearchState = {
   status?: string;
+  attachment?: string;
 };
 
 function filterMessage(search: SearchState) {
+  if (search.attachment === "uploaded")
+    return { tone: "success" as const, text: "The file was uploaded privately and quarantined." };
+  if (search.attachment === "denied")
+    return { tone: "error" as const, text: "You do not have access to attach that file." };
+  if (search.attachment === "invalid")
+    return { tone: "error" as const, text: "That file type or size is not allowed." };
+  if (search.attachment === "failed")
+    return { tone: "error" as const, text: "The private upload could not be completed." };
   switch (search.status) {
     case "assigned":
       return { tone: "success" as const, text: "The ticket assignment was saved." };
@@ -457,16 +468,14 @@ function DetailPanel({
         </div>
         <p>Related ticket suggestions will appear here once ticket dependency links are enabled.</p>
       </div>
-      <div className="device-card">
-        <div className="device-heading">
-          <span>
-            <small>ATTACHMENTS</small>
-            <strong>Coming soon</strong>
-          </span>
-          <span className="online-badge">Pending</span>
-        </div>
-        <p>Attachment upload and history will be available in this ticket context.</p>
-      </div>
+      <AttachmentPanel
+        ticketId={ticket.ticketId}
+        attachments={ticket.attachments ?? []}
+        returnTo="technician"
+        filter={filter}
+        page={page}
+        allowInternal
+      />
     </aside>
   );
 }

@@ -140,6 +140,9 @@ let tickets: TicketRecord[] = [];
 
 vi.mock("@/server/database/client", () => ({
   database: {
+    attachmentMetadata: {
+      findMany: vi.fn(async () => []),
+    },
     ticket: {
       count: vi.fn(
         async ({ where }: { where: Record<string, unknown> }) =>

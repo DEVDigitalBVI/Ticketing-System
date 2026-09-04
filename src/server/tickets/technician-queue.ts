@@ -1,6 +1,7 @@
 import "server-only";
 
 import { Prisma } from "@/generated/prisma/client";
+import { listTicketAttachments, type TicketAttachmentView } from "@/server/attachments/service";
 import { accessCan } from "@/server/auth/authorization";
 import type { AccessProfile } from "@/server/auth/access";
 import { database } from "@/server/database/client";
@@ -68,6 +69,7 @@ export type TechnicianQueueDetail = {
     policy: string;
     timezone: string;
   };
+  attachments: TicketAttachmentView[];
   history: TechnicianHistoryEntry[];
   assignmentOptions: {
     supportTeams: Array<{ id: string; name: string }>;
@@ -555,9 +557,10 @@ export async function getTechnicianTicketDetail(access: AccessProfile, ticketId:
   const { policy, evaluation } = evaluateTicketSla(ticket, now);
   const indicator = serviceIndicatorFor(ticket, now);
 
-  const [supportTeams, technicians] = await Promise.all([
+  const [supportTeams, technicians, attachments] = await Promise.all([
     loadAssignableSupportTeams(access, ticket.propertyId, ticket.departmentId),
     loadAssignableTechnicians(access, ticket.propertyId),
+    listTicketAttachments(access, ticket.id),
   ]);
 
   const history = [
@@ -648,6 +651,7 @@ export async function getTechnicianTicketDetail(access: AccessProfile, ticketId:
       policy: policy ? `${policy.name} · v${policy.version}` : "No policy snapshot",
       timezone: policy?.timezone ?? "UTC",
     },
+    attachments,
     history,
     assignmentOptions: { supportTeams, technicians },
   } satisfies TechnicianQueueDetail;

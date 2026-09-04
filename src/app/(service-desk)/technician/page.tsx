@@ -15,6 +15,7 @@ export default async function TechnicianPage({
     page?: string;
     ticket?: string;
     status?: string;
+    attachment?: string;
   }>;
 }) {
   const access = await requireCurrentAccess("ticket.queue.read");
@@ -27,5 +28,10 @@ export default async function TechnicianPage({
     if (!isDatabaseUnavailableError(error)) throw error;
   }
 
-  return <TechnicianWorkspace workspace={workspace} search={{ status: search.status }} />;
+  return (
+    <TechnicianWorkspace
+      workspace={workspace}
+      search={{ status: search.status, attachment: search.attachment }}
+    />
+  );
 }

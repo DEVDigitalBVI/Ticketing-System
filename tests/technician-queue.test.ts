@@ -605,6 +605,9 @@ vi.mock("@/server/database/client", () => {
   };
 
   const database = {
+    attachmentMetadata: {
+      findMany: vi.fn(async () => []),
+    },
     ticket: ticketModel,
     supportTeam: supportTeamModel,
     user: userModel,

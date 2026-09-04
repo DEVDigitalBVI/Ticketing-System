@@ -32,10 +32,54 @@ function policy(overrides: Partial<SlaPolicySnapshot> = {}): SlaPolicySnapshot {
 describe("versioned SLA policy", () => {
   it("calculates every approved impact and urgency combination from configuration", () => {
     const configured = policy();
-    expect(priorityFor(configured, "critical", "critical")).toBe("P1");
-    expect(priorityFor(configured, "high", "medium")).toBe("P2");
-    expect(priorityFor(configured, "medium", "medium")).toBe("P3");
-    expect(priorityFor(configured, "low", "low")).toBe("P4");
+    const expected = {
+      low: { low: "P4", medium: "P4", high: "P3", critical: "P2" },
+      medium: { low: "P4", medium: "P3", high: "P2", critical: "P2" },
+      high: { low: "P3", medium: "P2", high: "P2", critical: "P1" },
+      critical: { low: "P2", medium: "P2", high: "P1", critical: "P1" },
+    } as const;
+
+    for (const impact of Object.keys(expected) as Array<keyof typeof expected>) {
+      for (const urgency of Object.keys(expected[impact]) as Array<
+        keyof (typeof expected)[typeof impact]
+      >) {
+        expect(priorityFor(configured, impact, urgency)).toBe(expected[impact][urgency]);
+      }
+    }
+  });
+
+  it("rejects invalid time zones and ambiguous support calendars before calculation", () => {
+    expect(() =>
+      snapshotSlaPolicy({ ...policy(), id: "bad-zone", timezone: "Local/Server" }),
+    ).toThrow("A valid IANA time zone is required.");
+    expect(() =>
+      snapshotSlaPolicy({
+        ...policy(),
+        id: "overlap",
+        supportHours: {
+          ...policy().supportHours,
+          monday: [
+            { start: "08:00", end: "12:00" },
+            { start: "11:30", end: "17:00" },
+          ],
+        },
+      }),
+    ).toThrow("Support windows must not overlap.");
+    expect(() =>
+      snapshotSlaPolicy({
+        ...policy(),
+        id: "closed",
+        supportHours: {
+          sunday: [],
+          monday: [],
+          tuesday: [],
+          wednesday: [],
+          thursday: [],
+          friday: [],
+          saturday: [],
+        },
+      }),
+    ).toThrow("At least one support window is required.");
   });
 
   it("uses the policy timezone, never the process timezone", () => {

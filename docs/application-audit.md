@@ -7,7 +7,7 @@ Scope: complete tracked application, database foundation, scripts, tests, config
 
 The application contains no bundled production mock records or fictional development seed. Unconnected product surfaces render empty or unavailable states while preserving the approved desktop/mobile design contract.
 
-The current browser application has no route handler, Server Action, authentication session, ticket persistence call, file upload, queue producer, Microsoft integration, or Level.io client. Form values remain local to the browser and are not transmitted or persisted. The database repositories are not reachable from a web route.
+The audited browser baseline had no route handler, Server Action, authentication session, ticket persistence call, file upload, queue producer, or Level.io client. Form values remained local to the browser and were not transmitted or persisted. The database repositories were not reachable from a web route.
 
 ## Security review
 
@@ -24,7 +24,7 @@ No remotely reachable vulnerability was found in the current application. The fo
 - a least-privilege runtime database role separate from migration authority;
 - authentication-aware RLS before any Data API exposure;
 - production hosting, TLS/origin policy, and secret delivery;
-- attachment, queue, Microsoft, and Level.io security controls if those features are approved.
+- attachment, queue, and Level.io security controls if those features are approved.
 
 The production dependency audit initially identified `deepmerge-ts` below 8.0.0 through Prisma's configuration package. pnpm now overrides that transitive package to 8.0.0 from `pnpm-workspace.yaml`; Prisma validation, client generation, the application tests, and the production build pass with the override, and `pnpm audit --prod` reports no known vulnerabilities.
 

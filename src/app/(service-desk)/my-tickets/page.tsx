@@ -17,6 +17,7 @@ export default async function MyTicketsPage({
     page?: string;
     ticket?: string;
     status?: string;
+    attachment?: string;
   }>;
 }) {
   const access = await requireCurrentAccess("ticket.read.own");

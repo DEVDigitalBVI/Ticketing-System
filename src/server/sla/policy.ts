@@ -16,6 +16,51 @@ const supportWindowSchema = z.object({
   start: z.string().regex(timePattern),
   end: z.string().regex(timePattern),
 });
+const supportDaySchema = z.array(supportWindowSchema).superRefine((windows, context) => {
+  const ordered = [...windows].sort((left, right) => left.start.localeCompare(right.start));
+
+  for (const [index, window] of ordered.entries()) {
+    if (window.end <= window.start) {
+      context.addIssue({
+        code: "custom",
+        message: "Support windows must end after they start.",
+      });
+    }
+    if (index > 0 && ordered[index - 1]!.end > window.start) {
+      context.addIssue({
+        code: "custom",
+        message: "Support windows must not overlap.",
+      });
+    }
+  }
+});
+const supportHoursSchema = z
+  .object({
+    sunday: supportDaySchema,
+    monday: supportDaySchema,
+    tuesday: supportDaySchema,
+    wednesday: supportDaySchema,
+    thursday: supportDaySchema,
+    friday: supportDaySchema,
+    saturday: supportDaySchema,
+  })
+  .refine((hours) => Object.values(hours).some((windows) => windows.length > 0), {
+    message: "At least one support window is required.",
+  });
+const timezoneSchema = z
+  .string()
+  .min(1)
+  .refine(
+    (timezone) => {
+      try {
+        new Intl.DateTimeFormat("en-US", { timeZone: timezone });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    { message: "A valid IANA time zone is required." },
+  );
 const targetsSchema = z.object({
   P1: z.number().int().positive(),
   P2: z.number().int().positive(),
@@ -33,16 +78,8 @@ export const slaPolicySnapshotSchema = z.object({
   policyId: z.string(),
   version: z.number().int().positive(),
   name: z.string().min(1),
-  timezone: z.string().min(1),
-  supportHours: z.object({
-    sunday: z.array(supportWindowSchema),
-    monday: z.array(supportWindowSchema),
-    tuesday: z.array(supportWindowSchema),
-    wednesday: z.array(supportWindowSchema),
-    thursday: z.array(supportWindowSchema),
-    friday: z.array(supportWindowSchema),
-    saturday: z.array(supportWindowSchema),
-  }),
+  timezone: timezoneSchema,
+  supportHours: supportHoursSchema,
   holidays: z.array(z.string().date()),
   impactUrgencyRules: z.object({
     low: ruleRowSchema,
