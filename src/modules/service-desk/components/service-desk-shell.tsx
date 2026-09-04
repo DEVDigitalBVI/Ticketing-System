@@ -110,7 +110,9 @@ export function ServiceDeskShell({
                 className={`nav-item${pathname === "/admin/integrations/level" ? " is-active" : ""}`}
                 href="/admin/integrations/level"
               >
-                <span className="nav-symbol" aria-hidden="true">⌗</span>
+                <span className="nav-symbol" aria-hidden="true">
+                  ⌗
+                </span>
                 <span>Level reconciliation</span>
               </Link>
             ) : null}

@@ -18,7 +18,7 @@ Step 15 makes the service desk the business source of truth for resort asset ide
 | Criticality                          | Service desk `Asset`                                       | Business impact classification: low, standard, high, or mission critical. It is not inferred from monitoring data.                                                                                           |
 | Purchase and warranty                | Service desk `ProcurementMetadata` and `Vendor`            | IT-managed commercial context: vendor, dates, cost/currency, purchase order, warranty reference, and notes.                                                                                                  |
 | External system identity             | `ExternalSystemLink`                                       | Namespaced external IDs remain separate from asset tags and serial numbers. The pair of system and external ID is unique per organisation.                                                                   |
-| Level.io telemetry and device state  | Future Level.io integration                                | Not connected in Step 15. No Level.io ID, status, live data, or action is fabricated.                                                                                                                        |
+| Level.io telemetry and device state  | `LevelDeviceInventory` snapshot owned by Level.io          | Step 21 stores only the approved operational snapshot. Sync never overwrites the service-desk asset record; association is through `ExternalSystemLink`.                                                     |
 
 ## Authorization and lifecycle
 

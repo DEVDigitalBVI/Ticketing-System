@@ -17,8 +17,7 @@ export const jobHandlers: JobHandlers = {
       "Synchronization provider is not configured.",
     );
   },
-  "synchronization.level_inventory": async (job, signal) =>
-    runLevelInventorySync({ job, signal }),
+  "synchronization.level_inventory": async (job, signal) => runLevelInventorySync({ job, signal }),
   "webhook.process": async () => {
     throw new JobExecutionError("provider_not_configured", "Webhook provider is not configured.");
   },

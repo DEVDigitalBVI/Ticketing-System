@@ -63,7 +63,9 @@ describe("Step 21 Level inventory persistence", () => {
       }),
     ).toBe("matched");
 
-    expect(await client.levelDeviceInventory.count({ where: { organizationId, levelDeviceId } })).toBe(1);
+    expect(
+      await client.levelDeviceInventory.count({ where: { organizationId, levelDeviceId } }),
+    ).toBe(1);
     expect(await client.asset.count({ where: { id: asset.id } })).toBe(1);
     expect(
       await client.externalSystemLink.count({
@@ -71,7 +73,11 @@ describe("Step 21 Level inventory persistence", () => {
       }),
     ).toBe(1);
     expect(
-      (await client.levelDeviceInventory.findFirstOrThrow({ where: { organizationId, levelDeviceId } })).hostname,
+      (
+        await client.levelDeviceInventory.findFirstOrThrow({
+          where: { organizationId, levelDeviceId },
+        })
+      ).hostname,
     ).toBe("Renamed Front Desk Workstation");
   });
 });

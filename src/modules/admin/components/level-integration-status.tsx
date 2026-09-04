@@ -42,8 +42,8 @@ export function LevelIntegrationStatus({ status, check }: { status: LevelStatus;
           <p className="overline">Provider boundary</p>
           <h2 id="level-status-heading">Level.io</h2>
           <p>
-            Server-only, read-only connectivity status. This check reads at most one device and
-            stores no device data.
+            Server-only, read-only connectivity status. The health check reads at most one device;
+            approved inventory synchronization runs through the durable worker.
           </p>
         </div>
         <span className={`integration-state${status.configured ? " is-configured" : ""}`}>
@@ -66,8 +66,12 @@ export function LevelIntegrationStatus({ status, check }: { status: LevelStatus;
           <dd>{status.baseUrl}/v2</dd>
         </div>
         <div>
-          <dt>Enabled behavior</dt>
-          <dd>Health check only</dd>
+          <dt>Tenant binding</dt>
+          <dd>{status.inventoryOrganizationConfigured ? "Configured" : "Not configured"}</dd>
+        </div>
+        <div>
+          <dt>Scheduled inventory</dt>
+          <dd>{status.scheduledInventorySyncEnabled ? "Hourly" : "Manual only"}</dd>
         </div>
       </dl>
 

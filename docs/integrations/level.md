@@ -1,7 +1,7 @@
 # Level.io integration boundary
 
 Last verified: 2026-09-04
-Status: Step 20 read-only client and health check only
+Status: Step 21 approved read-only inventory synchronization
 
 ## Official sources
 
@@ -55,14 +55,14 @@ The current Webhook Settings guide says failed deliveries receive up to three at
 
 ## Implemented client policy
 
-The server-only client implements only device-list reads and uses `GET /v2/devices?limit=1` for health. A health check validates the documented envelope and minimal device identity, discards the response, and stores no device data.
+The server-only client implements device-list reads and uses `GET /v2/devices?limit=1` for health. Step 21 uses the same guarded cursor iterator for approved inventory synchronization.
 
 - Per-attempt timeout: 5 seconds by default, bounded from 100 milliseconds through 30 seconds.
 - Retries: two by default, bounded from zero through four; only network failures, timeouts, 429, and 5xx responses retry.
 - Backoff: 250 milliseconds then exponential doubling for network/5xx responses.
 - `Retry-After`: supports delta seconds and HTTP dates. Waiting is capped at 30 seconds by default and cannot exceed 60 seconds in client configuration, keeping the administrator request bounded.
 - 401 and 403 fail immediately. Successful bodies are schema-validated. Malformed JSON, missing device IDs, invalid `has_more`, repeated cursors, and excessive page counts fail closed.
-- Pagination is capped at 1,000 pages per invocation. Step 20 does not call the pagination iterator from production code.
+- Pagination is capped at 1,000 pages per invocation. Inventory requests use pages of 100 records.
 - Safe logs contain only operation, correlation ID, attempt, HTTP status, duration, retry delay, and controlled error code. Keys, authorization headers, URLs, device data, and provider response bodies are excluded.
 
 ## Tenant-specific verification status
@@ -76,4 +76,32 @@ No `LEVEL_API_KEY` is present in the current server environment. Consequently th
 - whether the current operator has Level administrator permission to configure future webhooks;
 - whether any account-specific UI link or remote capability exists outside the documented Public API.
 
-After an administrator places a dedicated read-only key in the deployment secret environment, `/admin/configuration` can run the approved one-record read check. A successful check confirms only authentication, device-list permission, reachability, and response compatibility for that key at that moment. It does not approve device synchronization, webhook registration, deep links, or remote actions.
+After an administrator places a dedicated read-only key in the deployment secret environment, `/admin/configuration` can run the approved one-record read check. A successful check confirms authentication, device-list permission, reachability, and response compatibility for that key at that moment. Webhook registration, deep links, writes, and remote actions remain out of scope.
+
+## Step 21 inventory ownership and field mapping
+
+`LEVEL_ORGANIZATION_ID` binds one server credential to one service-desk organisation. A job refuses to run when the job tenant and configured tenant differ. `LEVEL_INVENTORY_SYNC_ENABLED=true` enables hourly scheduled enqueueing; administrators can request the same job manually regardless of that schedule flag. Both paths use the transactional outbox.
+
+| Provider field                      | Stored field                                                                   | Owner                             | Synchronization rule                                                                 |
+| ----------------------------------- | ------------------------------------------------------------------------------ | --------------------------------- | ------------------------------------------------------------------------------------ |
+| `id`                                | `LevelDeviceInventory.levelDeviceId` and Level `ExternalSystemLink.externalId` | Level.io                          | Stable remote identity; immutable and unique per organisation.                       |
+| `hostname`                          | `LevelDeviceInventory.hostname`                                                | Level.io                          | Curated operational context; a rename updates the same device. Never used to match.  |
+| `serial_number`                     | `LevelDeviceInventory.serialNumber`                                            | Level.io snapshot                 | Normalized for deterministic comparison. It does not overwrite `Asset.serialNumber`. |
+| `manufacturer`, `model`, `platform` | Same-named inventory snapshot fields                                           | Level.io                          | Curated context only; never copied into service-desk business fields.                |
+| `online`, `last_seen_at`            | `online`, `lastSeenAt`                                                         | Level.io                          | Current telemetry snapshot.                                                          |
+| Curated canonical fields            | `sourceChecksum`                                                               | Application-derived               | SHA-256 detects source-version changes without retaining the full provider response. |
+| Sync execution                      | `lastSyncedAt`, `syncState`, run counters                                      | Service desk integration boundary | Explicit UTC instants and retained per-attempt evidence.                             |
+
+The service desk remains authoritative for asset tag, business name, type and lifecycle, property/building/room, department, custodian, criticality, procurement/warranty, and ticket relationships. Inventory code never updates an `Asset` row.
+
+## Matching and reconciliation
+
+1. An exact organisation-scoped Level external link wins.
+2. Without a link, exactly one asset may match an exact normalized serial number.
+3. More than one serial candidate, or a candidate already linked to a different Level device, is `ambiguous`.
+4. No candidate is `unmatched`. Hostnames and other approximate identifiers are never match keys.
+5. No asset is automatically created. Replacement hardware with a new Level ID cannot inherit ownership merely because its hostname was reused.
+
+Unmatched, ambiguous, stale, and failed snapshots appear only to administrators at `/admin/integrations/level`. A manual link checks both sides for conflicts, changes only the external link and integration state, and records an audit event. Knowing or supplying a device ID cannot bypass organisation and permission checks.
+
+A full successful traversal marks previously known devices not seen in that run as `stale`. Provider/pagination failure does not stale devices because absence was not proven. Individual persistence failures are retained as `failed`, allow the rest of the page stream to proceed, produce a partial run, and cause the durable job to retry. Database upserts plus unique Level identity/link constraints make repeated pages, jobs, and recovery safe.

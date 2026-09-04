@@ -23,7 +23,7 @@ If `pnpm` is not installed globally, commands can be run with `npx --yes pnpm@11
 
 Account administration also requires the server-only `SUPABASE_SECRET_KEY`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, and `SMTP_FROM` values shown in `.env.example`. Never add `NEXT_PUBLIC_` to them. The application emails a generated temporary password and the login URL; users must replace it before service-desk access.
 
-The optional Level.io health check requires a dedicated read-only `LEVEL_API_KEY` in the deployment secret environment. The key is server-only and must never use the `NEXT_PUBLIC_` prefix. No Level device data is stored in Step 20.
+Level.io requires a dedicated read-only `LEVEL_API_KEY` and its service-desk tenant binding in `LEVEL_ORGANIZATION_ID`. Set `LEVEL_INVENTORY_SYNC_ENABLED=true` only when hourly worker scheduling is approved. All three values are server-only and must never use the `NEXT_PUBLIC_` prefix.
 
 To create the first administrator in a clean environment, set the SMTP/Auth values plus `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_DISPLAY_NAME`, then run `pnpm bootstrap:admin` exactly once. The database refuses the operation after any domain user exists. The command never prints the temporary password and rolls back both records if email delivery fails.
 
@@ -49,6 +49,8 @@ Step 13 adds versioned SLA policies, ticket-level policy snapshots, deterministi
 
 Step 17 adds the PostgreSQL transactional outbox, leased background worker, bounded retries, duplicate-effect protection, dead-letter replay, and an authorized operations view. See `docs/background-jobs.md`.
 
+Step 21 synchronizes a curated read-only Level device snapshot, associates it to assets through deterministic identity rules, and sends unresolved devices to administrator reconciliation. See `docs/integrations/level.md`.
+
 ## Frontend routes
 
 - `/login`: responsive Supabase work-account sign-in with generic failure states.
@@ -57,6 +59,7 @@ Step 17 adds the PostgreSQL transactional outbox, leased background worker, boun
 - `/admin/users/new`: permission-gated account creation and SMTP credential delivery.
 - `/admin/configuration`: permission-gated hierarchy/service-taxonomy administration, Level.io server-secret status, and the administrator-only read health check.
 - `/admin/jobs`: organisation-scoped background backlog and dead-letter inspection with administrator-only replay.
+- `/admin/integrations/level`: administrator-only Level inventory synchronization, reconciliation, and retained run status.
 - `/`: staff overview and active requests.
 - `/new-ticket`: guided request form connected to authenticated ticket creation with controlled reference data and real ticket-number confirmation.
 - `/my-tickets`: requester-authorized ticket workspace with server-side filters, search, pagination, public history, replies, and resolution confirmation.

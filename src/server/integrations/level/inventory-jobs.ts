@@ -57,7 +57,8 @@ export async function enqueueScheduledLevelInventorySync(now: Date) {
     !environment.LEVEL_INVENTORY_SYNC_ENABLED ||
     !environment.LEVEL_API_KEY ||
     !environment.LEVEL_ORGANIZATION_ID
-  ) return false;
+  )
+    return false;
   const hour = now.toISOString().slice(0, 13);
   await database.$transaction((tx) =>
     enqueueDomainEvent(tx, {

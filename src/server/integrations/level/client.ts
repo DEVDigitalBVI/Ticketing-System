@@ -4,7 +4,7 @@ import { z } from "zod";
 
 const levelDeviceSchema = z
   .object({
-    id: z.string().min(1),
+    id: z.string().trim().min(1),
     hostname: z.string().nullable().optional(),
     serial_number: z.string().nullable().optional(),
     manufacturer: z.string().nullable().optional(),

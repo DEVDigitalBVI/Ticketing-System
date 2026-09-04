@@ -3,7 +3,11 @@ import "server-only";
 import { getLevelServerEnvironment } from "@/config/server";
 import { JobExecutionError } from "@/server/jobs/policy";
 import type { ClaimedJob } from "@/server/jobs/types";
-import { LevelClient, LevelClientError, type LevelDevice } from "@/server/integrations/level/client";
+import {
+  LevelClient,
+  LevelClientError,
+  type LevelDevice,
+} from "@/server/integrations/level/client";
 import {
   curateLevelDevice,
   levelDeviceChecksum,

@@ -745,25 +745,25 @@ model LevelDeviceInventory {
 }
 
 model LevelInventorySyncRun {
-  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId   String         @map("organization_id") @db.Uuid
-  backgroundJobId  String         @map("background_job_id") @db.Uuid
-  attemptNumber    Int            @map("attempt_number")
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId   String        @map("organization_id") @db.Uuid
+  backgroundJobId  String        @map("background_job_id") @db.Uuid
+  attemptNumber    Int           @map("attempt_number")
   trigger          String
-  status           String         @default("running")
-  correlationId    String         @map("correlation_id") @db.Uuid
-  devicesSeen      Int            @default(0) @map("devices_seen")
-  devicesMatched   Int            @default(0) @map("devices_matched")
-  devicesUnmatched Int            @default(0) @map("devices_unmatched")
-  devicesAmbiguous Int            @default(0) @map("devices_ambiguous")
-  devicesFailed    Int            @default(0) @map("devices_failed")
-  devicesStale     Int            @default(0) @map("devices_stale")
-  lastErrorCode    String?        @map("last_error_code")
-  startedAt        DateTime       @map("started_at") @db.Timestamptz(6)
-  completedAt      DateTime?      @map("completed_at") @db.Timestamptz(6)
-  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
-  organization     Organization   @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  backgroundJob    BackgroundJob  @relation(fields: [backgroundJobId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  status           String        @default("running")
+  correlationId    String        @map("correlation_id") @db.Uuid
+  devicesSeen      Int           @default(0) @map("devices_seen")
+  devicesMatched   Int           @default(0) @map("devices_matched")
+  devicesUnmatched Int           @default(0) @map("devices_unmatched")
+  devicesAmbiguous Int           @default(0) @map("devices_ambiguous")
+  devicesFailed    Int           @default(0) @map("devices_failed")
+  devicesStale     Int           @default(0) @map("devices_stale")
+  lastErrorCode    String?       @map("last_error_code")
+  startedAt        DateTime      @map("started_at") @db.Timestamptz(6)
+  completedAt      DateTime?     @map("completed_at") @db.Timestamptz(6)
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization     Organization  @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  backgroundJob    BackgroundJob @relation(fields: [backgroundJobId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
 
   @@unique([id, organizationId])
   @@unique([backgroundJobId, attemptNumber])
@@ -797,34 +797,34 @@ model OutboxEvent {
 }
 
 model BackgroundJob {
-  id               String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId   String                 @map("organization_id") @db.Uuid
-  outboxEventId    String?                @unique @map("outbox_event_id") @db.Uuid
-  replayOfJobId    String?                @map("replay_of_job_id") @db.Uuid
+  id               String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId   String                  @map("organization_id") @db.Uuid
+  outboxEventId    String?                 @unique @map("outbox_event_id") @db.Uuid
+  replayOfJobId    String?                 @map("replay_of_job_id") @db.Uuid
   category         String
-  jobType          String                 @map("job_type")
-  payload          Json                   @default("{}")
-  correlationId    String                 @map("correlation_id") @db.Uuid
-  idempotencyKey   String                 @map("idempotency_key")
-  effectKey        String                 @map("effect_key")
-  status           String                 @default("queued")
-  attempts         Int                    @default(0)
-  maxAttempts      Int                    @default(5) @map("max_attempts")
-  availableAt      DateTime               @map("available_at") @db.Timestamptz(6)
-  lockedAt         DateTime?              @map("locked_at") @db.Timestamptz(6)
-  lockedUntil      DateTime?              @map("locked_until") @db.Timestamptz(6)
-  lockToken        String?                @map("lock_token") @db.Uuid
-  workerId         String?                @map("worker_id")
-  lastErrorCode    String?                @map("last_error_code")
-  lastErrorMessage String?                @map("last_error_message")
-  completedAt      DateTime?              @map("completed_at") @db.Timestamptz(6)
-  deadLetteredAt   DateTime?              @map("dead_lettered_at") @db.Timestamptz(6)
-  createdAt        DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  organization     Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  outboxEvent      OutboxEvent?           @relation(fields: [outboxEventId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  replayOf         BackgroundJob?         @relation("BackgroundJobReplay", fields: [replayOfJobId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  replays          BackgroundJob[]        @relation("BackgroundJobReplay")
+  jobType          String                  @map("job_type")
+  payload          Json                    @default("{}")
+  correlationId    String                  @map("correlation_id") @db.Uuid
+  idempotencyKey   String                  @map("idempotency_key")
+  effectKey        String                  @map("effect_key")
+  status           String                  @default("queued")
+  attempts         Int                     @default(0)
+  maxAttempts      Int                     @default(5) @map("max_attempts")
+  availableAt      DateTime                @map("available_at") @db.Timestamptz(6)
+  lockedAt         DateTime?               @map("locked_at") @db.Timestamptz(6)
+  lockedUntil      DateTime?               @map("locked_until") @db.Timestamptz(6)
+  lockToken        String?                 @map("lock_token") @db.Uuid
+  workerId         String?                 @map("worker_id")
+  lastErrorCode    String?                 @map("last_error_code")
+  lastErrorMessage String?                 @map("last_error_message")
+  completedAt      DateTime?               @map("completed_at") @db.Timestamptz(6)
+  deadLetteredAt   DateTime?               @map("dead_lettered_at") @db.Timestamptz(6)
+  createdAt        DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime                @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization     Organization            @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  outboxEvent      OutboxEvent?            @relation(fields: [outboxEventId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  replayOf         BackgroundJob?          @relation("BackgroundJobReplay", fields: [replayOfJobId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  replays          BackgroundJob[]         @relation("BackgroundJobReplay")
   attemptsHistory  BackgroundJobAttempt[]
   effects          BackgroundJobEffect[]
   levelSyncRuns    LevelInventorySyncRun[]

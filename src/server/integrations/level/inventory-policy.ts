@@ -19,7 +19,12 @@ export type AssetMatchCandidate = {
 };
 
 export type LevelDeviceMatch =
-  | { state: "matched"; assetId: string; reason: "external_link" | "serial_number"; createLink: boolean }
+  | {
+      state: "matched";
+      assetId: string;
+      reason: "external_link" | "serial_number";
+      createLink: boolean;
+    }
   | { state: "unmatched" | "ambiguous" };
 
 function clean(value: string | null | undefined) {

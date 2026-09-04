@@ -75,7 +75,8 @@ function inventoryData(
 }
 
 function safeDatabaseCode(error: unknown) {
-  if (error instanceof Prisma.PrismaClientKnownRequestError) return `database_${error.code.toLowerCase()}`;
+  if (error instanceof Prisma.PrismaClientKnownRequestError)
+    return `database_${error.code.toLowerCase()}`;
   return "device_sync_failed";
 }
 
@@ -107,22 +108,23 @@ export class PrismaLevelInventoryStore implements LevelInventoryStore {
         },
         select: { assetId: true },
       });
-      const candidates = linked || !input.device.serialNumber
-        ? []
-        : await tx.asset.findMany({
-            where: {
-              organizationId: input.organizationId,
-              serialNumber: { equals: input.device.serialNumber, mode: "insensitive" },
-            },
-            select: {
-              id: true,
-              externalLinks: {
-                where: { systemKey: "level" },
-                select: { externalId: true },
+      const candidates =
+        linked || !input.device.serialNumber
+          ? []
+          : await tx.asset.findMany({
+              where: {
+                organizationId: input.organizationId,
+                serialNumber: { equals: input.device.serialNumber, mode: "insensitive" },
               },
-            },
-            take: 2,
-          });
+              select: {
+                id: true,
+                externalLinks: {
+                  where: { systemKey: "level" },
+                  select: { externalId: true },
+                },
+              },
+              take: 2,
+            });
       const match = chooseLevelDeviceMatch({
         levelDeviceId: input.device.levelDeviceId,
         linkedAssetId: linked?.assetId,
@@ -183,9 +185,23 @@ export class PrismaLevelInventoryStore implements LevelInventoryStore {
       create: {
         organizationId: input.organizationId,
         levelDeviceId: input.device.levelDeviceId,
-        ...inventoryData(input.device, input.checksum, input.now, "failed", undefined, input.errorCode),
+        ...inventoryData(
+          input.device,
+          input.checksum,
+          input.now,
+          "failed",
+          undefined,
+          input.errorCode,
+        ),
       },
-      update: inventoryData(input.device, input.checksum, input.now, "failed", undefined, input.errorCode),
+      update: inventoryData(
+        input.device,
+        input.checksum,
+        input.now,
+        "failed",
+        undefined,
+        input.errorCode,
+      ),
     });
   }
 
