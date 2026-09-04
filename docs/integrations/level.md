@@ -67,16 +67,11 @@ The server-only client implements device-list reads and uses `GET /v2/devices?li
 
 ## Tenant-specific verification status
 
-No `LEVEL_API_KEY` is present in the current server environment. Consequently these facts remain unknown and are not inferred:
+On 2026-09-04, the server-configured credential passed the live approved read-only health request on its first attempt with HTTP 200. A complete guarded pagination traversal also succeeded and returned a nonempty device inventory. The verification retained no device payloads and printed only safe request metadata and the aggregate count.
 
-- whether this Level tenant and plan currently permit Public API access;
-- whether an issued key is read-only and can list devices;
-- which organisation and device/group scope that key can see;
-- the tenant's effective rate-limit threshold and current throttling state;
-- whether the current operator has Level administrator permission to configure future webhooks;
-- whether any account-specific UI link or remote capability exists outside the documented Public API.
+This confirms that the current tenant and key can access the Public API, list devices, and return responses compatible with the implemented schema. The configured `LEVEL_ORGANIZATION_ID` supplies the explicit service-desk tenant binding because the reviewed Level API exposes no general tenant/profile lookup.
 
-After an administrator places a dedicated read-only key in the deployment secret environment, `/admin/configuration` can run the approved one-record read check. A successful check confirms authentication, device-list permission, reachability, and response compatibility for that key at that moment. Webhook registration, deep links, writes, and remote actions remain out of scope.
+The tenant's numeric rate ceiling, Level administrator permission for future webhook configuration, account-specific UI links, and remote-action capability remain unknown and are not inferred. Webhook registration, deep links, writes, and remote actions remain out of scope.
 
 ## Step 21 inventory ownership and field mapping
 
