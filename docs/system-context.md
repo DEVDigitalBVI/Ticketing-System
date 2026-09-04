@@ -19,14 +19,15 @@ The blueprint must confirm the user roles and their permissions. The likely role
 
 ## Integrations
 
-| Integration                         | Current status                               | Intended boundary                                                                                                                                    |
-| ----------------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Next.js application                 | Step 2 foundation implemented and verified   | Hosts the application routes, shared UI, and future server-side application boundary.                                                                |
-| PostgreSQL / Prisma                 | Step 4 local and test foundation implemented | Private `service_desk` schema contains organisation, property, department, identity, role membership, and audit foundations.                         |
-| Supabase project `Ticketing System` | Hosted identity foundation implemented       | Project `zwcmljkjoxrfzfyphdtc` hosts the private `service_desk` schema. Runtime credentials, Data API exposure, and RLS policies are not configured. |
-| Supabase Storage                    | Private ticket bucket implemented in Step 14 | Stores ticket attachments behind server-side ticket authorization, quarantine, type/size validation, and retention cleanup.                          |
-| PostgreSQL job queue                | Transactional outbox implemented in Step 17  | Private tables carry leased, retryable notification, SLA, synchronization, and webhook work without connecting provider adapters.                    |
-| Hosting platform                    | Target undecided                             | Runs the web/server application and its deployment pipeline.                                                                                         |
+| Integration                         | Current status                               | Intended boundary                                                                                                                                     |
+| ----------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Next.js application                 | Step 2 foundation implemented and verified   | Hosts the application routes, shared UI, and future server-side application boundary.                                                                 |
+| PostgreSQL / Prisma                 | Step 4 local and test foundation implemented | Private `service_desk` schema contains organisation, property, department, identity, role membership, and audit foundations.                          |
+| Supabase project `Ticketing System` | Hosted identity foundation implemented       | Project `zwcmljkjoxrfzfyphdtc` hosts the private `service_desk` schema. Runtime credentials, Data API exposure, and RLS policies are not configured.  |
+| Supabase Storage                    | Private ticket bucket implemented in Step 14 | Stores ticket attachments behind server-side ticket authorization, quarantine, type/size validation, and retention cleanup.                           |
+| PostgreSQL job queue                | Transactional outbox implemented in Step 17  | Private tables carry leased, retryable notification, SLA, synchronization, and webhook work without connecting provider adapters.                     |
+| Level.io Public API                 | Read-only boundary implemented in Step 20    | Server-only typed client can perform an administrator-triggered one-record health read; no device data is stored and no provider mutation is enabled. |
+| Hosting platform                    | Target undecided                             | Runs the web/server application and its deployment pipeline.                                                                                          |
 
 The hosted database currently contains the Step 6 foundation. Supabase Storage is the approved attachment provider in application code, while its Step 14 bucket migration must follow the prerequisite ticket-domain migrations in the normal forward-only deployment sequence.
 
@@ -45,7 +46,7 @@ The hosted database currently contains the Step 6 foundation. Supabase Storage i
 ### Outside the proposed boundary
 
 - Peter Island Resort and Spa endpoint/device management and network operations;
-- Level.io live telemetry and remote actions; Step 15 stores no live monitoring state and makes no provider connection;
+- Level.io live telemetry synchronization, webhook delivery, deep links, and remote actions; Step 20 adds only an isolated read-only health check and stores no device data;
 - operation of third-party hosting, email/collaboration, and storage platforms;
 - general property-management-system functionality;
 - direct remote support or device control unless the blueprint explicitly includes it.
@@ -60,4 +61,4 @@ The hosted database currently contains the Step 6 foundation. Supabase Storage i
 
 ## Baseline architecture status
 
-ADR-002 confirms the Next.js App Router, React, strict TypeScript, pnpm, Tailwind CSS pipeline, and quality-gate foundation. ADR-004 records removal of unused shadcn scaffolding after the approved custom interface replaced the earlier component experiment. ADR-007 accepts the local PostgreSQL/Prisma identity foundation and property-aware schema, ADR-008 accepts the named Supabase project as its hosted database, and ADR-014 accepts the PostgreSQL-native transactional outbox and leased worker. Hosting, runtime connection mode, least-privilege role, launch-property behavior, and production alert thresholds remain open because the blueprint was unavailable and the full approval checkpoint has not been completed.
+ADR-002 confirms the Next.js App Router, React, strict TypeScript, pnpm, Tailwind CSS pipeline, and quality-gate foundation. ADR-004 records removal of unused shadcn scaffolding after the approved custom interface replaced the earlier component experiment. ADR-007 accepts the local PostgreSQL/Prisma identity foundation and property-aware schema, ADR-008 accepts the named Supabase project as its hosted database, ADR-014 accepts the PostgreSQL-native transactional outbox and leased worker, and ADR-015 isolates Level.io behind a read-only typed client. Hosting, runtime connection mode, least-privilege role, launch-property behavior, production alert thresholds, and live Level tenant scope remain open because the blueprint and a tenant key are unavailable.

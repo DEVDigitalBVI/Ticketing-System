@@ -35,8 +35,7 @@ export async function POST(request: NextRequest) {
   if (!access || !accessCan(access, "configuration.manage"))
     return finalize(new NextResponse(null, { status: 403 }));
 
-  if (!getLevelConfigurationStatus().configured)
-    return finalize(redirectTo(request, "failed"));
+  if (!getLevelConfigurationStatus().configured) return finalize(redirectTo(request, "failed"));
 
   const correlationId = requestCorrelationId(request);
   try {

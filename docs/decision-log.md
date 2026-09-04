@@ -195,3 +195,13 @@ The baseline was reverified at commit `ba8e67a` on 2026-08-31. All automated qua
 - **Consequences:** No additional queue service is required, and database commit is the durability boundary. Worker replicas can scale horizontally. Database availability affects both web writes and job progress. Application effects are duplicate-safe through a unique effect key; future calls to non-transactional providers must also use provider idempotency. Production must run and monitor at least one worker process.
 - **Evidence:** `docs/background-jobs.md`, migration `20260904162215_step_17_transactional_outbox_jobs`, `src/server/jobs/`, `scripts/worker.ts`, `/admin/jobs`, and Step 17 synthetic/unit/database tests.
 - **Supersedes:** ADR-001's undecided queue proposal and Open Question 5.
+
+## ADR-015: Isolate Level.io behind a read-only typed client
+
+- **Status:** Accepted
+- **Date:** 2026-09-04
+- **Owners:** Product / Engineering
+- **Context:** The application needs a verified provider boundary before it can consider importing device context. Current official documentation defines a public v2 API and webhooks, while this tenant has no API key configured and undocumented UI links or remote actions cannot be assumed.
+- **Decision:** Use a dedicated server-only `LevelClient` with the fixed official HTTPS base URL, raw API-key authorization, runtime response validation, bounded request timeouts/retries, capped `Retry-After` waits, cursor safeguards, correlation IDs, controlled errors, and allowlisted logs. Store the dedicated read-only key only in `LEVEL_API_KEY` through the deployment secret environment. Limit Step 20 production behavior to an administrator-triggered `GET /v2/devices?limit=1` health check that discards device data and records only safe audit evidence.
+- **Consequences:** The browser never receives provider credentials or device payloads. Authentication, permission, throttling, timeout, network, and schema failures remain distinguishable without leaking provider details. Tenant scope stays unknown until a read-only key is supplied and checked. Device synchronization, webhook registration/receiving, deep links, write methods, and remote actions require later explicit decisions.
+- **Evidence:** `docs/integrations/level.md`, `src/server/integrations/level/`, `/auth/level-health`, the Level status panel in `/admin/configuration`, and Step 20 fixture-based tests.

@@ -108,10 +108,7 @@ export class LevelClient {
     this.logger = options.logger ?? defaultLogger;
     this.timeoutMs = Math.min(Math.max(options.timeoutMs ?? 5_000, 100), 30_000);
     this.maxRetries = Math.min(Math.max(options.maxRetries ?? 2, 0), 4);
-    this.maximumRetryAfterMs = Math.min(
-      Math.max(options.maximumRetryAfterMs ?? 30_000, 0),
-      60_000,
-    );
+    this.maximumRetryAfterMs = Math.min(Math.max(options.maximumRetryAfterMs ?? 30_000, 0), 60_000);
     this.baseUrl = new URL(options.baseUrl ?? "https://api.level.io");
     if (this.baseUrl.protocol !== "https:" && this.baseUrl.hostname !== "localhost")
       throw new Error("The Level API base URL must use HTTPS.");
@@ -158,7 +155,11 @@ export class LevelClient {
 
   async healthCheck(input: { correlationId: string; signal?: AbortSignal }) {
     const startedAt = Date.now();
-    await this.listDevicePage({ correlationId: input.correlationId, limit: 1, signal: input.signal });
+    await this.listDevicePage({
+      correlationId: input.correlationId,
+      limit: 1,
+      signal: input.signal,
+    });
     return {
       healthy: true as const,
       checkedAt: this.now(),
@@ -186,46 +187,135 @@ export class LevelClient {
         const code: LevelClientErrorCode = timeout.signal.aborted ? "timeout" : "network_failed";
         if (attempt <= this.maxRetries && !signal?.aborted) {
           const delay = 250 * 2 ** (attempt - 1);
-          this.logger({ event: "request_retry", operation: "list_devices", correlationId, attempt, errorCode: code, retryAfterMs: delay });
+          this.logger({
+            event: "request_retry",
+            operation: "list_devices",
+            correlationId,
+            attempt,
+            errorCode: code,
+            retryAfterMs: delay,
+          });
           await this.sleep(delay, signal);
           continue;
         }
-        this.logger({ event: "request_failed", operation: "list_devices", correlationId, attempt, errorCode: code });
-        throw new LevelClientError(code, code === "timeout" ? "Level did not respond in time." : "Level could not be reached.");
+        this.logger({
+          event: "request_failed",
+          operation: "list_devices",
+          correlationId,
+          attempt,
+          errorCode: code,
+        });
+        throw new LevelClientError(
+          code,
+          code === "timeout" ? "Level did not respond in time." : "Level could not be reached.",
+        );
       }
-      clearTimeout(timer);
-
       if (response.ok) {
         try {
           const page = devicePageSchema.parse(await response.json());
-          this.logger({ event: "request_succeeded", operation: "list_devices", correlationId, attempt, status: response.status, durationMs: Date.now() - startedAt });
+          clearTimeout(timer);
+          this.logger({
+            event: "request_succeeded",
+            operation: "list_devices",
+            correlationId,
+            attempt,
+            status: response.status,
+            durationMs: Date.now() - startedAt,
+          });
           return page;
         } catch {
-          this.logger({ event: "request_failed", operation: "list_devices", correlationId, attempt, status: response.status, errorCode: "malformed_response" });
+          clearTimeout(timer);
+          if (timeout.signal.aborted)
+            throw this.failure(
+              "timeout",
+              "Level did not respond in time.",
+              correlationId,
+              attempt,
+              response.status,
+            );
+          this.logger({
+            event: "request_failed",
+            operation: "list_devices",
+            correlationId,
+            attempt,
+            status: response.status,
+            errorCode: "malformed_response",
+          });
           throw new LevelClientError("malformed_response", "Level returned an invalid response.");
         }
       }
 
-      if (response.status === 401) throw this.failure("authentication_failed", "Level rejected the API key.", correlationId, attempt, response.status);
-      if (response.status === 403) throw this.failure("permission_denied", "The Level key cannot read devices.", correlationId, attempt, response.status);
+      clearTimeout(timer);
+
+      if (response.status === 401)
+        throw this.failure(
+          "authentication_failed",
+          "Level rejected the API key.",
+          correlationId,
+          attempt,
+          response.status,
+        );
+      if (response.status === 403)
+        throw this.failure(
+          "permission_denied",
+          "The Level key cannot read devices.",
+          correlationId,
+          attempt,
+          response.status,
+        );
 
       const retryable = response.status === 429 || response.status >= 500;
       if (retryable && attempt <= this.maxRetries && !signal?.aborted) {
-        const suppliedDelay = retryAfterMilliseconds(response.headers.get("retry-after"), this.now());
+        const suppliedDelay = retryAfterMilliseconds(
+          response.headers.get("retry-after"),
+          this.now(),
+        );
         const delay = Math.min(suppliedDelay ?? 250 * 2 ** (attempt - 1), this.maximumRetryAfterMs);
-        this.logger({ event: "request_retry", operation: "list_devices", correlationId, attempt, status: response.status, retryAfterMs: delay });
+        this.logger({
+          event: "request_retry",
+          operation: "list_devices",
+          correlationId,
+          attempt,
+          status: response.status,
+          retryAfterMs: delay,
+        });
         await this.sleep(delay, signal);
         continue;
       }
       const code = response.status === 429 ? "throttled" : "upstream_failed";
-      const delay = retryAfterMilliseconds(response.headers.get("retry-after"), this.now()) ?? undefined;
-      throw this.failure(code, code === "throttled" ? "Level temporarily throttled the request." : "Level returned an unavailable response.", correlationId, attempt, response.status, delay);
+      const delay =
+        retryAfterMilliseconds(response.headers.get("retry-after"), this.now()) ?? undefined;
+      throw this.failure(
+        code,
+        code === "throttled"
+          ? "Level temporarily throttled the request."
+          : "Level returned an unavailable response.",
+        correlationId,
+        attempt,
+        response.status,
+        delay,
+      );
     }
     throw new LevelClientError("upstream_failed", "Level returned an unavailable response.");
   }
 
-  private failure(code: LevelClientErrorCode, message: string, correlationId: string, attempt: number, status: number, retryAfterMs?: number) {
-    this.logger({ event: "request_failed", operation: "list_devices", correlationId, attempt, status, errorCode: code, retryAfterMs });
+  private failure(
+    code: LevelClientErrorCode,
+    message: string,
+    correlationId: string,
+    attempt: number,
+    status: number,
+    retryAfterMs?: number,
+  ) {
+    this.logger({
+      event: "request_failed",
+      operation: "list_devices",
+      correlationId,
+      attempt,
+      status,
+      errorCode: code,
+      retryAfterMs,
+    });
     return new LevelClientError(code, message, retryAfterMs);
   }
 }

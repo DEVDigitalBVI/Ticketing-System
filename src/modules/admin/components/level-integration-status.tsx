@@ -33,13 +33,7 @@ const checkMessages: Record<string, { tone: "success" | "error"; text: string }>
   },
 };
 
-export function LevelIntegrationStatus({
-  status,
-  check,
-}: {
-  status: LevelStatus;
-  check?: string;
-}) {
+export function LevelIntegrationStatus({ status, check }: { status: LevelStatus; check?: string }) {
   const message = check ? checkMessages[check] : undefined;
   return (
     <section className="admin-card integration-status-card" aria-labelledby="level-status-heading">
@@ -59,14 +53,29 @@ export function LevelIntegrationStatus({
       </div>
 
       <dl className="integration-facts">
-        <div><dt>Credential</dt><dd>Server environment</dd></div>
-        <div><dt>Required access</dt><dd>Read-only</dd></div>
-        <div><dt>API boundary</dt><dd>{status.baseUrl}/v2</dd></div>
-        <div><dt>Enabled behavior</dt><dd>Health check only</dd></div>
+        <div>
+          <dt>Credential</dt>
+          <dd>Server environment</dd>
+        </div>
+        <div>
+          <dt>Required access</dt>
+          <dd>Read-only</dd>
+        </div>
+        <div>
+          <dt>API boundary</dt>
+          <dd>{status.baseUrl}/v2</dd>
+        </div>
+        <div>
+          <dt>Enabled behavior</dt>
+          <dd>Health check only</dd>
+        </div>
       </dl>
 
       {message ? (
-        <p className={message.tone === "success" ? "form-success" : "form-error"} role={message.tone === "success" ? "status" : "alert"}>
+        <p
+          className={message.tone === "success" ? "form-success" : "form-error"}
+          role={message.tone === "success" ? "status" : "alert"}
+        >
           {message.text}
         </p>
       ) : null}
@@ -77,7 +86,13 @@ export function LevelIntegrationStatus({
             Run read-only check
           </button>
         </form>
-        {!status.configured ? <p>Add <code>LEVEL_API_KEY</code> to the server secret environment to enable the check.</p> : <p>The API key value is never displayed, returned to the browser, or written to logs.</p>}
+        {!status.configured ? (
+          <p>
+            Add <code>LEVEL_API_KEY</code> to the server secret environment to enable the check.
+          </p>
+        ) : (
+          <p>The API key value is never displayed, returned to the browser, or written to logs.</p>
+        )}
       </div>
     </section>
   );
