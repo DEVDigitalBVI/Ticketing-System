@@ -23,7 +23,7 @@ If `pnpm` is not installed globally, commands can be run with `npx --yes pnpm@11
 
 Account administration also requires the server-only `SUPABASE_SECRET_KEY`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, and `SMTP_FROM` values shown in `.env.example`. Never add `NEXT_PUBLIC_` to them. The application emails a generated temporary password and the login URL; users must replace it before service-desk access.
 
-Level.io requires a dedicated read-only `LEVEL_API_KEY` and its service-desk tenant binding in `LEVEL_ORGANIZATION_ID`. Set `LEVEL_INVENTORY_SYNC_ENABLED=true` only when hourly worker scheduling is approved. All three values are server-only and must never use the `NEXT_PUBLIC_` prefix.
+Level.io requires a dedicated read-only `LEVEL_API_KEY` and its service-desk tenant binding in `LEVEL_ORGANIZATION_ID`. Set `LEVEL_INVENTORY_SYNC_ENABLED=true` only when hourly worker scheduling is approved. Signed webhook delivery additionally requires a high-entropy `LEVEL_WEBHOOK_SECRET`; `LEVEL_WEBHOOK_PREVIOUS_SECRET` is used only during a controlled rotation window. All values are server-only and must never use the `NEXT_PUBLIC_` prefix.
 
 To create the first administrator in a clean environment, set the SMTP/Auth values plus `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_DISPLAY_NAME`, then run `pnpm bootstrap:admin` exactly once. The database refuses the operation after any domain user exists. The command never prints the temporary password and rolls back both records if email delivery fails.
 

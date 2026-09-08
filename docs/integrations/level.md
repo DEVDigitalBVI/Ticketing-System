@@ -1,7 +1,7 @@
 # Level.io integration boundary
 
 Last verified: 2026-09-08
-Status: Step 22 approved technician device context
+Status: Step 23 approved signed webhook receipt
 
 ## Official sources
 
@@ -115,3 +115,27 @@ Only an actor with property-scoped `level.context.read` may call the context ser
 The view model contains only device ID, hostname, platform, online state, last seen time, derived health summary, last successful sync time, freshness state, and empty approved placeholders for group and selected alerts. Group names and selected alert summaries are not part of the Step 21 snapshot and are labelled `Not synchronized`; they are not guessed or fetched live. Raw provider objects, API keys, command output, network telemetry, provider error bodies, internal error codes, checksums, serial numbers, and match metadata are not present in the view model.
 
 A snapshot is clearly labelled stale when Level marked the device stale or when its last device synchronization is more than two hours old. Query failure returns a controlled degraded context instead of throwing into the parent page. Stable deep links and remote actions remain unavailable pending an official documented contract and a separate approval.
+
+## Step 23 webhook receiver
+
+The public receiver is `POST /webhooks/level` on the deployed HTTPS origin. It accepts only `application/json` and bodies up to 256 KiB. The route reads the request stream with a hard byte limit, verifies `X-Level-Signature` against the exact raw bytes using constant-time HMAC-SHA256 comparison, and only then parses the JSON envelope. A missing, malformed, or incorrect signature returns `401`; malformed signed content returns `400`; oversized content returns `413`; and an unsupported content type returns `415`. None of those paths creates a receipt or background job.
+
+The envelope requires a UUID `event_id`, bounded event type, ISO 8601 timestamp with offset, object `data`, and bounded `data.id`. A supported signed event atomically creates a minimal `LevelWebhookReceipt` and a `webhook.level.process` outbox event, then returns `202`. A duplicate event ID returns `200` without changing the original receipt or creating more work. A well-formed but unknown event type is retained as `unsupported` and acknowledged with `200`, allowing new provider event types to be reviewed safely without retry storms.
+
+Receipts retain only organisation, external event ID, event type, resource key, provider occurrence time, receipt time, processing state, attempt count, correlation ID, controlled diagnostic codes, and final processing time. The raw request, signature, device/alert/group object, headers, API keys, webhook secrets, command output, and provider responses are not retained. The background handler currently records `received_no_ticket_action`; it does not create, update, or resolve tickets. When a newer event for the same resource has already arrived, the older receipt becomes `out_of_order` and no downstream action occurs.
+
+### Registration
+
+1. Deploy the migration, application, and worker with `LEVEL_ORGANIZATION_ID` and a high-entropy `LEVEL_WEBHOOK_SECRET` stored in the server secret manager.
+2. Publish the application behind HTTPS and confirm `https://<service-desk-origin>/webhooks/level` is publicly reachable.
+3. In Level, open Settings, then Webhooks, and create a webhook using that URL and the exact same secret.
+4. Select only the eight currently documented alert, device, and group events required for receipt validation.
+5. Send or re-run one delivery and confirm a successful `2xx` in Level Requests and a receipt in the administrator integration page.
+
+### Secret rotation
+
+1. Generate a new high-entropy secret. Deploy it as `LEVEL_WEBHOOK_SECRET` while placing the old value in `LEVEL_WEBHOOK_PREVIOUS_SECRET`.
+2. Change the saved webhook secret in Level to the new value.
+3. Confirm a newly signed delivery is accepted, then remove `LEVEL_WEBHOOK_PREVIOUS_SECRET` and redeploy.
+
+Only the current and optional previous secret are checked. Neither is logged or persisted. If compromise is suspected, rotate immediately rather than extending the overlap window. The Level administrator can re-run an original delivery, which remains safe because `event_id` is unique. A System Administrator can also queue receipt replay from `/admin/integrations/level`; the replay uses the original effect key and remains idempotent.

@@ -225,3 +225,13 @@ The baseline was reverified at commit `ba8e67a` on 2026-08-31. All automated qua
 - **Decision:** Resolve technician context through a ticket's optional primary asset and that asset's current Level external link. Read only the curated local snapshot behind property-scoped `level.context.read`; derive a small safe view model; preserve the last successful timestamp across failures; and mark old, stale, failed, or partial context as degraded. Keep the device-link URL allowlist empty until Level documents a stable contract.
 - **Consequences:** Provider outages do not block ticket or asset rendering. Replacement devices follow the current asset link. Requesters cannot query or render device context. Group names, selected alerts, deep links, and remote actions remain explicitly unavailable rather than inferred. Tickets may hold one optional primary asset while additional asset relationships remain a future design decision.
 - **Evidence:** Migration `20260908090000_step_22_level_device_context`, the server-only device-context adapter, technician and asset context cards, `docs/integrations/level.md`, and focused Step 22 tests.
+
+## ADR-018: Authenticate and durably stage Level webhook events before domain work
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Owners:** Product / Engineering
+- **Context:** Provider events can be duplicated, retried, manually re-run, malformed, or delivered out of order. The service desk needs a trustworthy receipt boundary before any alert may influence ticket state.
+- **Decision:** Verify Level's HMAC-SHA256 signature over a size-bounded raw body before parsing. Atomically retain a minimal receipt and enqueue supported work using the external event ID as the uniqueness and effect boundary. Process receipts in the existing durable worker, classify newer-resource precedence, retain controlled diagnostics only, and allow System Administrators to replay with the original effect key. Support one previous signing secret only during explicit rotation.
+- **Consequences:** Invalid signatures and malformed or oversized bodies create no work. Valid provider redelivery is acknowledged without duplication. The HTTP response waits only for durable receipt/outbox commit, while processing and retries stay off the request path. Raw provider payloads are unavailable for replay, so future alert-to-ticket behavior must use reviewed curated fields or a server-side provider lookup. Step 23 performs no ticket mutation.
+- **Evidence:** Migration `20260908160000_step_23_level_webhook_receipts`, `/webhooks/level`, the Level webhook policy/service and worker handler, administrator receipt/replay controls, updated integration runbook, and signed synthetic tests.

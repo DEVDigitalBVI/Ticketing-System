@@ -24,6 +24,11 @@ function copyAuthState(source: NextResponse, destination: NextResponse) {
 }
 
 export async function updateAuthSession(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith("/webhooks/")) {
+    const webhookResponse = NextResponse.next({ request });
+    webhookResponse.headers.set("Cache-Control", "private, no-store");
+    return webhookResponse;
+  }
   const environment = getPublicEnvironment();
   let response = NextResponse.next({ request });
   const supabase = createServerClient(

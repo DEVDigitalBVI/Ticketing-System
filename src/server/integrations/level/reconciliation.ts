@@ -16,7 +16,7 @@ export class LevelReconciliationError extends Error {
 export async function readLevelReconciliation(access: AccessProfile) {
   if (!accessCan(access, "configuration.manage")) throw new LevelReconciliationError("denied");
   const organizationId = access.organizationId;
-  const [devices, assets, runs] = await Promise.all([
+  const [devices, assets, runs, webhookReceipts] = await Promise.all([
     database.levelDeviceInventory.findMany({
       where: {
         organizationId,
@@ -36,8 +36,25 @@ export async function readLevelReconciliation(access: AccessProfile) {
       orderBy: { startedAt: "desc" },
       take: 20,
     }),
+    database.levelWebhookReceipt.findMany({
+      where: { organizationId },
+      select: {
+        id: true,
+        externalEventId: true,
+        eventType: true,
+        processingState: true,
+        attemptCount: true,
+        correlationId: true,
+        diagnostics: true,
+        occurredAt: true,
+        receivedAt: true,
+        lastProcessedAt: true,
+      },
+      orderBy: { receivedAt: "desc" },
+      take: 100,
+    }),
   ]);
-  return { devices, assets, runs };
+  return { devices, assets, runs, webhookReceipts };
 }
 
 export async function reconcileLevelDevice(

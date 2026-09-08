@@ -24,7 +24,7 @@ Every event and job has an organisation, category, controlled job type, UUID cor
 | `notification`    | Email or other user notifications           | Provider adapter not configured                                      |
 | `sla_evaluation`  | Deterministic service-target evaluation     | Local handler boundary available                                     |
 | `synchronization` | Approved external-system synchronization    | Level inventory handler enabled; other providers remain disconnected |
-| `webhook`         | Durable inbound/outbound webhook processing | Provider adapter not configured                                      |
+| `webhook`         | Durable inbound webhook processing          | Level receipt classification; no ticket creation or provider action  |
 
 Provider-facing handlers must pass the job idempotency/effect key to any provider that supports idempotency. PostgreSQL prevents the application result from being applied twice; a future non-transactional provider call also needs that provider-side idempotency guarantee.
 
@@ -67,3 +67,5 @@ Run `pnpm db:migrate:deploy` once as a release migration task, then run independ
 At least one worker replica is required. Multiple replicas are supported by skip-locked claims and leases. Deployments should send SIGTERM, allow a drain window longer than the job lease, and only then terminate the old worker. Monitor queued count, oldest queued age, running count, dead-letter count, worker exits, and database availability. Alert thresholds are deployment policy and must be set before production launch.
 
 For Step 21 inventory jobs, the worker also receives server-only `LEVEL_API_KEY`, `LEVEL_ORGANIZATION_ID`, and `LEVEL_INVENTORY_SYNC_ENABLED`. It checks the hourly UTC idempotency bucket once per minute; multiple worker replicas may enqueue safely. Manual requests and scheduled requests both enter the outbox. Level request retry remains bounded inside the typed client, while a failed or partial inventory attempt also follows the durable job retry/dead-letter policy.
+
+Step 23 adds `webhook.level.process`. The public route verifies and validates a Level delivery, then commits one minimal receipt and one outbox event atomically before returning. The worker increments the receipt attempt count and classifies it as `processed` or `out_of_order`; it performs no ticket mutation. The external Level event ID is both the receipt uniqueness boundary and the job effect key, so provider redelivery and administrator replay cannot repeat a completed effect.

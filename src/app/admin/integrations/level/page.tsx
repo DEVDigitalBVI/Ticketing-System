@@ -17,7 +17,7 @@ function timestamp(value: Date | null) {
 export default async function LevelReconciliationPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sync?: string; reconcile?: string }>;
+  searchParams: Promise<{ sync?: string; reconcile?: string; webhook?: string }>;
 }) {
   const access = await requireCurrentAccess("configuration.manage");
   const search = await searchParams;
@@ -55,7 +55,12 @@ export default async function LevelReconciliationPage({
         {search.reconcile === "linked" ? (
           <p className="form-banner success">Device linked to the selected asset.</p>
         ) : null}
-        {search.sync === "failed" || search.reconcile === "failed" ? (
+        {search.webhook === "replayed" ? (
+          <p className="form-banner success">Webhook processing was queued for safe replay.</p>
+        ) : null}
+        {search.sync === "failed" ||
+        search.reconcile === "failed" ||
+        search.webhook === "failed" ? (
           <p className="form-banner error">
             The requested operation could not be completed safely.
           </p>
@@ -188,6 +193,67 @@ export default async function LevelReconciliationPage({
                   </tbody>
                 </table>
               </div>
+            </section>
+
+            <section className="admin-card">
+              <div className="admin-card-header">
+                <div>
+                  <h2>Recent webhook receipts</h2>
+                  <p>
+                    Receipt metadata only. Provider payloads, signatures, and secrets are not
+                    retained.
+                  </p>
+                </div>
+              </div>
+              {data.webhookReceipts.length ? (
+                <div className="audit-table-wrap">
+                  <table className="audit-table job-table">
+                    <thead>
+                      <tr>
+                        <th>Event</th>
+                        <th>Received</th>
+                        <th>State</th>
+                        <th>Attempts</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.webhookReceipts.map((receipt) => (
+                        <tr key={receipt.id}>
+                          <td>
+                            <strong>{receipt.eventType}</strong>
+                            <small>{receipt.externalEventId}</small>
+                            <small>Correlation: {receipt.correlationId}</small>
+                          </td>
+                          <td>
+                            {timestamp(receipt.receivedAt)}
+                            <small>Occurred: {timestamp(receipt.occurredAt)}</small>
+                          </td>
+                          <td>{receipt.processingState.replaceAll("_", " ")}</td>
+                          <td>{receipt.attemptCount}</td>
+                          <td>
+                            {receipt.processingState !== "unsupported" ? (
+                              <form action="/auth/level-webhook-replay" method="post">
+                                <input type="hidden" name="receiptId" value={receipt.id} />
+                                <button className="ghost-button" type="submit">
+                                  Replay
+                                </button>
+                              </form>
+                            ) : (
+                              <span className="muted-copy">Unsupported</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="empty-state job-empty-state">
+                  <strong>No webhook receipts</strong>
+                  <p>Signed events accepted from Level will appear here.</p>
+                </div>
+              )}
             </section>
           </>
         ) : (

@@ -42,6 +42,14 @@ const levelServerEnvironmentSchema = z.object({
     .enum(["true", "false"])
     .default("false")
     .transform((value) => value === "true"),
+  LEVEL_WEBHOOK_SECRET: z.preprocess(
+    (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+    z.string().min(32).optional(),
+  ),
+  LEVEL_WEBHOOK_PREVIOUS_SECRET: z.preprocess(
+    (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+    z.string().min(32).optional(),
+  ),
 });
 
 let cachedEnvironment: z.infer<typeof serverEnvironmentSchema> | undefined;
@@ -85,6 +93,8 @@ export function getLevelServerEnvironment() {
     LEVEL_API_KEY: process.env.LEVEL_API_KEY,
     LEVEL_ORGANIZATION_ID: process.env.LEVEL_ORGANIZATION_ID,
     LEVEL_INVENTORY_SYNC_ENABLED: process.env.LEVEL_INVENTORY_SYNC_ENABLED,
+    LEVEL_WEBHOOK_SECRET: process.env.LEVEL_WEBHOOK_SECRET,
+    LEVEL_WEBHOOK_PREVIOUS_SECRET: process.env.LEVEL_WEBHOOK_PREVIOUS_SECRET,
   });
   if (!result.success) throw new Error("Invalid Level integration server configuration.");
   return result.data;
