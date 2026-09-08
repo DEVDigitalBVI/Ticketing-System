@@ -16,7 +16,11 @@ const mocks = vi.hoisted(() => ({
 const tx = {
   procurementMetadata: { upsert: vi.fn() },
   property: { findFirst: mocks.propertyFindFirst },
-  asset: { findFirst: mocks.assetFindFirst, updateMany: mocks.assetUpdateMany, findUniqueOrThrow: vi.fn() },
+  asset: {
+    findFirst: mocks.assetFindFirst,
+    updateMany: mocks.assetUpdateMany,
+    findUniqueOrThrow: vi.fn(),
+  },
   buildingArea: { findFirst: vi.fn() },
   serviceLocation: { findFirst: vi.fn() },
   department: { findFirst: vi.fn() },
@@ -191,27 +195,62 @@ describe("asset inventory service", () => {
   it("excludes requester-only properties from inventory", async () => {
     const mixed = access("technician", [propertyOne, propertyTwo]);
     mixed.roles.push("requester");
-    mixed.roleAssignments = [{ propertyId: propertyOne, role: "technician" }, { propertyId: propertyTwo, role: "requester" }];
+    mixed.roleAssignments = [
+      { propertyId: propertyOne, role: "technician" },
+      { propertyId: propertyTwo, role: "requester" },
+    ];
     mocks.assetFindMany.mockResolvedValue([]);
     await listAssets(mixed);
-    expect(mocks.assetFindMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: expect.objectContaining({ propertyId: { in: [propertyOne] } }),
-    }));
+    expect(mocks.assetFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ propertyId: { in: [propertyOne] } }),
+      }),
+    );
   });
   it("clears existing procurement values when the edit form submits blank fields", async () => {
-    mocks.assetFindFirst.mockResolvedValue({ id: assetId, propertyId: propertyOne, retiredAt: null });
+    mocks.assetFindFirst.mockResolvedValue({
+      id: assetId,
+      propertyId: propertyOne,
+      retiredAt: null,
+    });
     tx.assetType.findFirst.mockResolvedValue({ id: propertyTwo });
     tx.assetStatus.findFirst.mockResolvedValue({ id: propertyTwo, isTerminal: false });
-    await editAsset(access("it_manager"), {
-      assetId, expectedUpdatedAt: "2026-09-04T14:00:00.000Z", assetTag: "PC-01", name: "Desk computer",
-      assetTypeId: propertyTwo, assetStatusId: propertyTwo, criticality: "standard",
-      vendorId: "", purchaseDate: "", purchaseCost: "", currencyCode: "", purchaseOrder: "",
-      warrantyStart: "", warrantyEnd: "", warrantyReference: "", procurementNotes: "",
-    }, propertyOne);
-    expect(tx.procurementMetadata.upsert).toHaveBeenCalledWith(expect.objectContaining({ update: {
-      vendorId: null, purchaseDate: null, purchaseCost: null, currencyCode: null, purchaseOrder: null,
-      warrantyStart: null, warrantyEnd: null, warrantyReference: null, notes: null,
-    } }));
+    await editAsset(
+      access("it_manager"),
+      {
+        assetId,
+        expectedUpdatedAt: "2026-09-04T14:00:00.000Z",
+        assetTag: "PC-01",
+        name: "Desk computer",
+        assetTypeId: propertyTwo,
+        assetStatusId: propertyTwo,
+        criticality: "standard",
+        vendorId: "",
+        purchaseDate: "",
+        purchaseCost: "",
+        currencyCode: "",
+        purchaseOrder: "",
+        warrantyStart: "",
+        warrantyEnd: "",
+        warrantyReference: "",
+        procurementNotes: "",
+      },
+      propertyOne,
+    );
+    expect(tx.procurementMetadata.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        update: {
+          vendorId: null,
+          purchaseDate: null,
+          purchaseCost: null,
+          currencyCode: null,
+          purchaseOrder: null,
+          warrantyStart: null,
+          warrantyEnd: null,
+          warrantyReference: null,
+          notes: null,
+        },
+      }),
+    );
   });
-
 });

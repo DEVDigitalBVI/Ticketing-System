@@ -122,17 +122,40 @@ describe("role-permission matrix", () => {
 
 describe("property-specific roles", () => {
   const mixed: AuthorizationSubject = {
-    ...subject("technician"), propertyIds: [ids.property, ids.otherProperty],
+    ...subject("technician"),
+    propertyIds: [ids.property, ids.otherProperty],
     roles: ["technician", "requester"],
-    roleAssignments: [{ propertyId: ids.property, role: "technician" },
-      { propertyId: ids.otherProperty, role: "requester" }],
+    roleAssignments: [
+      { propertyId: ids.property, role: "technician" },
+      { propertyId: ids.otherProperty, role: "requester" },
+    ],
   };
-  it.each(["ticket.queue.read", "ticket.assign", "ticket.note.internal", "ticket.transition", "asset.read"] as const)(
-    "keeps %s confined to its role's property", (permission) => {
-      expect(isAuthorized(mixed, permission, { organizationId: ids.organization, propertyId: ids.property })).toBe(true);
-      expect(isAuthorized(mixed, permission, { organizationId: ids.organization, propertyId: ids.otherProperty })).toBe(false);
-    });
+  it.each([
+    "ticket.queue.read",
+    "ticket.assign",
+    "ticket.note.internal",
+    "ticket.transition",
+    "asset.read",
+  ] as const)("keeps %s confined to its role's property", (permission) => {
+    expect(
+      isAuthorized(mixed, permission, {
+        organizationId: ids.organization,
+        propertyId: ids.property,
+      }),
+    ).toBe(true);
+    expect(
+      isAuthorized(mixed, permission, {
+        organizationId: ids.organization,
+        propertyId: ids.otherProperty,
+      }),
+    ).toBe(false);
+  });
   it("preserves requester submission at the second property", () => {
-    expect(isAuthorized(mixed, "ticket.submit", { organizationId: ids.organization, propertyId: ids.otherProperty })).toBe(true);
+    expect(
+      isAuthorized(mixed, "ticket.submit", {
+        organizationId: ids.organization,
+        propertyId: ids.otherProperty,
+      }),
+    ).toBe(true);
   });
 });

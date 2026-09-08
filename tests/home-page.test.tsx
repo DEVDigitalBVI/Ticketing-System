@@ -22,7 +22,9 @@ describe("staff overview", () => {
           ],
           departmentIds: [],
           roles: ["requester"],
-          roleAssignments: [{ propertyId: "ab9c2f07-e909-4f9d-9092-49ad4e06df1f", role: "requester" }],
+          roleAssignments: [
+            { propertyId: "ab9c2f07-e909-4f9d-9092-49ad4e06df1f", role: "requester" },
+          ],
           assuranceLevel: "aal1",
           mustChangePassword: false,
         }}

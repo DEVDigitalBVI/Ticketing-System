@@ -113,7 +113,7 @@ function subjectFromAccess(access: AccessProfile) {
     propertyIds: permittedPropertyIds(access, "ticket.read.own"),
     departmentIds: access.departmentIds,
     roles: access.roles,
-      roleAssignments: access.roleAssignments,
+    roleAssignments: access.roleAssignments,
   };
 }
 

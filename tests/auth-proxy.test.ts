@@ -3,9 +3,12 @@ import { NextRequest } from "next/server";
 
 const mocks = vi.hoisted(() => ({ getClaims: vi.fn() }));
 vi.mock("@supabase/ssr", () => ({ createServerClient: () => ({ auth: mocks }) }));
-vi.mock("@/config/public", () => ({ getPublicEnvironment: () => ({
-  NEXT_PUBLIC_SUPABASE_URL: "https://example.invalid", NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "test",
-}) }));
+vi.mock("@/config/public", () => ({
+  getPublicEnvironment: () => ({
+    NEXT_PUBLIC_SUPABASE_URL: "https://example.invalid",
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "test",
+  }),
+}));
 import { updateAuthSession } from "@/lib/supabase/proxy";
 
 beforeEach(() => vi.clearAllMocks());

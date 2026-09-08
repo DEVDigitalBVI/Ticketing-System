@@ -1181,4 +1181,20 @@ describe("technician queue", () => {
       ),
     ).rejects.toMatchObject({ code: "conflict" });
   });
+  it("excludes queue records from properties where the technician is only a requester", async () => {
+    const mixed: AccessProfile = {
+      ...technicianAccess,
+      properties: [...technicianAccess.properties, { id: "property-2", name: "Other" }],
+      roles: ["technician", "requester"],
+      roleAssignments: [
+        { propertyId: "property-1", role: "technician" },
+        { propertyId: "property-2", role: "requester" },
+      ],
+    };
+    const target = tickets.find((ticket) => ticket.id === ids.ticketUnassigned)!;
+    target.propertyId = "property-2";
+    const workspace = await listTechnicianWorkspace(mixed, {});
+    expect(workspace.tickets.some((ticket) => ticket.ticketId === target.id)).toBe(false);
+    expect(await getTechnicianTicketDetail(mixed, target.id)).toBeNull();
+  });
 });

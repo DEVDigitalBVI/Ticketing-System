@@ -541,4 +541,22 @@ describe("requester ticket portal", () => {
       confirmRequesterTicketResolution(requesterA, "ticket-a1", "corr-4"),
     ).rejects.toBeInstanceOf(TicketServiceError);
   });
+  it("excludes owned tickets at properties with only a report-viewer role", async () => {
+    const mixed: AccessProfile = {
+      ...requesterA,
+      properties: [...requesterA.properties, { id: "property-2", name: "Other" }],
+      roles: ["requester", "report_viewer"],
+      roleAssignments: [
+        { propertyId: "property-1", role: "requester" },
+        { propertyId: "property-2", role: "report_viewer" },
+      ],
+    };
+    tickets.push({ ...tickets[0], id: "forbidden", propertyId: "property-2" });
+    const workspace = await listRequesterTicketWorkspace(mixed, {
+      filter: "all",
+      ticket: "forbidden",
+    });
+    expect(workspace.tickets.some((ticket) => ticket.ticketId === "forbidden")).toBe(false);
+    expect(await getRequesterTicketDetail(mixed, "forbidden")).toBeNull();
+  });
 });

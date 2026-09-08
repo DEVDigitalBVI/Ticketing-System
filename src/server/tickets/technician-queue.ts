@@ -280,7 +280,9 @@ function serviceIndicatorFor(ticket: SlaTicket, now: Date) {
 function baseWhere(access: AccessProfile) {
   return {
     organizationId: access.organizationId,
-    ...(access.roles.includes("system_administrator") ? {} : { propertyId: { in: permittedPropertyIds(access, "ticket.queue.read") } }),
+    ...(access.roles.includes("system_administrator")
+      ? {}
+      : { propertyId: { in: permittedPropertyIds(access, "ticket.queue.read") } }),
   } satisfies Prisma.TicketWhereInput;
 }
 

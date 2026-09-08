@@ -122,7 +122,7 @@ function subjectFromAccess(access: AccessProfile) {
     propertyIds: access.properties.map((property) => property.id),
     departmentIds: access.departmentIds,
     roles: access.roles,
-      roleAssignments: access.roleAssignments,
+    roleAssignments: access.roleAssignments,
   };
 }
 

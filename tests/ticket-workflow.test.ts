@@ -29,7 +29,9 @@ function subject(
     propertyIds,
     departmentIds: [ids.department],
     roles,
-    roleAssignments: propertyIds.flatMap((propertyId) => roles.map((role) => ({ propertyId, role }))),
+    roleAssignments: propertyIds.flatMap((propertyId) =>
+      roles.map((role) => ({ propertyId, role })),
+    ),
   };
 }
 

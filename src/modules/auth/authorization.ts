@@ -101,10 +101,16 @@ export function isAuthorized(
   )
     return false;
 
-  if (resource.propertyId && !isSystemAdministrator && !subject.roleAssignments.some(
-    (assignment) => assignment.propertyId === resource.propertyId &&
-      (rolePermissionMatrix[assignment.role] as readonly Permission[]).includes(permission),
-  )) return false;
+  if (
+    resource.propertyId &&
+    !isSystemAdministrator &&
+    !subject.roleAssignments.some(
+      (assignment) =>
+        assignment.propertyId === resource.propertyId &&
+        (rolePermissionMatrix[assignment.role] as readonly Permission[]).includes(permission),
+    )
+  )
+    return false;
 
   if (permission === "ticket.read.own" && resource.ownerUserId !== subject.userId) return false;
   if (
