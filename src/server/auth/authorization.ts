@@ -38,6 +38,6 @@ export async function requireCurrentAccess(permission: Permission, deniedPath = 
 
 export function permittedPropertyIds(access: AccessProfile, permission: Permission) {
   return access.properties.filter((property) => accessCan(access, permission, {
-    organizationId: access.organizationId, propertyId: property.id,
+    organizationId: access.organizationId, propertyId: property.id, ownerUserId: access.userId,
   })).map((property) => property.id);
 }

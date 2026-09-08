@@ -2,6 +2,7 @@ import "server-only";
 
 import { Prisma } from "@/generated/prisma/client";
 import { listTicketAttachments, type TicketAttachmentView } from "@/server/attachments/service";
+import { permittedPropertyIds } from "@/server/auth/authorization";
 import type { AccessProfile } from "@/server/auth/access";
 import { database } from "@/server/database/client";
 import { AuditEventRepository } from "@/server/repositories/audit-event-repository";
@@ -109,7 +110,7 @@ function subjectFromAccess(access: AccessProfile) {
   return {
     userId: access.userId,
     organizationId: access.organizationId,
-    propertyIds: access.properties.map((property) => property.id),
+    propertyIds: permittedPropertyIds(access, "ticket.read.own"),
     departmentIds: access.departmentIds,
     roles: access.roles,
       roleAssignments: access.roleAssignments,
@@ -140,7 +141,7 @@ function dateParts(value: Date) {
 function accessibleTicketWhere(access: AccessProfile) {
   return {
     organizationId: access.organizationId,
-    propertyId: { in: access.properties.map((property) => property.id) },
+    propertyId: { in: permittedPropertyIds(access, "ticket.read.own") },
     OR: [{ requesterUserId: access.userId }, { affectedUserId: access.userId }],
   } satisfies Prisma.TicketWhereInput;
 }

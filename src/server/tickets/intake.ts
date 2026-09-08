@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 
 import { z } from "zod";
 
-import { accessCan } from "@/server/auth/authorization";
+import { accessCan, permittedPropertyIds } from "@/server/auth/authorization";
 import type { AccessProfile } from "@/server/auth/access";
 import { database } from "@/server/database/client";
 import { createTicket, getTicketForAccess, TicketServiceError } from "@/server/tickets/service";
@@ -137,7 +137,7 @@ export function parseTicketSubmissionCookie(value: string | undefined) {
 export async function listNewTicketFormOptions(
   access: AccessProfile,
 ): Promise<NewTicketFormOptions> {
-  const propertyIds = access.properties.map((property) => property.id);
+  const propertyIds = permittedPropertyIds(access, "ticket.submit");
 
   const [properties, serviceLocations, departments, categories, subcategories] = await Promise.all([
     database.property.findMany({
