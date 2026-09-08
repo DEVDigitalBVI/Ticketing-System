@@ -89,6 +89,7 @@ export async function processLevelWebhookJob(job: ClaimedJob, now = new Date()) 
           organizationId: job.organizationId,
           resourceKey: receipt.resourceKey,
           occurredAt: { gt: receipt.occurredAt },
+          processingState: { not: "unsupported" },
         },
         select: { id: true },
       })
