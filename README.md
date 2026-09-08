@@ -60,6 +60,8 @@ Step 21 synchronizes a curated read-only Level device snapshot, associates it to
 - `/admin/configuration`: permission-gated hierarchy/service-taxonomy administration, Level.io server-secret status, and the administrator-only read health check.
 - `/admin/jobs`: organisation-scoped background backlog and dead-letter inspection with administrator-only replay.
 - `/admin/integrations/level`: administrator-only Level inventory synchronization, reconciliation, and retained run status.
+- `/admin/integrations/level/alert-rules`: administrator-only Level alert matching, dry-run, priority mapping, correlation, suppression, and resolution policy.
+- `/admin/integrations/level/exceptions`: administrator-only queue for malformed or unmapped alert events.
 - `/`: staff overview and active requests.
 - `/new-ticket`: guided request form connected to authenticated ticket creation with controlled reference data and real ticket-number confirmation.
 - `/my-tickets`: requester-authorized ticket workspace with server-side filters, search, pagination, public history, replies, and resolution confirmation.

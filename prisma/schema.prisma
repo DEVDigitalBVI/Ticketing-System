@@ -10,37 +10,40 @@ datasource db {
 }
 
 model Organization {
-  id                   String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  slug                 String                  @unique
-  name                 String
-  createdAt            DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt            DateTime                @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  properties           Property[]
-  ticketCategories     TicketCategory[]
-  tickets              Ticket[]
-  ticketActivities     TicketActivity[]
-  ticketComments       TicketComment[]
-  ticketAssignments    TicketAssignment[]
-  attachmentMetadata   AttachmentMetadata[]
-  users                User[]
-  roles                Role[]
-  userRoles            UserRole[]
-  auditEvents          AuditEvent[]
-  assetTypes           AssetType[]
-  assetStatuses        AssetStatus[]
-  assets               Asset[]
-  assetAssignments     AssetAssignment[]
-  assetLocationHistory AssetLocationHistory[]
-  vendors              Vendor[]
-  procurementMetadata  ProcurementMetadata[]
-  externalSystemLinks  ExternalSystemLink[]
-  outboxEvents         OutboxEvent[]
-  backgroundJobs       BackgroundJob[]
-  jobAttempts          BackgroundJobAttempt[]
-  jobEffects           BackgroundJobEffect[]
-  levelDevices         LevelDeviceInventory[]
-  levelSyncRuns        LevelInventorySyncRun[]
-  levelWebhookReceipts LevelWebhookReceipt[]
+  id                     String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug                   String                  @unique
+  name                   String
+  createdAt              DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime                @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  properties             Property[]
+  ticketCategories       TicketCategory[]
+  tickets                Ticket[]
+  ticketActivities       TicketActivity[]
+  ticketComments         TicketComment[]
+  ticketAssignments      TicketAssignment[]
+  attachmentMetadata     AttachmentMetadata[]
+  users                  User[]
+  roles                  Role[]
+  userRoles              UserRole[]
+  auditEvents            AuditEvent[]
+  assetTypes             AssetType[]
+  assetStatuses          AssetStatus[]
+  assets                 Asset[]
+  assetAssignments       AssetAssignment[]
+  assetLocationHistory   AssetLocationHistory[]
+  vendors                Vendor[]
+  procurementMetadata    ProcurementMetadata[]
+  externalSystemLinks    ExternalSystemLink[]
+  outboxEvents           OutboxEvent[]
+  backgroundJobs         BackgroundJob[]
+  jobAttempts            BackgroundJobAttempt[]
+  jobEffects             BackgroundJobEffect[]
+  levelDevices           LevelDeviceInventory[]
+  levelSyncRuns          LevelInventorySyncRun[]
+  levelWebhookReceipts   LevelWebhookReceipt[]
+  levelAlertRules        LevelAlertRule[]
+  levelAlertCorrelations LevelAlertCorrelation[]
+  levelAlertDecisions    LevelAlertDecision[]
 
   @@map("organizations")
   @@schema("service_desk")
@@ -780,21 +783,32 @@ model LevelInventorySyncRun {
 }
 
 model LevelWebhookReceipt {
-  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId  String       @map("organization_id") @db.Uuid
-  externalEventId String       @map("external_event_id") @db.Uuid
-  eventType       String       @map("event_type")
-  resourceKey     String?      @map("resource_key")
-  occurredAt      DateTime     @map("occurred_at") @db.Timestamptz(6)
-  receivedAt      DateTime     @map("received_at") @db.Timestamptz(6)
-  processingState String       @default("accepted") @map("processing_state")
-  attemptCount    Int          @default(0) @map("attempt_count")
-  correlationId   String       @map("correlation_id") @db.Uuid
-  diagnostics     Json         @default("{}")
-  lastProcessedAt DateTime?    @map("last_processed_at") @db.Timestamptz(6)
-  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId   String       @map("organization_id") @db.Uuid
+  externalEventId  String       @map("external_event_id") @db.Uuid
+  eventType        String       @map("event_type")
+  resourceKey      String?      @map("resource_key")
+  occurredAt       DateTime     @map("occurred_at") @db.Timestamptz(6)
+  receivedAt       DateTime     @map("received_at") @db.Timestamptz(6)
+  processingState  String       @default("accepted") @map("processing_state")
+  attemptCount     Int          @default(0) @map("attempt_count")
+  correlationId    String       @map("correlation_id") @db.Uuid
+  diagnostics      Json         @default("{}")
+  lastProcessedAt  DateTime?    @map("last_processed_at") @db.Timestamptz(6)
+  alertId          String?      @map("alert_id")
+  alertDeviceId    String?      @map("alert_device_id")
+  alertDeviceName  String?      @map("alert_device_name")
+  alertName        String?      @map("alert_name")
+  alertDescription String?      @map("alert_description")
+  alertPayload     String?      @map("alert_payload")
+  alertSeverity    String?      @map("alert_severity")
+  alertIsResolved  Boolean?     @map("alert_is_resolved")
+  alertStartedAt   DateTime?    @map("alert_started_at") @db.Timestamptz(6)
+  alertResolvedAt  DateTime?    @map("alert_resolved_at") @db.Timestamptz(6)
+  alertDataValid   Boolean?     @map("alert_data_valid")
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   @@unique([id, organizationId])
   @@unique([organizationId, externalEventId])
@@ -802,6 +816,85 @@ model LevelWebhookReceipt {
   @@index([organizationId, resourceKey, occurredAt])
   @@index([correlationId])
   @@map("level_webhook_receipts")
+  @@schema("service_desk")
+}
+
+model LevelAlertRule {
+  id                       String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId           String       @map("organization_id") @db.Uuid
+  name                     String
+  isEnabled                Boolean      @default(false) @map("is_enabled")
+  dryRun                   Boolean      @default(true) @map("dry_run")
+  sortOrder                Int          @default(100) @map("sort_order")
+  propertyId               String?      @map("property_id") @db.Uuid
+  requesterUserId          String       @map("requester_user_id") @db.Uuid
+  categoryId               String       @map("category_id") @db.Uuid
+  subcategoryId            String?      @map("subcategory_id") @db.Uuid
+  supportTeamId            String?      @map("support_team_id") @db.Uuid
+  matchNameContains        String?      @map("match_name_contains")
+  matchSeverities          String[]     @default(["information", "warning", "critical", "emergency"]) @map("match_severities")
+  severityPriorityMap      Json         @map("severity_priority_map")
+  subjectTemplate          String       @map("subject_template")
+  descriptionTemplate      String       @map("description_template")
+  correlationWindowMinutes Int          @default(60) @map("correlation_window_minutes")
+  suppressionWindowMinutes Int          @default(15) @map("suppression_window_minutes")
+  autoResolvePolicy        String       @default("never") @map("auto_resolve_policy")
+  createdAt                DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization             Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([id, organizationId])
+  @@index([organizationId, isEnabled, sortOrder])
+  @@map("level_alert_rules")
+  @@schema("service_desk")
+}
+
+model LevelAlertCorrelation {
+  id                  String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId      String       @map("organization_id") @db.Uuid
+  ruleId              String       @map("rule_id") @db.Uuid
+  alertId             String       @map("alert_id")
+  levelDeviceId       String       @map("level_device_id")
+  correlationKey      String       @map("correlation_key") @db.VarChar(64)
+  ticketId            String       @map("ticket_id") @db.Uuid
+  state               String       @default("active")
+  deliveryCount       Int          @default(1) @map("delivery_count")
+  firstActiveAt       DateTime     @map("first_active_at") @db.Timestamptz(6)
+  lastActiveAt        DateTime     @map("last_active_at") @db.Timestamptz(6)
+  resolvedAt          DateTime?    @map("resolved_at") @db.Timestamptz(6)
+  lastProviderEventAt DateTime     @map("last_provider_event_at") @db.Timestamptz(6)
+  createdAt           DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([id, organizationId])
+  @@unique([organizationId, correlationKey])
+  @@index([organizationId, alertId, levelDeviceId, ruleId, state, lastActiveAt])
+  @@index([ticketId, organizationId])
+  @@map("level_alert_correlations")
+  @@schema("service_desk")
+}
+
+model LevelAlertDecision {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  receiptId      String       @map("receipt_id") @db.Uuid
+  ruleId         String?      @map("rule_id") @db.Uuid
+  ticketId       String?      @map("ticket_id") @db.Uuid
+  outcome        String
+  reasonCode     String       @map("reason_code")
+  explanation    String
+  correlationKey String?      @map("correlation_key") @db.VarChar(64)
+  exceptionState String?      @map("exception_state")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([id, organizationId])
+  @@unique([organizationId, receiptId])
+  @@index([organizationId, outcome, exceptionState, createdAt])
+  @@index([ticketId, organizationId])
+  @@map("level_alert_decisions")
   @@schema("service_desk")
 }
 

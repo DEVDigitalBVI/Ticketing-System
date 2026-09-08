@@ -56,10 +56,10 @@ const ids = {
 };
 const receivedAt = new Date("2026-09-08T15:00:01.000Z");
 const event = {
-  eventType: "alert_active",
+  eventType: "device_updated",
   externalEventId: ids.event,
   occurredAt: new Date("2026-09-08T15:00:00.000Z"),
-  resourceKey: "alert:level-alert-1",
+  resourceKey: "device:level-device-1",
   supported: true,
 };
 

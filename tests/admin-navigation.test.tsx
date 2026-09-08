@@ -40,7 +40,7 @@ describe("administrator navigation", () => {
       "href",
       "/admin/jobs",
     );
-    expect(screen.getByRole("link", { name: "Level reconciliation" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Level integration" })).toHaveAttribute(
       "href",
       "/admin/integrations/level",
     );

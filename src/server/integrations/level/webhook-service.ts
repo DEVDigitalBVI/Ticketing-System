@@ -9,6 +9,7 @@ import { enqueueDomainEvent } from "@/server/jobs/outbox";
 import { JobExecutionError } from "@/server/jobs/policy";
 import { AuditEventRepository } from "@/server/repositories/audit-event-repository";
 import type { ParsedLevelWebhook } from "@/server/integrations/level/webhook-policy";
+import { processLevelAlertReceipt } from "@/server/integrations/level/alert-automation";
 
 export async function acceptLevelWebhook(input: {
   organizationId: string;
@@ -28,6 +29,17 @@ export async function acceptLevelWebhook(input: {
         processingState: input.event.supported ? "accepted" : "unsupported",
         correlationId: input.correlationId,
         diagnostics: { code: input.event.supported ? "accepted" : "unsupported_event_type" },
+        alertId: input.event.alertContext?.id,
+        alertDeviceId: input.event.alertContext?.deviceId,
+        alertDeviceName: input.event.alertContext?.deviceName,
+        alertName: input.event.alertContext?.name,
+        alertDescription: input.event.alertContext?.description,
+        alertPayload: input.event.alertContext?.payload,
+        alertSeverity: input.event.alertContext?.severity,
+        alertIsResolved: input.event.alertContext?.isResolved,
+        alertStartedAt: input.event.alertContext?.startedAt,
+        alertResolvedAt: input.event.alertContext?.resolvedAt,
+        alertDataValid: input.event.alertDataValid,
         lastProcessedAt: input.event.supported ? null : input.receivedAt,
       },
       skipDuplicates: true,
@@ -82,6 +94,19 @@ export async function processLevelWebhookJob(job: ClaimedJob, now = new Date()) 
   });
   if (!receipt)
     throw new JobExecutionError("level_webhook_missing_receipt", "Webhook receipt was not found.");
+
+  if (receipt.eventType === "alert_active" || receipt.eventType === "alert_resolved") {
+    const alertDecision = await processLevelAlertReceipt(receipt.id, job.organizationId, now);
+    await database.levelWebhookReceipt.update({
+      where: { id: receipt.id },
+      data: {
+        processingState: "processed",
+        diagnostics: { code: `alert_${alertDecision.outcome}`, reason: alertDecision.reasonCode },
+        lastProcessedAt: now,
+      },
+    });
+    return { receiptId, state: "processed", decision: alertDecision.outcome };
+  }
 
   const newer = receipt.resourceKey
     ? await database.levelWebhookReceipt.findFirst({

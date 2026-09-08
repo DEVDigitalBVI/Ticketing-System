@@ -1,7 +1,7 @@
 # Level.io integration boundary
 
 Last verified: 2026-09-08
-Status: Step 23 approved signed webhook receipt
+Status: Step 24 approved alert-to-incident automation
 
 ## Official sources
 
@@ -122,7 +122,7 @@ The public receiver is `POST /webhooks/level` on the deployed HTTPS origin. It a
 
 The envelope requires a UUID `event_id`, bounded event type, ISO 8601 timestamp with offset, object `data`, and bounded `data.id`. A supported signed event atomically creates a minimal `LevelWebhookReceipt` and a `webhook.level.process` outbox event, then returns `202`. A duplicate event ID returns `200` without changing the original receipt or creating more work. A well-formed but unknown event type is retained as `unsupported` and acknowledged with `200`, allowing new provider event types to be reviewed safely without retry storms.
 
-Receipts retain only organisation, external event ID, event type, resource key, provider occurrence time, receipt time, processing state, attempt count, correlation ID, controlled diagnostic codes, and final processing time. The raw request, signature, device/alert/group object, headers, API keys, webhook secrets, command output, and provider responses are not retained. The background handler currently records `received_no_ticket_action`; it does not create, update, or resolve tickets. When a newer event for the same resource has already arrived, the older receipt becomes `out_of_order` and no downstream action occurs.
+Receipts retain organisation, event identity and timing, processing metadata, and, for alert events only, the bounded fields documented in Level's current `alert` schema: alert and device identifiers, device hostname, name, description, optional payload, severity, resolved state, and alert timestamps. Unknown keys, raw requests, signatures, headers, API keys, webhook secrets, network telemetry, command output, and full provider responses are not retained. This curated alert snapshot is immutable and is used only by the Step 24 background processor.
 
 ### Registration
 
@@ -139,3 +139,15 @@ Receipts retain only organisation, external event ID, event type, resource key, 
 3. Confirm a newly signed delivery is accepted, then remove `LEVEL_WEBHOOK_PREVIOUS_SECRET` and redeploy.
 
 Only the current and optional previous secret are checked. Neither is logged or persisted. If compromise is suspected, rotate immediately rather than extending the overlap window. The Level administrator can re-run an original delivery, which remains safe because `event_id` is unique. A System Administrator can also queue receipt replay from `/admin/integrations/level`; the replay uses the original effect key and remains idempotent.
+
+## Step 24 alert-to-incident rules
+
+Administrators configure alert rules at `/admin/integrations/level/alert-rules` and review mapping failures at `/admin/integrations/level/exceptions`. Rules are disabled by default and the editor defaults to dry-run. The first enabled rule in explicit decision order that matches the linked asset property, approved Level severity, and optional case-insensitive alert-name fragment wins. Each decision is retained with a controlled reason code and plain-language explanation, including ignores and dry runs.
+
+An alert must resolve to a synchronized Level device and its unique local `ExternalSystemLink`. Missing inventory, missing asset links, malformed curated data, state mismatches, and resolve-before-active delivery enter the administrator exception queue. No provider-supplied property, location, category, team, priority, or requester value is trusted. These values come from the local asset and the administrator-approved rule.
+
+Live rule matches render subject and description from an allowlist of placeholders. Unknown placeholders render as an explicit unsupported marker. Severity maps through a complete `information`, `warning`, `critical`, and `emergency` priority map. The created ticket uses source `system`, the linked asset's property, service location and department, the rule's category, optional subcategory and support team, the configured integration requester, and the active immutable SLA snapshot.
+
+Correlation uses SHA-256 over organisation, alert ID, Level device ID, rule ID, and a deterministic time bucket. A transaction-scoped advisory lock serializes concurrent deliveries for the same alert-device-rule tuple. An existing active correlation inside the rule window receives the delivery instead of another ticket. A recently resolved correlation inside the suppression window is recorded as a suppressed flap. After suppression expires, a recurrence still inside the correlation window reuses and, when necessary, reopens the existing incident rather than colliding with or duplicating its deterministic key. Receipt event ID uniqueness, decision uniqueness, correlation uniqueness, and the lock make duplicate delivery, worker retry, and alert storms safe.
+
+Resolved events update the correlation and add an internal ticket activity. The default policy never resolves the ticket. The optional `if_unstarted` policy can resolve only a ticket in `new`, `triage`, or `assigned` with no technician start timestamp. In-progress and waiting tickets remain open with an explicit `human_work_preserved` decision. Older events are ignored when a newer event for the same alert is already present.

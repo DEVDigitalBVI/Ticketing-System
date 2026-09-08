@@ -67,6 +67,54 @@ describe("Level webhook route", () => {
     );
   });
 
+  it("retains only the approved alert context for background rule evaluation", async () => {
+    const response = await POST(
+      signedRequest(
+        payload({
+          event_type: "alert_active",
+          data: {
+            id: "alert-1",
+            device_id: "device-1",
+            device_hostname: "Front Desk 01",
+            name: "Low disk space",
+            description: "Disk free space is below threshold",
+            payload: "4.3% remaining",
+            severity: "critical",
+            is_resolved: false,
+            started_at: "2026-09-08T14:59:00.000Z",
+            unapproved_network_telemetry: { address: "must-not-be-retained" },
+          },
+        }),
+      ),
+    );
+    expect(response.status).toBe(202);
+    expect(mocks.accept).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: expect.objectContaining({
+          alertDataValid: true,
+          alertContext: expect.objectContaining({
+            id: "alert-1",
+            deviceId: "device-1",
+            severity: "critical",
+          }),
+        }),
+      }),
+    );
+    expect(JSON.stringify(mocks.accept.mock.calls[0]?.[0]?.event.alertContext)).not.toContain(
+      "unapproved_network_telemetry",
+    );
+  });
+
+  it("accepts a signed malformed alert into the exception-processing path", async () => {
+    const response = await POST(
+      signedRequest(payload({ event_type: "alert_active", data: { id: "alert-1" } })),
+    );
+    expect(response.status).toBe(202);
+    expect(mocks.accept).toHaveBeenCalledWith(
+      expect.objectContaining({ event: expect.objectContaining({ alertDataValid: false }) }),
+    );
+  });
+
   it("rejects an invalid signature before parsing or persistence", async () => {
     const response = await POST(signedRequest("not-json", `${secret}-wrong`));
     expect(response.status).toBe(401);

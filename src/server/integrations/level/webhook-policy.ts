@@ -22,8 +22,34 @@ const envelopeSchema = z.object({
     .regex(/^[a-z][a-z0-9_]{2,99}$/),
   event_id: z.string().uuid(),
   occurred_at: z.string().datetime({ offset: true }),
-  data: z.object({ id: z.string().trim().min(1).max(160) }).passthrough(),
+  data: z.record(z.string(), z.unknown()),
 });
+
+const alertSchema = z.object({
+  id: z.string().trim().min(1).max(160),
+  device_id: z.string().trim().min(1).max(160),
+  device_hostname: z.string().trim().min(1).max(255),
+  name: z.string().trim().min(1).max(255),
+  description: z.string().trim().min(1).max(4000),
+  payload: z.string().trim().max(1000).nullable().optional(),
+  severity: z.enum(["information", "warning", "critical", "emergency"]),
+  is_resolved: z.boolean(),
+  started_at: z.string().datetime({ offset: true }),
+  resolved_at: z.string().datetime({ offset: true }).nullable().optional(),
+});
+
+export type LevelAlertContext = {
+  id: string;
+  deviceId: string;
+  deviceName: string;
+  name: string;
+  description: string;
+  payload: string | null;
+  severity: "information" | "warning" | "critical" | "emergency";
+  isResolved: boolean;
+  startedAt: Date;
+  resolvedAt: Date | null;
+};
 
 export type ParsedLevelWebhook = {
   eventType: string;
@@ -31,6 +57,8 @@ export type ParsedLevelWebhook = {
   occurredAt: Date;
   resourceKey: string;
   supported: boolean;
+  alertContext?: LevelAlertContext | null;
+  alertDataValid?: boolean | null;
 };
 
 export class LevelWebhookRequestError extends Error {
@@ -94,13 +122,36 @@ export function parseLevelWebhook(body: Uint8Array): ParsedLevelWebhook {
   const parsed = envelopeSchema.safeParse(json);
   if (!parsed.success) throw new LevelWebhookRequestError(400, "malformed_payload");
   const family = parsed.data.event_type.split("_")[0] ?? "event";
+  const isAlert =
+    parsed.data.event_type === "alert_active" || parsed.data.event_type === "alert_resolved";
+  const alert = isAlert ? alertSchema.safeParse(parsed.data.data) : null;
+  const resourceId = alert?.success
+    ? alert.data.id
+    : typeof parsed.data.data.id === "string" && parsed.data.data.id.length <= 160
+      ? parsed.data.data.id
+      : parsed.data.event_id;
   return {
     eventType: parsed.data.event_type,
     externalEventId: parsed.data.event_id,
     occurredAt: new Date(parsed.data.occurred_at),
-    resourceKey: `${family}:${parsed.data.data.id}`,
+    resourceKey: `${family}:${resourceId}`,
     supported: supportedLevelWebhookEventTypes.includes(
       parsed.data.event_type as (typeof supportedLevelWebhookEventTypes)[number],
     ),
+    alertContext: alert?.success
+      ? {
+          id: alert.data.id,
+          deviceId: alert.data.device_id,
+          deviceName: alert.data.device_hostname,
+          name: alert.data.name,
+          description: alert.data.description,
+          payload: alert.data.payload ?? null,
+          severity: alert.data.severity,
+          isResolved: alert.data.is_resolved,
+          startedAt: new Date(alert.data.started_at),
+          resolvedAt: alert.data.resolved_at ? new Date(alert.data.resolved_at) : null,
+        }
+      : null,
+    alertDataValid: isAlert ? Boolean(alert?.success) : null,
   };
 }

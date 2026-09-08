@@ -3151,6 +3151,86 @@ fieldset {
 .job-table td:first-child {
   max-width: 320px;
 }
+.alert-automation-page {
+  display: grid;
+  gap: 24px;
+  max-width: 1480px;
+}
+.header-actions,
+.alert-rule-controls,
+.exception-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.alert-rule-form {
+  display: grid;
+  gap: 22px;
+}
+.alert-rule-form .form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.alert-rule-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 700;
+}
+.alert-rule-form label small {
+  color: var(--ink-faint);
+  font-size: 11px;
+  font-weight: 500;
+}
+.alert-rule-form input,
+.alert-rule-form select,
+.alert-rule-form textarea {
+  width: 100%;
+}
+.alert-rule-form textarea {
+  resize: vertical;
+  line-height: 1.55;
+}
+.alert-severity-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+.alert-severity-grid legend {
+  padding: 0 8px;
+  color: var(--ink);
+  font-weight: 800;
+}
+.alert-severity-grid label {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+}
+.alert-severity-grid label select {
+  grid-column: 1 / -1;
+}
+.alert-rule-controls {
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+.alert-rule-controls label {
+  display: flex;
+  align-items: center;
+}
+.alert-rule-controls input,
+.alert-severity-grid input {
+  width: auto;
+}
 @media (max-width: 1100px) {
   .admin-card-header {
     display: grid;
@@ -3175,6 +3255,9 @@ fieldset {
   .integration-facts div:nth-child(-n + 2) {
     border-bottom: 1px solid var(--line);
   }
+  .alert-severity-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 @media (max-width: 780px) {
   .admin-card {
@@ -3184,6 +3267,10 @@ fieldset {
     grid-template-columns: 1fr;
   }
   .job-health-grid {
+    grid-template-columns: 1fr;
+  }
+  .alert-rule-form .form-grid,
+  .alert-severity-grid {
     grid-template-columns: 1fr;
   }
   .integration-facts {

@@ -105,13 +105,13 @@ export function ServiceDeskShell({
             ) : null}
             {hasPermission(authorizationSubject, "configuration.manage") ? (
               <Link
-                className={`nav-item${pathname === "/admin/integrations/level" ? " is-active" : ""}`}
+                className={`nav-item${pathname.startsWith("/admin/integrations/level") ? " is-active" : ""}`}
                 href="/admin/integrations/level"
               >
                 <span className="nav-symbol" aria-hidden="true">
                   ⌗
                 </span>
-                <span>Level reconciliation</span>
+                <span>Level integration</span>
               </Link>
             ) : null}
             {hasPermission(authorizationSubject, "configuration.manage") ? (
