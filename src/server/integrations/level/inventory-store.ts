@@ -70,6 +70,7 @@ function inventoryData(
     matchReason: matchReason ?? null,
     lastErrorCode: errorCode ?? null,
     lastSyncedAt: now,
+    lastSuccessfulSyncAt: state === "failed" ? undefined : now,
     staleAt: null,
   };
 }

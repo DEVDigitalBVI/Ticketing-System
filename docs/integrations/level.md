@@ -1,7 +1,7 @@
 # Level.io integration boundary
 
-Last verified: 2026-09-04
-Status: Step 21 approved read-only inventory synchronization
+Last verified: 2026-09-08
+Status: Step 22 approved technician device context
 
 ## Official sources
 
@@ -12,6 +12,8 @@ The following current Level-owned sources were reviewed before implementation:
 - [Level v2 OpenAPI definition](https://developers.level.io/openapi/level-v2-rest-api.json)
 - [Webhooks: Developer Guide](https://docs.level.io/en/articles/16650292-webhooks-developer-guide)
 - [Webhook Settings](https://docs.level.io/en/articles/13909290-webhook-settings)
+- [Device Listing](https://docs.level.io/en/articles/9926476-device-listing)
+- [Device Overview](https://docs.level.io/en/articles/13928697-device-overview)
 
 ## Confirmed API contract
 
@@ -40,6 +42,8 @@ The reviewed OpenAPI definition exposes these read endpoints:
 The same definition contains write methods for supported groups, tags, custom fields, devices, alert resolution, group/tag membership, and automation-webhook triggers. Step 20 deliberately implements none of them.
 
 No reviewed official endpoint documents a general tenant/profile lookup. No reviewed endpoint or help article documents a stable device deep link. No reviewed endpoint documents a direct device remote-action API. The application must not construct links or expose action controls from guesses.
+
+This was rechecked on 2026-09-08. The current official Device Listing and Device Overview guides confirm that selecting a device in the Level interface opens its overview, but neither guide publishes a stable URL pattern that accepts a device ID. Step 22 therefore shows the immutable Level device ID and deliberately ignores every stored external URL. The URL allowlist is empty until a stable contract is documented and reviewed.
 
 ## Confirmed webhook contract
 
@@ -77,15 +81,16 @@ The tenant's numeric rate ceiling, Level administrator permission for future web
 
 `LEVEL_ORGANIZATION_ID` binds one server credential to one service-desk organisation. A job refuses to run when the job tenant and configured tenant differ. `LEVEL_INVENTORY_SYNC_ENABLED=true` enables hourly scheduled enqueueing; administrators can request the same job manually regardless of that schedule flag. Both paths use the transactional outbox.
 
-| Provider field                      | Stored field                                                                   | Owner                             | Synchronization rule                                                                 |
-| ----------------------------------- | ------------------------------------------------------------------------------ | --------------------------------- | ------------------------------------------------------------------------------------ |
-| `id`                                | `LevelDeviceInventory.levelDeviceId` and Level `ExternalSystemLink.externalId` | Level.io                          | Stable remote identity; immutable and unique per organisation.                       |
-| `hostname`                          | `LevelDeviceInventory.hostname`                                                | Level.io                          | Curated operational context; a rename updates the same device. Never used to match.  |
-| `serial_number`                     | `LevelDeviceInventory.serialNumber`                                            | Level.io snapshot                 | Normalized for deterministic comparison. It does not overwrite `Asset.serialNumber`. |
-| `manufacturer`, `model`, `platform` | Same-named inventory snapshot fields                                           | Level.io                          | Curated context only; never copied into service-desk business fields.                |
-| `online`, `last_seen_at`            | `online`, `lastSeenAt`                                                         | Level.io                          | Current telemetry snapshot.                                                          |
-| Curated canonical fields            | `sourceChecksum`                                                               | Application-derived               | SHA-256 detects source-version changes without retaining the full provider response. |
-| Sync execution                      | `lastSyncedAt`, `syncState`, run counters                                      | Service desk integration boundary | Explicit UTC instants and retained per-attempt evidence.                             |
+| Provider field                      | Stored field                                                                   | Owner                             | Synchronization rule                                                                    |
+| ----------------------------------- | ------------------------------------------------------------------------------ | --------------------------------- | --------------------------------------------------------------------------------------- |
+| `id`                                | `LevelDeviceInventory.levelDeviceId` and Level `ExternalSystemLink.externalId` | Level.io                          | Stable remote identity; immutable and unique per organisation.                          |
+| `hostname`                          | `LevelDeviceInventory.hostname`                                                | Level.io                          | Curated operational context; a rename updates the same device. Never used to match.     |
+| `serial_number`                     | `LevelDeviceInventory.serialNumber`                                            | Level.io snapshot                 | Normalized for deterministic comparison. It does not overwrite `Asset.serialNumber`.    |
+| `manufacturer`, `model`, `platform` | Same-named inventory snapshot fields                                           | Level.io                          | Curated context only; never copied into service-desk business fields.                   |
+| `online`, `last_seen_at`            | `online`, `lastSeenAt`                                                         | Level.io                          | Current telemetry snapshot.                                                             |
+| Curated canonical fields            | `sourceChecksum`                                                               | Application-derived               | SHA-256 detects source-version changes without retaining the full provider response.    |
+| Sync execution                      | `lastSyncedAt`, `syncState`, run counters                                      | Service desk integration boundary | Explicit UTC instants and retained per-attempt evidence.                                |
+| Successful snapshot                 | `lastSuccessfulSyncAt`                                                         | Service desk integration boundary | Updated only by a successful device synchronization; failures preserve the prior value. |
 
 The service desk remains authoritative for asset tag, business name, type and lifecycle, property/building/room, department, custodian, criticality, procurement/warranty, and ticket relationships. Inventory code never updates an `Asset` row.
 
@@ -100,3 +105,13 @@ The service desk remains authoritative for asset tag, business name, type and li
 Unmatched, ambiguous, stale, and failed snapshots appear only to administrators at `/admin/integrations/level`. A manual link checks both sides for conflicts, changes only the external link and integration state, and records an audit event. Knowing or supplying a device ID cannot bypass organisation and permission checks.
 
 A full successful traversal marks previously known devices not seen in that run as `stale`. Provider/pagination failure does not stale devices because absence was not proven. Individual persistence failures are retained as `failed`, allow the rest of the page stream to proceed, produce a partial run, and cause the durable job to retry. Database upserts plus unique Level identity/link constraints make repeated pages, jobs, and recovery safe.
+
+## Step 22 technician context policy
+
+The ticket and asset pages read the synchronized database snapshot only. They never make a live provider request, so Level latency, throttling, authentication failure, or outage cannot block the primary service-desk record. A failed or partial sync newer than the device snapshot produces a degraded state and preserves the last known fields.
+
+Only an actor with property-scoped `level.context.read` may call the context service. The current matrix grants that permission to Technician, IT Manager, and System Administrator. Requesters, Department Approvers, and Report Viewers receive no query and no UI context. Ticket context resolves through the ticket's optional primary asset, then through that asset's current Level external link. Replacing the external link causes the next page read to use the replacement device and ignore the former snapshot.
+
+The view model contains only device ID, hostname, platform, online state, last seen time, derived health summary, last successful sync time, freshness state, and empty approved placeholders for group and selected alerts. Group names and selected alert summaries are not part of the Step 21 snapshot and are labelled `Not synchronized`; they are not guessed or fetched live. Raw provider objects, API keys, command output, network telemetry, provider error bodies, internal error codes, checksums, serial numbers, and match metadata are not present in the view model.
+
+A snapshot is clearly labelled stale when Level marked the device stale or when its last device synchronization is more than two hours old. Query failure returns a controlled degraded context instead of throwing into the parent page. Stable deep links and remote actions remain unavailable pending an official documented contract and a separate approval.

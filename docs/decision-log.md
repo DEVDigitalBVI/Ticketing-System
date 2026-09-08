@@ -215,3 +215,13 @@ The baseline was reverified at commit `ba8e67a` on 2026-08-31. All automated qua
 - **Decision:** Store a curated Level-owned inventory snapshot keyed by the immutable Level device ID and associate it through the existing namespaced external link. Match an existing link first, then only one exact normalized asset serial; never match on hostname and never auto-create an asset. Send unmatched, ambiguous, stale, and failed records to administrator reconciliation. Execute manual and hourly scheduled imports through the transactional outbox, retain every attempt, stale only after a complete traversal, and use idempotent upserts and uniqueness constraints.
 - **Consequences:** Renames update one remote snapshot while replacement hardware remains a distinct device. Repeated pages, retries, and scheduled jobs do not duplicate devices, links, or assets. Level telemetry cannot overwrite service-desk-owned business fields. Provider absence and ambiguity require explicit review rather than guesses.
 - **Evidence:** Migration `20260904173820_step_21_level_inventory_sync`, inventory policy/store/job modules, `/admin/integrations/level`, `docs/integrations/level.md`, and Step 21 unit/database tests.
+
+## ADR-017: Serve technician device context from the last synchronized snapshot
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Owners:** Product / Engineering
+- **Context:** Technicians need device health beside the service-desk record, but a ticket or asset page must not depend on a live provider request or disclose Level data to staff roles. Current official Level documentation describes device navigation without publishing a stable identifier-based device URL.
+- **Decision:** Resolve technician context through a ticket's optional primary asset and that asset's current Level external link. Read only the curated local snapshot behind property-scoped `level.context.read`; derive a small safe view model; preserve the last successful timestamp across failures; and mark old, stale, failed, or partial context as degraded. Keep the device-link URL allowlist empty until Level documents a stable contract.
+- **Consequences:** Provider outages do not block ticket or asset rendering. Replacement devices follow the current asset link. Requesters cannot query or render device context. Group names, selected alerts, deep links, and remote actions remain explicitly unavailable rather than inferred. Tickets may hold one optional primary asset while additional asset relationships remain a future design decision.
+- **Evidence:** Migration `20260908090000_step_22_level_device_context`, the server-only device-context adapter, technician and asset context cards, `docs/integrations/level.md`, and focused Step 22 tests.

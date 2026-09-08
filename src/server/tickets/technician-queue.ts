@@ -5,6 +5,10 @@ import { listTicketAttachments, type TicketAttachmentView } from "@/server/attac
 import { accessCan, permittedPropertyIds } from "@/server/auth/authorization";
 import type { AccessProfile } from "@/server/auth/access";
 import { database } from "@/server/database/client";
+import {
+  getLevelDeviceContext,
+  type LevelDeviceContext,
+} from "@/server/integrations/level/device-context";
 import { evaluateSla, parseSlaPolicySnapshot, type SlaState } from "@/server/sla/policy";
 import type { TicketStatus } from "@/server/tickets/workflow";
 
@@ -75,6 +79,7 @@ export type TechnicianQueueDetail = {
     supportTeams: Array<{ id: string; name: string }>;
     technicians: Array<{ id: string; name: string }>;
   };
+  deviceContext: LevelDeviceContext | null;
 };
 
 export type TechnicianWorkspaceData = {
@@ -520,6 +525,7 @@ export async function getTechnicianTicketDetail(access: AccessProfile, ticketId:
       subcategory: { select: { name: true } },
       supportTeam: { select: { name: true } },
       assignee: { select: { displayName: true } },
+      primaryAsset: { select: { id: true, propertyId: true } },
       activities: {
         orderBy: [{ createdAt: "asc" }],
         select: {
@@ -559,10 +565,20 @@ export async function getTechnicianTicketDetail(access: AccessProfile, ticketId:
   const { policy, evaluation } = evaluateTicketSla(ticket, now);
   const indicator = serviceIndicatorFor(ticket, now);
 
-  const [supportTeams, technicians, attachments] = await Promise.all([
+  const [supportTeams, technicians, attachments, deviceContext] = await Promise.all([
     loadAssignableSupportTeams(access, ticket.propertyId, ticket.departmentId),
     loadAssignableTechnicians(access, ticket.propertyId),
     listTicketAttachments(access, ticket.id),
+    ticket.primaryAsset &&
+    accessCan(access, "level.context.read", {
+      organizationId: access.organizationId,
+      propertyId: ticket.primaryAsset.propertyId,
+    })
+      ? getLevelDeviceContext(access, {
+          assetId: ticket.primaryAsset.id,
+          propertyId: ticket.primaryAsset.propertyId,
+        })
+      : Promise.resolve(null),
   ]);
 
   const history = [
@@ -656,5 +672,6 @@ export async function getTechnicianTicketDetail(access: AccessProfile, ticketId:
     attachments,
     history,
     assignmentOptions: { supportTeams, technicians },
+    deviceContext,
   } satisfies TechnicianQueueDetail;
 }

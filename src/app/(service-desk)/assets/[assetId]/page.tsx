@@ -3,9 +3,11 @@ import { notFound } from "next/navigation";
 
 import { PageHeader } from "@/modules/service-desk/components/page-header";
 import { AssetTransferForm } from "@/modules/assets/components/asset-transfer-form";
+import { LevelDeviceContextCard } from "@/modules/service-desk/components/level-device-context-card";
 import { AssetServiceError } from "@/server/assets/policy";
 import { getAssetDetail, getAssetFormOptions } from "@/server/assets/service";
 import { accessCan, requireCurrentAccess } from "@/server/auth/authorization";
+import { getLevelDeviceContext } from "@/server/integrations/level/device-context";
 
 export const metadata: Metadata = { title: "Asset detail" };
 
@@ -57,6 +59,13 @@ export default async function AssetDetailPage({
       organizationId: access.organizationId,
       propertyId: asset.propertyId,
     });
+    const canReadLevelContext = accessCan(access, "level.context.read", {
+      organizationId: access.organizationId,
+      propertyId: asset.propertyId,
+    });
+    const levelContext = canReadLevelContext
+      ? await getLevelDeviceContext(access, { assetId: asset.id, propertyId: asset.propertyId })
+      : null;
     const options = canManage && !asset.retiredAt ? await getAssetFormOptions(access) : undefined;
     const message = notice(
       search.status === "retired" && asset.retiredAt ? "retired" : search.status,
@@ -188,9 +197,14 @@ export default async function AssetDetailPage({
                 </dd>
               </div>
             </dl>
-            <p className="field-intro">Level.io is intentionally not connected in Step 15.</p>
+            <p className="field-intro">
+              Business ownership stays in the service desk. Remote state is read from the last
+              synchronized Level.io snapshot.
+            </p>
           </aside>
         </div>
+
+        {levelContext ? <LevelDeviceContextCard context={levelContext} /> : null}
 
         {options ? (
           <section className="asset-actions" aria-labelledby="asset-actions-title">

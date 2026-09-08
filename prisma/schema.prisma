@@ -322,6 +322,7 @@ model Ticket {
   departmentId       String?              @map("department_id") @db.Uuid
   categoryId         String               @map("category_id") @db.Uuid
   subcategoryId      String?              @map("subcategory_id") @db.Uuid
+  primaryAssetId     String?              @map("primary_asset_id") @db.Uuid
   impact             String
   urgency            String
   priority           String               @default("P3")
@@ -356,6 +357,7 @@ model Ticket {
   department         Department?          @relation(fields: [departmentId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
   category           TicketCategory       @relation(fields: [categoryId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
   subcategory        TicketSubcategory?   @relation(fields: [subcategoryId, categoryId, organizationId], references: [id, categoryId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  primaryAsset       Asset?               @relation(fields: [primaryAssetId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
   supportTeam        SupportTeam?         @relation(fields: [supportTeamId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
   assignee           User?                @relation("TicketAssignee", fields: [assigneeUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
   activities         TicketActivity[]
@@ -371,6 +373,7 @@ model Ticket {
   @@index([propertyId, status, createdAt])
   @@index([requesterUserId, organizationId, createdAt])
   @@index([assigneeUserId, organizationId, updatedAt])
+  @@index([primaryAssetId, organizationId])
   @@map("tickets")
   @@schema("service_desk")
 }
@@ -573,6 +576,7 @@ model Asset {
   locationHistory   AssetLocationHistory[]
   procurement       ProcurementMetadata?
   externalLinks     ExternalSystemLink[]
+  tickets           Ticket[]
 
   @@unique([id, organizationId])
   @@index([organizationId, assetTag])
@@ -716,25 +720,26 @@ model ExternalSystemLink {
 }
 
 model LevelDeviceInventory {
-  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String       @map("organization_id") @db.Uuid
-  levelDeviceId  String       @map("level_device_id")
-  hostname       String?
-  serialNumber   String?      @map("serial_number")
-  manufacturer   String?
-  model          String?
-  platform       String?
-  online         Boolean?
-  lastSeenAt     DateTime?    @map("last_seen_at") @db.Timestamptz(6)
-  sourceChecksum String       @map("source_checksum") @db.VarChar(64)
-  syncState      String       @map("sync_state")
-  matchReason    String?      @map("match_reason")
-  lastErrorCode  String?      @map("last_error_code")
-  lastSyncedAt   DateTime     @map("last_synced_at") @db.Timestamptz(6)
-  staleAt        DateTime?    @map("stale_at") @db.Timestamptz(6)
-  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  id                   String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId       String       @map("organization_id") @db.Uuid
+  levelDeviceId        String       @map("level_device_id")
+  hostname             String?
+  serialNumber         String?      @map("serial_number")
+  manufacturer         String?
+  model                String?
+  platform             String?
+  online               Boolean?
+  lastSeenAt           DateTime?    @map("last_seen_at") @db.Timestamptz(6)
+  sourceChecksum       String       @map("source_checksum") @db.VarChar(64)
+  syncState            String       @map("sync_state")
+  matchReason          String?      @map("match_reason")
+  lastErrorCode        String?      @map("last_error_code")
+  lastSyncedAt         DateTime     @map("last_synced_at") @db.Timestamptz(6)
+  lastSuccessfulSyncAt DateTime?    @map("last_successful_sync_at") @db.Timestamptz(6)
+  staleAt              DateTime?    @map("stale_at") @db.Timestamptz(6)
+  createdAt            DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   @@unique([id, organizationId])
   @@unique([organizationId, levelDeviceId])

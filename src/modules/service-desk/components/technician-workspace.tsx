@@ -7,6 +7,7 @@ import type {
 } from "@/server/tickets/technician-queue";
 
 import { AttachmentPanel } from "./attachment-panel";
+import { LevelDeviceContextCard } from "./level-device-context-card";
 
 type SearchState = {
   status?: string;
@@ -458,16 +459,7 @@ function DetailPanel({
           ))}
         </ol>
       </div>
-      <div className="device-card">
-        <div className="device-heading">
-          <span>
-            <small>RELATED TICKETS</small>
-            <strong>Placeholder</strong>
-          </span>
-          <span className="online-badge">Not available</span>
-        </div>
-        <p>Related ticket suggestions will appear here once ticket dependency links are enabled.</p>
-      </div>
+      {ticket.deviceContext ? <LevelDeviceContextCard context={ticket.deviceContext} /> : null}
       <AttachmentPanel
         ticketId={ticket.ticketId}
         attachments={ticket.attachments ?? []}

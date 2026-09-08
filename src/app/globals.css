@@ -1645,6 +1645,73 @@ button:disabled:hover {
   min-height: 44px;
   font-size: 10px;
 }
+.level-context {
+  background: color-mix(in srgb, var(--palette-sage) 20%, white);
+}
+.level-context.degraded {
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--line));
+  background: color-mix(in srgb, var(--danger) 5%, white);
+}
+.level-context.unlinked {
+  background: var(--surface);
+}
+.level-context.degraded .online-badge,
+.level-context.unlinked .online-badge {
+  background: var(--canvas);
+}
+.level-health-summary {
+  margin: 12px 0 0;
+  color: var(--ink-soft);
+}
+.level-context-notice {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--danger) 8%, white);
+  color: var(--ink);
+  font-size: 12px;
+}
+.level-context-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 14px 0 0;
+}
+.level-context-grid > div {
+  min-width: 0;
+  padding: 10px;
+  border-radius: 9px;
+  background: white;
+}
+.level-context-grid dt,
+.level-device-id span {
+  color: var(--ink-faint);
+  font-size: 9px;
+  font-weight: 700;
+}
+.level-context-grid dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  font-weight: 700;
+}
+.level-device-id {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 0 0;
+}
+.level-device-id code {
+  overflow-wrap: anywhere;
+  color: var(--ink-soft);
+  font-size: 10px;
+}
+@media (max-width: 720px) {
+  .level-context-grid {
+    grid-template-columns: 1fr;
+  }
+}
 .context-actions {
   display: grid;
   gap: 8px;
