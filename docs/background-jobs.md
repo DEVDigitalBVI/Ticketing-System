@@ -19,12 +19,12 @@ Outbox, job, attempt, and effect records are retained. Database triggers prevent
 
 Every event and job has an organisation, category, controlled job type, UUID correlation ID, unique idempotency key, effect key, object-shaped JSON payload, and explicit timestamps. The supported categories are:
 
-| Category          | Purpose                                     | Step 17 behavior                                                     |
-| ----------------- | ------------------------------------------- | -------------------------------------------------------------------- |
-| `notification`    | Email or other user notifications           | Provider adapter not configured                                      |
-| `sla_evaluation`  | Deterministic service-target evaluation     | Local handler boundary available                                     |
-| `synchronization` | Approved external-system synchronization    | Level inventory handler enabled; other providers remain disconnected |
-| `webhook`         | Durable inbound webhook processing          | Level receipt classification; no ticket creation or provider action  |
+| Category          | Purpose                                  | Step 17 behavior                                                     |
+| ----------------- | ---------------------------------------- | -------------------------------------------------------------------- |
+| `notification`    | Email or other user notifications        | Provider adapter not configured                                      |
+| `sla_evaluation`  | Deterministic service-target evaluation  | Local handler boundary available                                     |
+| `synchronization` | Approved external-system synchronization | Level inventory handler enabled; other providers remain disconnected |
+| `webhook`         | Durable inbound webhook processing       | Level receipt classification; no ticket creation or provider action  |
 
 Provider-facing handlers must pass the job idempotency/effect key to any provider that supports idempotency. PostgreSQL prevents the application result from being applied twice; a future non-transactional provider call also needs that provider-side idempotency guarantee.
 
