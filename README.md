@@ -53,6 +53,8 @@ Step 21 synchronizes a curated read-only Level device snapshot, associates it to
 
 Step 27 adds private historical reporting facts, authorized manager dashboards, and aggregate privacy-safe CSV exports. KPI definitions and reproduction rules are in `docs/reporting/kpi-catalogue.md`.
 
+Step 28 adds correlated structured logs, worker and dependency health, safe operational failure records, readiness and liveness probes, and an authorized operations console. Production thresholds and recovery procedures are in `docs/operations/runbook.md`.
+
 ## Frontend routes
 
 - `/login`: responsive Supabase work-account sign-in with generic failure states.
@@ -61,6 +63,7 @@ Step 27 adds private historical reporting facts, authorized manager dashboards, 
 - `/admin/users/new`: permission-gated account creation and SMTP credential delivery.
 - `/admin/configuration`: permission-gated hierarchy/service-taxonomy administration, Level.io server-secret status, and the administrator-only read health check.
 - `/admin/jobs`: organisation-scoped background backlog and dead-letter inspection with administrator-only replay.
+- `/admin/operations`: authorized dependency health, delivery failures, and links to failure-management queues.
 - `/admin/integrations/level`: administrator-only Level inventory synchronization, reconciliation, and retained run status.
 - `/admin/integrations/level/alert-rules`: administrator-only Level alert matching, dry-run, priority mapping, correlation, suppression, and resolution policy.
 - `/admin/integrations/level/exceptions`: administrator-only queue for malformed or unmapped alert events.
@@ -70,7 +73,9 @@ Step 27 adds private historical reporting facts, authorized manager dashboards, 
 - `/technician`: live technician queue with server-side views, pagination, assignment controls, conflict protection, precise SLA timing, and a real ticket detail panel. Level.io remains an explicit unavailable state.
 - `/knowledge`: audience-safe staff and technician knowledge search, reviewed article reading, versioned authoring, stale-content reporting, feedback, and ticket linking.
 - `/reports`: manager and report-viewer service quality dashboards with authorized scope filters, accessible chart-and-table pairs, and aggregate CSV export.
-- `/health`: application-boundary health status.
+- `/health`: human-readable web-process liveness status.
+- `/health/live`: dependency-free machine liveness probe.
+- `/health/ready`: safe database and worker readiness probe.
 
 ## Quality gates
 

@@ -9,6 +9,18 @@ import {
   verifyLevelWebhookSignature,
 } from "@/server/integrations/level/webhook-policy";
 import { acceptLevelWebhook } from "@/server/integrations/level/webhook-service";
+import { writeOperationalLog } from "@/server/observability/logger";
+
+function webhookResponse(
+  body: { accepted: boolean; code?: string; duplicate?: boolean; unsupported?: boolean },
+  status: number,
+  correlationId: string,
+) {
+  const response = NextResponse.json(body, { status });
+  response.headers.set("x-request-id", correlationId);
+  response.headers.set("cache-control", "private, no-store");
+  return response;
+}
 
 export async function POST(request: Request) {
   const correlationId = requestCorrelationId(request);
@@ -21,7 +33,7 @@ export async function POST(request: Request) {
       environment.LEVEL_WEBHOOK_PREVIOUS_SECRET,
     ].filter((value): value is string => Boolean(value));
     if (!environment.LEVEL_ORGANIZATION_ID || secrets.length === 0)
-      return NextResponse.json({ accepted: false, code: "not_configured" }, { status: 503 });
+      return webhookResponse({ accepted: false, code: "not_configured" }, 503, correlationId);
 
     const body = await readLevelWebhookBody(request);
     if (!verifyLevelWebhookSignature(body, request.headers.get("x-level-signature"), secrets))
@@ -33,13 +45,35 @@ export async function POST(request: Request) {
       correlationId,
       receivedAt: new Date(),
     });
-    return NextResponse.json(
+    return webhookResponse(
       { accepted: true, duplicate: result.duplicate, unsupported: result.unsupported },
-      { status: result.duplicate || result.unsupported ? 200 : 202 },
+      result.duplicate || result.unsupported ? 200 : 202,
+      correlationId,
     );
   } catch (error) {
-    if (error instanceof LevelWebhookRequestError)
-      return NextResponse.json({ accepted: false, code: error.code }, { status: error.status });
-    return NextResponse.json({ accepted: false, code: "temporarily_unavailable" }, { status: 503 });
+    if (error instanceof LevelWebhookRequestError) {
+      writeOperationalLog({
+        severity: error.status >= 500 ? "error" : "warning",
+        component: "level-webhook",
+        event: "webhook_rejected",
+        correlationId,
+        errorCode: error.code,
+        status: error.status,
+      });
+      return webhookResponse({ accepted: false, code: error.code }, error.status, correlationId);
+    }
+    writeOperationalLog({
+      severity: "error",
+      component: "level-webhook",
+      event: "webhook_failed",
+      correlationId,
+      errorCode: "temporarily_unavailable",
+      status: 503,
+    });
+    return webhookResponse(
+      { accepted: false, code: "temporarily_unavailable" },
+      503,
+      correlationId,
+    );
   }
 }

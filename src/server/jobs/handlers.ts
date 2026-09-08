@@ -2,10 +2,11 @@ import { JobExecutionError } from "@/server/jobs/policy";
 import type { JobHandlers } from "@/server/jobs/types";
 import { runLevelInventorySync } from "@/server/integrations/level/inventory-sync";
 import { processLevelWebhookJob } from "@/server/integrations/level/webhook-service";
+import { runSlaHealthEvaluation } from "@/server/sla/health-jobs";
 
 export const jobHandlers: JobHandlers = {
   "synthetic.noop": async (job) => ({ synthetic: true, jobId: job.id }),
-  "sla.evaluate": async (job) => ({ evaluated: true, jobId: job.id }),
+  "sla.evaluate": async (job) => runSlaHealthEvaluation(job.organizationId),
   "notification.dispatch": async () => {
     throw new JobExecutionError(
       "provider_not_configured",

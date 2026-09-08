@@ -2,6 +2,8 @@ import "server-only";
 
 import { z } from "zod";
 
+import { writeOperationalLog } from "@/server/observability/logger";
+
 const levelDeviceSchema = z
   .object({
     id: z.string().trim().min(1),
@@ -67,7 +69,25 @@ type LevelClientOptions = {
 };
 
 function defaultLogger(entry: SafeLevelLog) {
-  console.info(JSON.stringify({ component: "level-client", ...entry }));
+  writeOperationalLog({
+    severity:
+      entry.event === "request_failed"
+        ? "error"
+        : entry.event === "request_retry"
+          ? "warning"
+          : "info",
+    component: "level-client",
+    event: entry.event,
+    correlationId: entry.correlationId,
+    errorCode: entry.errorCode,
+    durationMs: entry.durationMs,
+    status: entry.status,
+    context: {
+      operation: entry.operation,
+      attempt: entry.attempt,
+      retryAfterMs: entry.retryAfterMs,
+    },
+  });
 }
 
 function defaultSleep(milliseconds: number, signal?: AbortSignal) {

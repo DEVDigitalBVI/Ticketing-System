@@ -44,7 +44,7 @@ All clocks are explicit `Date` inputs in queue policy and persistence functions.
 
 `/admin/jobs` shows organisation-scoped pending-event and job counts, oldest undispatched/queued ages, and safe dead-letter summaries. IT Managers and Auditor / Report Viewers can inspect; only System Administrators can replay. Every replay is audited with the original job ID, category, job type, actor, and correlation ID.
 
-Worker logs are one-line JSON with an allowlisted structure: component, event, IDs, category/type, correlation ID, attempt, state, error code, duration, and count. Payloads, results, credentials, provider responses, and URLs are excluded. Unknown exceptions become the generic `handler_failed` code and message.
+Worker logs are one-line JSON with timestamp, severity, component, event, IDs, category/type, correlation ID, attempt, state, error code, duration, and count. The shared redactor excludes payloads, results, credentials, provider responses, URLs, private comments, and unnecessary personal data. Unknown exceptions become the generic `handler_failed` code and message. The worker records a heartbeat every 30 seconds and schedules an organization-scoped SLA health evaluation every five minutes.
 
 ## Running locally
 
@@ -64,7 +64,7 @@ Run `pnpm db:migrate:deploy` once as a release migration task, then run independ
 - web command: `pnpm start`
 - worker command: `pnpm worker`
 
-At least one worker replica is required. Multiple replicas are supported by skip-locked claims and leases. Deployments should send SIGTERM, allow a drain window longer than the job lease, and only then terminate the old worker. Monitor queued count, oldest queued age, running count, dead-letter count, worker exits, and database availability. Alert thresholds are deployment policy and must be set before production launch.
+At least one worker replica is required. Multiple replicas are supported by skip-locked claims and leases. Deployments should send SIGTERM, allow a drain window longer than the job lease, and only then terminate the old worker. Monitor queued count, oldest queued age, running count, dead-letter count, worker exits, and database availability. Exact thresholds, ownership, escalation, probes, and recovery procedures are defined in `docs/operations/runbook.md`.
 
 For Step 21 inventory jobs, the worker also receives server-only `LEVEL_API_KEY`, `LEVEL_ORGANIZATION_ID`, and `LEVEL_INVENTORY_SYNC_ENABLED`. It checks the hourly UTC idempotency bucket once per minute; multiple worker replicas may enqueue safely. Manual requests and scheduled requests both enter the outbox. Level request retry remains bounded inside the typed client, while a failed or partial inventory attempt also follows the durable job retry/dead-letter policy.
 

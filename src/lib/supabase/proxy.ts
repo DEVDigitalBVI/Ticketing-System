@@ -24,7 +24,11 @@ function copyAuthState(source: NextResponse, destination: NextResponse) {
 }
 
 export async function updateAuthSession(request: NextRequest) {
-  if (request.nextUrl.pathname.startsWith("/webhooks/")) {
+  if (
+    request.nextUrl.pathname.startsWith("/webhooks/") ||
+    request.nextUrl.pathname === "/health/live" ||
+    request.nextUrl.pathname === "/health/ready"
+  ) {
     const webhookResponse = NextResponse.next({ request });
     webhookResponse.headers.set("Cache-Control", "private, no-store");
     return webhookResponse;

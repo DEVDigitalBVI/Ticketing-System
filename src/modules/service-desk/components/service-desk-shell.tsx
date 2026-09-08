@@ -140,6 +140,17 @@ export function ServiceDeskShell({
             ) : null}
             {hasPermission(authorizationSubject, "job.read") ? (
               <Link
+                className={`nav-item${pathname === "/admin/operations" ? " is-active" : ""}`}
+                href="/admin/operations"
+              >
+                <span className="nav-symbol" aria-hidden="true">
+                  ◉
+                </span>
+                <span>Operations</span>
+              </Link>
+            ) : null}
+            {hasPermission(authorizationSubject, "job.read") ? (
+              <Link
                 className={`nav-item${pathname === "/admin/jobs" ? " is-active" : ""}`}
                 href="/admin/jobs"
               >

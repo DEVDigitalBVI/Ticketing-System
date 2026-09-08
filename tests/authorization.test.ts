@@ -118,6 +118,12 @@ describe("role-permission matrix", () => {
       "Access denied.",
     );
   });
+
+  it("limits operational replay to system administrators", () => {
+    expect(isAuthorized(subject("system_administrator"), "job.replay")).toBe(true);
+    expect(isAuthorized(subject("it_manager"), "job.replay")).toBe(false);
+    expect(isAuthorized(subject("report_viewer"), "job.replay")).toBe(false);
+  });
 });
 
 describe("property-specific roles", () => {

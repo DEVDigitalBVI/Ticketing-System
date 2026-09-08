@@ -4,14 +4,12 @@ import { describe, expect, it } from "vitest";
 import HealthPage from "@/app/health/page";
 
 describe("HealthPage", () => {
-  it("reports that the application shell is operational", () => {
+  it("reports liveness without claiming dependency health", () => {
     render(<HealthPage />);
 
-    expect(
-      screen.getByRole("heading", { name: /all calm on the digital shoreline/i }),
-    ).toBeVisible();
-    expect(screen.getByText("Operational")).toBeVisible();
+    expect(screen.getByRole("heading", { name: /the service desk is responding/i })).toBeVisible();
+    expect(screen.getByText("Web process responding")).toBeVisible();
     expect(screen.getByText("Application shell")).toBeVisible();
-    expect(screen.getByText(/external services are intentionally not queried/i)).toBeVisible();
+    expect(screen.getByText(/this page confirms liveness only/i)).toBeVisible();
   });
 });

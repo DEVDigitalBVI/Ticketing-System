@@ -268,3 +268,14 @@ The baseline was reverified at commit `ba8e67a` on 2026-08-31. All automated qua
 - **Consequences:** The same synthetic facts reproduce the same KPI and export. Existing tickets receive a migration-time baseline because labels before that boundary were not previously snapshotted. Interactive reports are limited to 366 days and 50,000 candidate facts. A future summary or warehouse requires a separate approval.
 - **Evidence:** Migration `20260908220000_step_27_reporting_facts`, `docs/reporting/kpi-catalogue.md`, the reporting service and `/reports` interface, aggregate CSV route, and focused Step 27 tests.
 - **Supersedes:** None.
+
+## ADR-022: Use correlated application telemetry with a private operational ledger
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Owners:** IT Operations / Engineering
+- **Context:** Web requests, durable jobs, Level webhooks and syncs, email, notifications, and SLA evaluation fail across different process boundaries. Diagnostics must join those paths without copying provider payloads, secrets, private comments, or unnecessary personal data into logs or browser views.
+- **Decision:** Emit bounded one-line JSON through one shared recursive redactor, propagate a validated UUID request or correlation ID, capture unhandled Next.js request errors with controlled metadata, and retain selected actionable failures in the private `operational_events` ledger. Use PostgreSQL as the source for the worker heartbeat and operator signals. Separate dependency-free liveness from database-and-worker readiness. Reuse existing job, receipt, exception, and sync ledgers instead of duplicating their payloads. Restrict the combined console with `job.read` and keep replay under the separate `job.replay` permission.
+- **Consequences:** A provider or worker incident can be traced by correlation ID without disclosing its raw input. The web application can remain live while readiness or a dependency signal is degraded. Production still requires an approved stdout log collector and platform alert configuration; Step 28 does not select a separate monitoring vendor. Operational evidence is immutable except for an explicit resolution marker.
+- **Evidence:** Migration `20260908230000_step_28_operational_observability`, `src/server/observability/`, request instrumentation and proxy correlation, worker heartbeat and SLA scheduler, `/health/live`, `/health/ready`, `/admin/operations`, `docs/operations/runbook.md`, and focused redaction, health, replay-permission, and failure-reporting tests.
+- **Supersedes:** None.

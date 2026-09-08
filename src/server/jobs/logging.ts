@@ -1,4 +1,5 @@
 import type { JobCategory, JobStatus } from "@/server/jobs/policy";
+import { writeOperationalLog } from "@/server/observability/logger";
 
 type SafeJobLog = {
   event: string;
@@ -14,5 +15,25 @@ type SafeJobLog = {
 };
 
 export function writeJobLog(entry: SafeJobLog, sink: (line: string) => void = console.info) {
-  sink(JSON.stringify({ component: "background-worker", ...entry }));
+  const severity =
+    entry.event === "job_dead_lettered" || entry.event === "worker_failed"
+      ? "error"
+      : entry.event === "job_retry_scheduled"
+        ? "warning"
+        : "info";
+  const { event, correlationId, jobId, errorCode, durationMs, status, ...context } = entry;
+  writeOperationalLog(
+    {
+      severity,
+      component: "background-worker",
+      event,
+      correlationId,
+      jobId,
+      errorCode,
+      durationMs,
+      status,
+      context,
+    },
+    sink,
+  );
 }

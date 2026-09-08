@@ -17,11 +17,11 @@ export default function HealthPage() {
           <p className="overline">IT operations</p>
           <span className="status-pill progress">
             <span className="status-light" aria-hidden="true" />
-            Operational
+            Web process responding
           </span>
         </div>
         <p className="overline">System check</p>
-        <h1>All calm on the digital shoreline.</h1>
+        <h1>The service desk is responding.</h1>
         <div className="utility-checks" aria-label="Application checks">
           <div>
             <span aria-hidden="true">✓</span>
@@ -30,13 +30,13 @@ export default function HealthPage() {
           </div>
           <div>
             <span aria-hidden="true">✓</span>
-            <strong>Runtime boundary</strong>
-            <small>Ready</small>
+            <strong>Liveness probe</strong>
+            <small>/health/live</small>
           </div>
         </div>
         <p className="utility-note">
-          This page verifies the web application only. External services are intentionally not
-          queried in this foundation release.
+          This page confirms liveness only. The readiness probe checks the service database and
+          worker heartbeat; authorized IT staff can review full dependency health in Operations.
         </p>
       </main>
     </div>

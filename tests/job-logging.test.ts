@@ -16,14 +16,16 @@ describe("background worker logs", () => {
       sink,
     );
     const value = JSON.parse(sink.mock.calls[0]![0]);
-    expect(value).toEqual({
+    expect(value).toMatchObject({
+      severity: "warning",
       component: "background-worker",
       event: "job_retry_scheduled",
       jobId: "job-1",
-      category: "webhook",
       correlationId: "correlation-1",
       errorCode: "handler_failed",
+      context: { category: "webhook" },
     });
+    expect(value.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(JSON.stringify(value)).not.toContain("payload");
   });
 });

@@ -30,7 +30,7 @@ CREATE TABLE service_desk.operational_events (
   CONSTRAINT operational_events_context_safe CHECK (service_desk.audit_context_is_safe(safe_context)),
   CONSTRAINT operational_events_resolution_check CHECK (
     (resolved_at IS NULL AND resolution_note IS NULL) OR
-    (resolved_at IS NOT NULL AND length(btrim(resolution_note)) BETWEEN 3 AND 500)
+    (resolved_at IS NOT NULL AND resolution_note IS NOT NULL AND length(btrim(resolution_note)) BETWEEN 3 AND 500)
   )
 );
 

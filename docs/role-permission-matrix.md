@@ -1,7 +1,7 @@
 # Role-permission matrix
 
 Last verified: 2026-09-08
-Status: Step 27 authorization contract
+Status: Step 28 authorization contract
 
 `Allow` means the server policy may authorize the operation after its object boundary also passes. A blank cell is an explicit deny. UI visibility is not an authorization control.
 
@@ -39,6 +39,7 @@ Status: Step 27 authorization contract
 - Multiple assigned roles are additive, but all tenant, property, ownership, and department checks still apply.
 - The audit RPC independently repeats authenticated-user, active-profile, organisation, and role checks in PostgreSQL. Direct audit-table access remains denied.
 - Job operations are always organisation-scoped. Inspect permission never implies replay permission, and replay records an audit event.
+- The operational health console uses `job.read`; Level exception and reconciliation views separately require `configuration.manage`. No operational view exposes raw job payloads, provider payloads, credentials, private comments, or personal data.
 - Staff knowledge reads are restricted to published `staff` articles. Technician-audience content requires the separate technician read permission. Draft, review, and retired content additionally requires an author relationship or publishing authority; direct URLs repeat the same checks.
 
 The executable source of truth is `src/modules/auth/authorization.ts`; tests enumerate every role against every permission and exercise the organisation, property, ownership, and department boundaries.

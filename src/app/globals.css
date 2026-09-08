@@ -3555,6 +3555,128 @@ fieldset {
 .job-table td:first-child {
   max-width: 320px;
 }
+.operations-page {
+  display: grid;
+  gap: 24px;
+  max-width: 1480px;
+}
+.operations-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-raised);
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+.operations-state > span,
+.signal-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+}
+.operations-state.is-healthy > span,
+.operations-signal.is-healthy .signal-dot {
+  background: var(--palette-sage);
+}
+.operations-state.is-degraded > span,
+.operations-state.is-unknown > span,
+.operations-signal.is-degraded .signal-dot,
+.operations-signal.is-unknown .signal-dot {
+  background: var(--warning);
+}
+.operations-state.is-critical > span,
+.operations-signal.is-critical .signal-dot {
+  background: var(--danger);
+}
+.operations-observed {
+  margin: -12px 0 0;
+  color: var(--ink-faint);
+  font-size: 12px;
+}
+.operations-signal-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.operations-signal {
+  min-height: 156px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-soft);
+}
+.operations-signal.is-critical {
+  border-top-color: var(--danger);
+}
+.operations-signal.is-degraded,
+.operations-signal.is-unknown {
+  border-top-color: var(--warning);
+}
+.operations-signal.is-healthy {
+  border-top-color: var(--success);
+}
+.operations-signal > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink-faint);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.operations-signal h2 {
+  margin: 22px 0 6px;
+  font-family: var(--font-display);
+  font-size: 20px;
+}
+.operations-signal p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.operations-links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.operations-links a {
+  display: grid;
+  gap: 5px;
+  padding: 17px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+}
+.operations-links a:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.operations-links span {
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+@media (max-width: 1100px) {
+  .operations-signal-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 680px) {
+  .operations-signal-grid,
+  .operations-links {
+    grid-template-columns: 1fr;
+  }
+}
 .alert-automation-page {
   display: grid;
   gap: 24px;
