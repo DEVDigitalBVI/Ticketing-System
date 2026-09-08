@@ -14,8 +14,9 @@ const mocks = vi.hoisted(() => ({
 }));
 
 const tx = {
+  procurementMetadata: { upsert: vi.fn() },
   property: { findFirst: mocks.propertyFindFirst },
-  asset: { findFirst: mocks.assetFindFirst, updateMany: mocks.assetUpdateMany },
+  asset: { findFirst: mocks.assetFindFirst, updateMany: mocks.assetUpdateMany, findUniqueOrThrow: vi.fn() },
   buildingArea: { findFirst: vi.fn() },
   serviceLocation: { findFirst: vi.fn() },
   department: { findFirst: vi.fn() },
@@ -37,7 +38,7 @@ vi.mock("@/server/database/client", () => ({
 
 import type { AccessProfile } from "@/server/auth/access";
 import { AssetServiceError } from "@/server/assets/policy";
-import { listAssets, transferAsset } from "@/server/assets/service";
+import { editAsset, listAssets, transferAsset } from "@/server/assets/service";
 
 const propertyOne = "11111111-1111-4111-8111-111111111111";
 const propertyTwo = "22222222-2222-4222-8222-222222222222";
@@ -54,6 +55,7 @@ function access(role: AccessProfile["roles"][number], properties = [propertyOne]
     properties: properties.map((id) => ({ id, name: id })),
     departmentIds: [],
     roles: [role],
+    roleAssignments: properties.map((propertyId) => ({ propertyId, role })),
     assuranceLevel: "aal1",
     mustChangePassword: false,
   };
@@ -186,4 +188,30 @@ describe("asset inventory service", () => {
     ).rejects.toEqual(new AssetServiceError("conflict"));
     expect(mocks.locationCreate).not.toHaveBeenCalled();
   });
+  it("excludes requester-only properties from inventory", async () => {
+    const mixed = access("technician", [propertyOne, propertyTwo]);
+    mixed.roles.push("requester");
+    mixed.roleAssignments = [{ propertyId: propertyOne, role: "technician" }, { propertyId: propertyTwo, role: "requester" }];
+    mocks.assetFindMany.mockResolvedValue([]);
+    await listAssets(mixed);
+    expect(mocks.assetFindMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ propertyId: { in: [propertyOne] } }),
+    }));
+  });
+  it("clears existing procurement values when the edit form submits blank fields", async () => {
+    mocks.assetFindFirst.mockResolvedValue({ id: assetId, propertyId: propertyOne, retiredAt: null });
+    tx.assetType.findFirst.mockResolvedValue({ id: propertyTwo });
+    tx.assetStatus.findFirst.mockResolvedValue({ id: propertyTwo, isTerminal: false });
+    await editAsset(access("it_manager"), {
+      assetId, expectedUpdatedAt: "2026-09-04T14:00:00.000Z", assetTag: "PC-01", name: "Desk computer",
+      assetTypeId: propertyTwo, assetStatusId: propertyTwo, criticality: "standard",
+      vendorId: "", purchaseDate: "", purchaseCost: "", currencyCode: "", purchaseOrder: "",
+      warrantyStart: "", warrantyEnd: "", warrantyReference: "", procurementNotes: "",
+    }, propertyOne);
+    expect(tx.procurementMetadata.upsert).toHaveBeenCalledWith(expect.objectContaining({ update: {
+      vendorId: null, purchaseDate: null, purchaseCost: null, currencyCode: null, purchaseOrder: null,
+      warrantyStart: null, warrantyEnd: null, warrantyReference: null, notes: null,
+    } }));
+  });
+
 });

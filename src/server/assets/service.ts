@@ -2,7 +2,7 @@ import "server-only";
 
 import { Prisma } from "@/generated/prisma/client";
 import type { AccessProfile } from "@/server/auth/access";
-import { accessCan } from "@/server/auth/authorization";
+import { accessCan, permittedPropertyIds } from "@/server/auth/authorization";
 import { database } from "@/server/database/client";
 import { AuditEventRepository } from "@/server/repositories/audit-event-repository";
 import {
@@ -40,7 +40,7 @@ function canUseProperty(
 function activePropertyIds(access: AccessProfile) {
   return access.roles.includes("system_administrator")
     ? undefined
-    : access.properties.map((property) => property.id);
+    : permittedPropertyIds(access, "asset.read");
 }
 
 function parseOrThrow<T>(result: { success: true; data: T } | { success: false }): T {
@@ -383,15 +383,15 @@ export async function createAsset(access: AccessProfile, raw: unknown, correlati
 
 function procurementData(input: ReturnType<typeof editAssetSchema.parse>) {
   return {
-    vendorId: input.vendorId,
-    purchaseDate: input.purchaseDate,
-    purchaseCost: input.purchaseCost,
+    vendorId: input.vendorId ?? null,
+    purchaseDate: input.purchaseDate ?? null,
+    purchaseCost: input.purchaseCost ?? null,
     currencyCode: input.currencyCode || null,
-    purchaseOrder: input.purchaseOrder,
-    warrantyStart: input.warrantyStart,
-    warrantyEnd: input.warrantyEnd,
-    warrantyReference: input.warrantyReference,
-    notes: input.procurementNotes,
+    purchaseOrder: input.purchaseOrder ?? null,
+    warrantyStart: input.warrantyStart ?? null,
+    warrantyEnd: input.warrantyEnd ?? null,
+    warrantyReference: input.warrantyReference ?? null,
+    notes: input.procurementNotes ?? null,
   };
 }
 

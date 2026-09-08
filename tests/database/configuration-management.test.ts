@@ -29,6 +29,7 @@ function access(role: AccessProfile["roles"][number]): AccessProfile {
     properties: [{ id: ids.property, name: "Peter Island Resort and Spa" }],
     departmentIds: [],
     roles: [role],
+    roleAssignments: [{ propertyId: ids.property, role: role }],
     assuranceLevel: "aal2",
     mustChangePassword: false,
   };

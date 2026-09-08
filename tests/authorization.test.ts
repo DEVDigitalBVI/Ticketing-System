@@ -29,6 +29,7 @@ function subject(role: RoleKey): AuthorizationSubject {
     propertyIds: [ids.property],
     departmentIds: [ids.department],
     roles: [role],
+    roleAssignments: [{ propertyId: ids.property, role: role }],
   };
 }
 
@@ -116,5 +117,22 @@ describe("role-permission matrix", () => {
     expect(() => requireAuthorization(subject("requester"), "user.manage")).toThrow(
       "Access denied.",
     );
+  });
+});
+
+describe("property-specific roles", () => {
+  const mixed: AuthorizationSubject = {
+    ...subject("technician"), propertyIds: [ids.property, ids.otherProperty],
+    roles: ["technician", "requester"],
+    roleAssignments: [{ propertyId: ids.property, role: "technician" },
+      { propertyId: ids.otherProperty, role: "requester" }],
+  };
+  it.each(["ticket.queue.read", "ticket.assign", "ticket.note.internal", "ticket.transition", "asset.read"] as const)(
+    "keeps %s confined to its role's property", (permission) => {
+      expect(isAuthorized(mixed, permission, { organizationId: ids.organization, propertyId: ids.property })).toBe(true);
+      expect(isAuthorized(mixed, permission, { organizationId: ids.organization, propertyId: ids.otherProperty })).toBe(false);
+    });
+  it("preserves requester submission at the second property", () => {
+    expect(isAuthorized(mixed, "ticket.submit", { organizationId: ids.organization, propertyId: ids.otherProperty })).toBe(true);
   });
 });

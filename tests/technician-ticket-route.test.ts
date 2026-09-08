@@ -51,6 +51,7 @@ const access = {
   properties: [{ id: "e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f", name: "Peter Island Resort and Spa" }],
   departmentIds: [],
   roles: ["technician"],
+  roleAssignments: [{ propertyId: "e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f", role: "technician" }],
   assuranceLevel: "aal2" as const,
   mustChangePassword: false,
 };

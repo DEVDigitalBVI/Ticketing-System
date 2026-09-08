@@ -31,6 +31,7 @@ export type AccessProfile = {
   properties: Array<{ id: string; name: string }>;
   departmentIds: string[];
   roles: RoleKey[];
+  roleAssignments: Array<{ propertyId: string; role: RoleKey }>;
   assuranceLevel: "aal1" | "aal2";
   mustChangePassword: boolean;
 };
@@ -67,6 +68,7 @@ export async function readCurrentAccess(supabase: SupabaseClient) {
       ...new Set(rows.flatMap((row) => (row.department_id ? [row.department_id] : []))),
     ],
     roles: [...new Set(rows.map((row) => row.role_key))],
+    roleAssignments: rows.map((row) => ({ propertyId: row.property_id, role: row.role_key })),
     assuranceLevel,
     mustChangePassword: first.must_change_password,
   } satisfies AccessProfile;

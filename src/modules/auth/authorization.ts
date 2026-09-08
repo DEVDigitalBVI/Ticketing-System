@@ -68,6 +68,7 @@ export type AuthorizationSubject = {
   propertyIds: readonly string[];
   departmentIds: readonly string[];
   roles: readonly RoleKey[];
+  roleAssignments: readonly { propertyId: string; role: RoleKey }[];
 };
 
 export type AuthorizationResource = {
@@ -99,6 +100,11 @@ export function isAuthorized(
     !subject.propertyIds.includes(resource.propertyId)
   )
     return false;
+
+  if (resource.propertyId && !isSystemAdministrator && !subject.roleAssignments.some(
+    (assignment) => assignment.propertyId === resource.propertyId &&
+      (rolePermissionMatrix[assignment.role] as readonly Permission[]).includes(permission),
+  )) return false;
 
   if (permission === "ticket.read.own" && resource.ownerUserId !== subject.userId) return false;
   if (

@@ -287,6 +287,7 @@ const requesterA: AccessProfile = {
   properties: [{ id: "property-1", name: "Peter Island Resort and Spa" }],
   departmentIds: ["department-1"],
   roles: ["requester"],
+  roleAssignments: [{ propertyId: "property-1", role: "requester" }],
   assuranceLevel: "aal1" as const,
   mustChangePassword: false,
 };

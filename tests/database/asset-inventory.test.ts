@@ -24,6 +24,7 @@ const manager: AccessProfile = {
   properties: [{ id: ids.property, name: "Peter Island Resort and Spa" }],
   departmentIds: [],
   roles: ["system_administrator"],
+  roleAssignments: [{ propertyId: ids.property, role: "system_administrator" }],
   assuranceLevel: "aal2",
   mustChangePassword: false,
 };

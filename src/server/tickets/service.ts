@@ -122,6 +122,7 @@ function subjectFromAccess(access: AccessProfile) {
     propertyIds: access.properties.map((property) => property.id),
     departmentIds: access.departmentIds,
     roles: access.roles,
+      roleAssignments: access.roleAssignments,
   };
 }
 
@@ -570,6 +571,7 @@ export async function addTicketComment(
           organizationId: ticket.organizationId,
           propertyId: ticket.propertyId,
           requesterUserId: ticket.requesterUserId,
+          affectedUserId: ticket.affectedUserId,
           departmentId: ticket.departmentId,
         },
         input.visibility,

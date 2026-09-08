@@ -21,6 +21,7 @@ describe("administrator navigation", () => {
           ],
           departmentIds: [],
           roles: ["system_administrator"],
+          roleAssignments: [{ propertyId: "e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f", role: "system_administrator" }],
           assuranceLevel: "aal2",
           mustChangePassword: false,
         }}
@@ -58,6 +59,7 @@ describe("administrator navigation", () => {
           ],
           departmentIds: [],
           roles: ["requester"],
+          roleAssignments: [{ propertyId: "e5e40e2f-f7ab-4b65-83d9-6c6bd668ab9f", role: "requester" }],
           assuranceLevel: "aal1",
           mustChangePassword: false,
         }}

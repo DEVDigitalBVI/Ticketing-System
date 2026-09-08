@@ -678,6 +678,7 @@ const technicianAccess: AccessProfile = {
   properties: [{ id: "property-1", name: "Peter Island Resort and Spa" }],
   departmentIds: ["department-1"],
   roles: ["technician"],
+  roleAssignments: [{ propertyId: "property-1", role: "technician" }],
   assuranceLevel: "aal2",
   mustChangePassword: false,
 };
@@ -689,6 +690,7 @@ const requesterAccess: AccessProfile = {
   email: "requester@example.invalid",
   displayName: "Requester",
   roles: ["requester"],
+  roleAssignments: [{ propertyId: "property-1", role: "requester" }],
 };
 
 const technicianBAccess: AccessProfile = {

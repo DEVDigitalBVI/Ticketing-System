@@ -21,6 +21,7 @@ export function accessCan(
       propertyIds: access.properties.map((property) => property.id),
       departmentIds: access.departmentIds,
       roles: access.roles,
+      roleAssignments: access.roleAssignments,
     },
     permission,
     resource,
@@ -33,4 +34,10 @@ export async function requireCurrentAccess(permission: Permission, deniedPath = 
   if (access.mustChangePassword) redirect("/account/change-password");
   if (!accessCan(access, permission)) redirect(deniedPath);
   return access;
+}
+
+export function permittedPropertyIds(access: AccessProfile, permission: Permission) {
+  return access.properties.filter((property) => accessCan(access, permission, {
+    organizationId: access.organizationId, propertyId: property.id,
+  })).map((property) => property.id);
 }

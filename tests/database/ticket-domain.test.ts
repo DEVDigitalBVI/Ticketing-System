@@ -44,6 +44,7 @@ function accessFor(userId: string, role: AccessProfile["roles"][number]): Access
     properties: [{ id: ids.property, name: "Peter Island Resort and Spa" }],
     departmentIds: [ids.department],
     roles: [role],
+    roleAssignments: [{ propertyId: ids.property, role: role }],
     assuranceLevel: "aal2",
     mustChangePassword: false,
   };

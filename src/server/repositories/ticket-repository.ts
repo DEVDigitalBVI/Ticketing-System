@@ -44,7 +44,10 @@ export class TicketRepository {
 
   userHasPropertyRole(userId: string, organizationId: string, propertyId: string) {
     return this.client.userRole.count({
-      where: { userId, organizationId, propertyId },
+      where: { userId, organizationId, propertyId,
+        user: { isActive: true },
+        role: { key: { in: ["technician", "it_manager", "system_administrator"] } },
+      },
     });
   }
 

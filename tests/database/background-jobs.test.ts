@@ -27,6 +27,7 @@ const operator: AccessProfile = {
   properties: [],
   departmentIds: [],
   roles: ["system_administrator"],
+  roleAssignments: [],
   assuranceLevel: "aal2",
   mustChangePassword: false,
 };

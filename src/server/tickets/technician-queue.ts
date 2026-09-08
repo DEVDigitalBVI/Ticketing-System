@@ -2,7 +2,7 @@ import "server-only";
 
 import { Prisma } from "@/generated/prisma/client";
 import { listTicketAttachments, type TicketAttachmentView } from "@/server/attachments/service";
-import { accessCan } from "@/server/auth/authorization";
+import { accessCan, permittedPropertyIds } from "@/server/auth/authorization";
 import type { AccessProfile } from "@/server/auth/access";
 import { database } from "@/server/database/client";
 import { evaluateSla, parseSlaPolicySnapshot, type SlaState } from "@/server/sla/policy";
@@ -280,7 +280,7 @@ function serviceIndicatorFor(ticket: SlaTicket, now: Date) {
 function baseWhere(access: AccessProfile) {
   return {
     organizationId: access.organizationId,
-    propertyId: { in: access.properties.map((property) => property.id) },
+    ...(access.roles.includes("system_administrator") ? {} : { propertyId: { in: permittedPropertyIds(access, "ticket.queue.read") } }),
   } satisfies Prisma.TicketWhereInput;
 }
 

@@ -56,13 +56,6 @@ export async function updateAuthSession(request: NextRequest) {
     return copyAuthState(response, NextResponse.redirect(destination));
   }
 
-  if (authenticated && pathname === "/login") {
-    const destination = request.nextUrl.clone();
-    destination.pathname = "/";
-    destination.search = "";
-    return copyAuthState(response, NextResponse.redirect(destination));
-  }
-
   response.headers.set("Cache-Control", "private, no-store");
   return response;
 }
