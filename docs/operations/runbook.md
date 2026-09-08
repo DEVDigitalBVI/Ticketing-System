@@ -1,6 +1,7 @@
 # Operational monitoring runbook
 
-Last updated: 2026-09-08  
+Last updated: 2026-09-08
+
 Status: Step 28 operating policy
 
 ## Purpose and operating model
