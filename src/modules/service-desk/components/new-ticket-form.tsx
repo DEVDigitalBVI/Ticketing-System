@@ -5,27 +5,14 @@ import { useMemo, useState } from "react";
 
 import type { NewTicketFormOptions } from "@/server/tickets/intake";
 
-const issueTypes = [
-  {
-    value: "device",
-    icon: "▣",
-    title: "Device or equipment",
-    detail: "Computer, printer, phone, TV",
-  },
-  {
-    value: "access",
-    icon: "◇",
-    title: "Account or access",
-    detail: "Sign-in, password, permissions",
-  },
-  { value: "network", icon: "⌁", title: "Network or Wi-Fi", detail: "Connection, speed, coverage" },
-  {
-    value: "other",
-    icon: "•••",
-    title: "Something else",
-    detail: "Software, request, or question",
-  },
-] as const;
+function categoryIcon(name: string) {
+  const value = name.toLowerCase();
+  if (value.includes("network") || value.includes("wi-fi")) return "⌁";
+  if (value.includes("access") || value.includes("account")) return "◇";
+  if (value.includes("device") || value.includes("equipment")) return "▣";
+  if (value.includes("software") || value.includes("application")) return "▤";
+  return "•••";
+}
 
 function statusMessage(search: { status?: string; ticket?: string }) {
   switch (search.status) {
@@ -95,19 +82,26 @@ export function NewTicketForm({
               <p className="field-intro">Choose the closest option. You can explain more below.</p>
               <fieldset className="choice-grid">
                 <legend className="sr-only">Issue type</legend>
-                {issueTypes.map((type, index) => (
-                  <label className="choice-card" key={type.value}>
+                {options.categories.map((category, index) => (
+                  <label className="choice-card" key={category.id}>
                     <input
                       type="radio"
-                      name="type"
-                      value={type.value}
+                      name="categoryId"
+                      value={category.id}
                       defaultChecked={index === 0}
+                      onChange={() => setSelectedCategoryId(category.id)}
                     />
                     <span className="choice-icon" aria-hidden="true">
-                      {type.icon}
+                      {categoryIcon(category.name)}
                     </span>
-                    <strong>{type.title}</strong>
-                    <small>{type.detail}</small>
+                    <strong>{category.name}</strong>
+                    <small>
+                      {
+                        options.subcategories.filter((item) => item.categoryId === category.id)
+                          .length
+                      }{" "}
+                      specific options
+                    </small>
                   </label>
                 ))}
               </fieldset>
@@ -139,44 +133,22 @@ export function NewTicketForm({
                 placeholder="Include what you expected, what happened instead, and any message you saw."
                 required
               />
-              <div className="field-pair">
-                <div>
-                  <label className="field-label" htmlFor="category">
-                    Category
-                  </label>
-                  <select
-                    id="category"
-                    name="categoryId"
-                    required
-                    value={selectedCategoryId}
-                    onChange={(event) => setSelectedCategoryId(event.target.value)}
-                  >
-                    {options.categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="field-label" htmlFor="subcategory">
-                    Subcategory
-                  </label>
-                  <select
-                    id="subcategory"
-                    key={selectedCategoryId}
-                    name="subcategoryId"
-                    defaultValue=""
-                  >
-                    <option value="">Choose one if it helps</option>
-                    {visibleSubcategories.map((subcategory) => (
-                      <option key={subcategory.id} value={subcategory.id}>
-                        {subcategory.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+              <label className="field-label" htmlFor="subcategory">
+                More specifically
+              </label>
+              <select
+                id="subcategory"
+                key={selectedCategoryId}
+                name="subcategoryId"
+                defaultValue=""
+              >
+                <option value="">Choose one if it helps</option>
+                {visibleSubcategories.map((subcategory) => (
+                  <option key={subcategory.id} value={subcategory.id}>
+                    {subcategory.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

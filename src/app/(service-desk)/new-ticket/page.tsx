@@ -34,14 +34,14 @@ export default async function NewTicketPage({
         title="Tell us what you need."
         titleId="new-ticket-title"
       />
-      {options ? (
+      {options?.properties.length && options.categories.length ? (
         <NewTicketForm options={options} search={search} />
       ) : (
         <div className="empty-state">
           <strong>Ticket submission is temporarily unavailable</strong>
           <p>
-            Report an issue could not load its required options because the local service database
-            is offline. Restore the database connection and try again.
+            The service desk could not load an active property and category. Ask IT to verify the
+            database connection and service configuration.
           </p>
         </div>
       )}

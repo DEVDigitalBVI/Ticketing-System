@@ -365,6 +365,15 @@ No application-code fix was required in Step 3.
 - Hosted readback confirms all seven foundation tables contain zero rows. Supabase security advisors return no lints and performance advisors only report expected unused indexes. The table inspector flags RLS as disabled; direct privilege checks confirm `anon` and `authenticated` cannot use the schema or read/write its tables. RLS policies and a least-privilege runtime role remain mandatory before live access.
 - The development server returned HTTP 200 for all five application routes with clean server logs. Browser discovery found no connected in-app or extension browser, so this pass could not add fresh screenshot, client-console, or computed-layout evidence beyond the existing design-contract tests and prior source review.
 
+## Live-section integration hardening
+
+- Re-audited the runtime on 2026-09-08 after Steps 22 through 28. No bundled ticket, asset, device, alert, knowledge, or reporting records remain in application code. Synthetic records remain isolated to automated tests.
+- The staff overview now reads the authenticated requester's real active-ticket counts and latest tickets. Knowledge search is a live destination, and ticket intake uses the administrator-managed category catalogue instead of a second hard-coded issue-type list.
+- Removed invented technician metrics and the obsolete disconnected-monitoring label. Database and schema failures now produce controlled unavailable states, and an application error boundary prevents raw exceptions from replacing a section with a framework error screen.
+- Added development-origin configuration for the in-app browser and regression coverage for home data, database authentication/schema error classification, unavailable sections, controlled ticket categories, and login error visibility. Live browser verification also corrected a hidden login error that remained exposed to assistive technology before an actual failed sign-in.
+- Prettier, ESLint, strict TypeScript, the focused integration tests, the reporting benchmark in isolation, and the production build pass. One full parallel test run passed 250 of 251 tests; its only failure was the existing 20,000-record reporting benchmark completing in 1.588 seconds against a 1.5-second wall-clock threshold. The same benchmark passed in isolation in 1.01 seconds.
+- Live data remains externally blocked: the configured PostgreSQL pooler rejects the current `DATABASE_URL` credential with PostgreSQL code `28P01`. Migrations after Step 21 are also recorded as not deployed above. No production schema change was attempted without explicit deployment authorization.
+
 ## Login interface
 
 - Added a responsive `/login` route that extends the approved indigo, teal, sand, typography, spacing, focus, and minimum-target conventions without changing the service-desk layouts.

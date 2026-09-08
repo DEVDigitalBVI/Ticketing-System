@@ -33,7 +33,10 @@ describe("service desk interactions", () => {
     fireEvent.change(summary, { target: { value: "Printer is offline" } });
     expect(screen.getByText("18 / 100")).toBeVisible();
     expect(summary.closest("form")).toHaveAttribute("action", "/auth/new-ticket");
-    expect(screen.getByRole("combobox", { name: "Category" })).toHaveTextContent("Printers");
+    expect(screen.getByRole("radio", { name: /Printers/ })).toBeChecked();
+    expect(screen.getByRole("combobox", { name: "More specifically" })).toHaveTextContent(
+      "Paper jam",
+    );
   });
 
   it("shows the real ticket number in the success treatment after submission", () => {
@@ -59,11 +62,11 @@ describe("service desk interactions", () => {
     );
   });
 
-  it("renders an honest empty technician workspace", () => {
+  it("renders an honest unavailable technician workspace without invented metrics", () => {
     render(<TechnicianWorkspace />);
-    expect(screen.getByText("No tickets in the queue")).toBeVisible();
+    expect(screen.getByText("Queue temporarily unavailable")).toBeVisible();
     const context = screen.getByRole("complementary", { name: "Selected ticket context" });
     expect(context).toHaveTextContent("No ticket selected");
-    expect(screen.getAllByText("Ticket data not connected")).toHaveLength(4);
+    expect(screen.queryByText("Ticket data not connected")).not.toBeInTheDocument();
   });
 });

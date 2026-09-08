@@ -15,6 +15,7 @@ describe("LoginPage", () => {
       "action",
       "/auth/login",
     );
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("reveals the password only when requested", async () => {

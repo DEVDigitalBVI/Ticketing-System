@@ -47,15 +47,13 @@ export function LoginForm({ error = null, next = "" }: { error?: string | null; 
         Sign in <span aria-hidden="true">→</span>
       </button>
 
-      <p
-        className={`login-form-status${error ? " is-visible" : ""}`}
-        role="alert"
-        aria-live="polite"
-      >
-        {error === "access"
-          ? "Your account is not enabled for this service desk. Contact the IT team."
-          : "The email or password was not accepted. Try again or contact the IT team."}
-      </p>
+      {error ? (
+        <p className="login-form-status" role="alert" aria-live="polite">
+          {error === "access"
+            ? "Your account is not enabled for this service desk. Contact the IT team."
+            : "The email or password was not accepted. Try again or contact the IT team."}
+        </p>
+      ) : null}
     </form>
   );
 }

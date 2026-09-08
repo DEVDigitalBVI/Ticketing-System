@@ -744,6 +744,17 @@ button:disabled:hover {
 .full-width {
   width: 100%;
 }
+.error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+.error-reference {
+  display: block;
+  margin-top: 20px;
+  color: var(--ink-faint);
+}
 
 .action-grid {
   max-width: 1240px;
@@ -838,6 +849,24 @@ button:disabled:hover {
 .content-section {
   max-width: 1240px;
   margin: 0 auto 28px;
+}
+.overview-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.overview-summary span {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-raised);
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+.overview-summary strong {
+  color: var(--ink);
+  font-size: 14px;
 }
 .section-heading {
   display: flex;
@@ -2840,28 +2869,15 @@ fieldset {
   box-shadow: 0 12px 28px rgba(11, 115, 95, 0.16);
 }
 .login-form-status {
-  min-height: 0;
+  min-height: 54px;
   margin: -4px 0 0;
-  padding: 0;
-  overflow: hidden;
-  border: 0 solid rgba(154, 100, 25, 0.22);
+  padding: 10px 13px;
+  border: 1px solid rgba(154, 100, 25, 0.22);
   border-radius: 10px;
   background: var(--warning-soft);
   color: #73501c;
   font-size: 12px;
   line-height: 1.55;
-  opacity: 0;
-  transition:
-    min-height 180ms ease,
-    padding 180ms ease,
-    border-width 180ms ease,
-    opacity 180ms ease;
-}
-.login-form-status.is-visible {
-  min-height: 54px;
-  padding: 10px 13px;
-  border-width: 1px;
-  opacity: 1;
 }
 .login-support-note {
   margin: 30px 0 0;

@@ -1,13 +1,43 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+vi.mock("@/server/auth/authorization", () => ({
+  requireCurrentAccess: vi.fn(async () => ({
+    userId: "d02ac995-a572-46ab-94a8-e9010a1d1398",
+    organizationId: "18b8d97e-9622-4ca7-b344-6230ad863e84",
+  })),
+}));
+vi.mock("@/server/tickets/requester-portal", () => ({
+  readStaffOverview: vi.fn(async () => ({
+    activeCount: 1,
+    needsReplyCount: 1,
+    tickets: [
+      {
+        ticketId: "ticket-1",
+        id: "PIR-000001",
+        type: "Network",
+        title: "Office connection unavailable",
+        location: "Operations office",
+        updated: "Sep 8, 2026",
+        day: "08",
+        month: "Sep",
+        priority: "high",
+        status: "Needs your reply",
+        state: "active",
+        canonicalStatus: "waiting_for_requester",
+      },
+    ],
+  })),
+}));
+
 import HomePage from "@/app/(service-desk)/page";
 import { ServiceDeskShell } from "@/modules/service-desk/components/service-desk-shell";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
 
 describe("staff overview", () => {
-  it("renders the approved staff hierarchy and working client-side routes", () => {
+  it("renders the approved staff hierarchy with live destinations and ticket data", async () => {
     render(
       <ServiceDeskShell
         access={{
@@ -29,7 +59,7 @@ describe("staff overview", () => {
           mustChangePassword: false,
         }}
       >
-        <HomePage />
+        {await HomePage()}
       </ServiceDeskShell>,
     );
 
@@ -43,9 +73,13 @@ describe("staff overview", () => {
       "/new-ticket",
     );
     expect(screen.getByRole("link", { name: "My tickets" })).toHaveAttribute("href", "/my-tickets");
+    expect(screen.getByRole("link", { name: /Find a quick answer/ })).toHaveAttribute(
+      "href",
+      "/knowledge",
+    );
     expect(screen.getByText("Active requests")).toBeVisible();
-    expect(screen.getByText("No ticket data available")).toBeVisible();
-    expect(screen.getByLabelText("Service monitoring is not connected")).toBeVisible();
+    expect(screen.getByText("Office connection unavailable")).toBeVisible();
+    expect(screen.getByLabelText("Current workspace")).toBeVisible();
     expect(screen.getByText("Resort Staff")).toBeVisible();
   });
 });

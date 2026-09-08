@@ -91,6 +91,12 @@ export type RequesterTicketWorkspace = {
   selectedTicket: StaffTicketDetail | null;
 };
 
+export type StaffOverviewData = {
+  activeCount: number;
+  needsReplyCount: number;
+  tickets: StaffTicketListItem[];
+};
+
 type PortalSearch = {
   filter?: string;
   q?: string;
@@ -304,6 +310,47 @@ export async function listRequesterTicketWorkspace(
       };
     }),
     selectedTicket,
+  };
+}
+
+export async function readStaffOverview(access: AccessProfile): Promise<StaffOverviewData> {
+  const accessible = accessibleTicketWhere(access);
+  const [activeCount, needsReplyCount, tickets] = await Promise.all([
+    database.ticket.count({
+      where: { AND: [accessible, { status: { in: [...activeStatuses] } }] },
+    }),
+    database.ticket.count({ where: { AND: [accessible, { status: "waiting_for_requester" }] } }),
+    database.ticket.findMany({
+      where: { AND: [accessible, { status: { in: [...activeStatuses] } }] },
+      include: {
+        serviceLocation: { select: { name: true } },
+        category: { select: { name: true } },
+      },
+      orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+      take: 4,
+    }),
+  ]);
+
+  return {
+    activeCount,
+    needsReplyCount,
+    tickets: tickets.map((ticket) => {
+      const created = dateParts(ticket.createdAt);
+      return {
+        ticketId: ticket.id,
+        id: ticket.ticketNumber,
+        type: ticket.category.name,
+        title: ticket.summary,
+        location: ticket.serviceLocation?.name ?? "Location not specified",
+        updated: formatRelativeDate(ticket.updatedAt),
+        day: created.day,
+        month: created.month,
+        priority: ticket.priority === "P1" || ticket.priority === "P2" ? "high" : "normal",
+        status: staffStatusFor(ticket.status as TicketStatus),
+        state: ticketStateFor(ticket.status as TicketStatus),
+        canonicalStatus: ticket.status as TicketStatus,
+      };
+    }),
   };
 }
 

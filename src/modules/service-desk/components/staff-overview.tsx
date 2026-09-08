@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type { StaffOverviewData } from "@/server/tickets/requester-portal";
+import { StaffTicketList } from "./staff-ticket-list";
 
 const actions = [
   {
@@ -19,7 +21,7 @@ const actions = [
   },
 ] as const;
 
-export function StaffOverview() {
+export function StaffOverview({ overview }: { overview?: StaffOverviewData }) {
   return (
     <section className="view" aria-labelledby="home-title">
       <header className="page-header hero-header">
@@ -49,14 +51,16 @@ export function StaffOverview() {
             </span>
           </Link>
         ))}
-        <button className="action-card" type="button" disabled>
+        <Link className="action-card" href="/knowledge">
           <span className="action-index">03</span>
           <span className="action-title">Find a quick answer</span>
           <span className="action-copy">
             Browse short guides for passwords, Wi-Fi, printers, and everyday tools.
           </span>
-          <span className="action-link">Help guides not connected</span>
-        </button>
+          <span className="action-link">
+            Search knowledge <b aria-hidden="true">→</b>
+          </span>
+        </Link>
       </div>
 
       <section className="content-section" aria-labelledby="active-requests-title">
@@ -69,10 +73,35 @@ export function StaffOverview() {
             View all <span aria-hidden="true">→</span>
           </Link>
         </div>
-        <div className="empty-state">
-          <strong>No ticket data available</strong>
-          <p>Your active requests will appear here after secure ticket persistence is connected.</p>
-        </div>
+        {overview ? (
+          overview.tickets.length ? (
+            <>
+              <div className="overview-summary" aria-label="Your request summary">
+                <span>
+                  <strong>{overview.activeCount}</strong> active
+                </span>
+                <span>
+                  <strong>{overview.needsReplyCount}</strong> awaiting your reply
+                </span>
+              </div>
+              <StaffTicketList
+                tickets={overview.tickets}
+                compact
+                getHref={(ticket) => `/my-tickets?ticket=${ticket.ticketId}`}
+              />
+            </>
+          ) : (
+            <div className="empty-state">
+              <strong>No active requests</strong>
+              <p>New requests and updates that need your attention will appear here.</p>
+            </div>
+          )
+        ) : (
+          <div className="empty-state" role="status">
+            <strong>Requests could not be loaded</strong>
+            <p>The service desk could not reach its data store. You can retry or contact IT.</p>
+          </div>
+        )}
       </section>
 
       <aside className="support-note">

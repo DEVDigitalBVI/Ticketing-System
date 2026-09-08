@@ -36,6 +36,9 @@ vi.mock("@/server/tickets/intake", () => ({
 }));
 
 vi.mock("@/server/tickets/requester-portal", () => ({
+  readStaffOverview: vi.fn(async () => {
+    throw new Error("DB_DOWN");
+  }),
   listRequesterTicketWorkspace: vi.fn(async () => {
     throw new Error("DB_DOWN");
   }),
@@ -65,8 +68,13 @@ import MyTicketsPage from "@/app/(service-desk)/my-tickets/page";
 import TechnicianPage from "@/app/(service-desk)/technician/page";
 import ConfigurationPage from "@/app/admin/configuration/page";
 import AuditPage from "@/app/admin/audit/page";
+import HomePage from "@/app/(service-desk)/page";
 
 describe("page resilience during local database outages", () => {
+  it("renders a controlled fallback on the staff overview", async () => {
+    render(await HomePage());
+    expect(screen.getByText("Requests could not be loaded")).toBeVisible();
+  });
   it("renders a controlled fallback on report an issue", async () => {
     render(await NewTicketPage({ searchParams: Promise.resolve({}) }));
 
@@ -83,7 +91,7 @@ describe("page resilience during local database outages", () => {
     render(await TechnicianPage({ searchParams: Promise.resolve({}) }));
 
     expect(
-      screen.getByText("Queue data will appear here after ticket access is connected."),
+      screen.getByText("The live queue could not be loaded from the service database."),
     ).toBeVisible();
   });
 

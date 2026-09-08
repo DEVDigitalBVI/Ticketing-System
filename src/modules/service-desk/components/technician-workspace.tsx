@@ -503,23 +503,9 @@ export function TechnicianWorkspace({
           <div>
             <p className="overline">Technician workspace</p>
             <h1 id="technician-title">Service overview</h1>
-            <p className="lead">Queue data will appear here after ticket access is connected.</p>
+            <p className="lead">The live queue could not be loaded from the service database.</p>
           </div>
         </header>
-        <div className="metric-grid" aria-label="Service metrics">
-          {[
-            ["Unassigned", "—", "Ticket data not connected"],
-            ["My Work", "—", "Ticket data not connected"],
-            ["Waiting", "—", "Ticket data not connected"],
-            ["Recently Resolved", "—", "Ticket data not connected"],
-          ].map(([label, value, detail]) => (
-            <article className="metric-card" key={label}>
-              <p>{label}</p>
-              <strong>{value}</strong>
-              <span>{detail}</span>
-            </article>
-          ))}
-        </div>
         <div className="workspace-grid">
           <section className="queue-panel" aria-labelledby="priority-queue-title">
             <div className="section-heading queue-heading">
@@ -530,8 +516,8 @@ export function TechnicianWorkspace({
             </div>
             <div className="queue-table" role="table" aria-label="Priority tickets">
               <div className="empty-state queue-empty-state">
-                <strong>No tickets in the queue</strong>
-                <p>Priority work will appear after authenticated ticket access is connected.</p>
+                <strong>Queue temporarily unavailable</strong>
+                <p>Check the database connection, then reload this workspace.</p>
               </div>
             </div>
           </section>
@@ -539,7 +525,7 @@ export function TechnicianWorkspace({
             <div className="empty-context">
               <p className="overline">Ticket context</p>
               <h2>No ticket selected</h2>
-              <p>Ticket and device details will appear here when live services are connected.</p>
+              <p>Ticket and device details will return when service data is available.</p>
             </div>
           </aside>
         </div>

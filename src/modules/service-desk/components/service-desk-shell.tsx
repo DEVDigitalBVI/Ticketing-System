@@ -164,11 +164,10 @@ export function ServiceDeskShell({
         ) : null}
 
         <div className="sidebar-spacer" />
-        <div className="service-status" aria-label="Service monitoring is not connected">
-          <span className="status-light unavailable" aria-hidden="true" />
+        <div className="service-status" aria-label="Current workspace">
           <div>
-            <strong>Status unavailable</strong>
-            <small>Monitoring not connected</small>
+            <strong>{access.organizationName}</strong>
+            <small>Secure service workspace</small>
           </div>
         </div>
         <div className="profile-card">
