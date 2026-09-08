@@ -50,6 +50,7 @@ model Organization {
   knowledgeTicketLinks   KnowledgeTicketLink[]
   knowledgeAssetLinks    KnowledgeArticleAsset[]
   ticketReportingFacts   TicketReportingFact[]
+  operationalEvents      OperationalEvent[]
 
   @@map("organizations")
   @@schema("service_desk")
@@ -441,6 +442,46 @@ model TicketReportingFact {
   @@index([organizationId, assigneeUserId, status])
   @@index([organizationId, primaryAssetId, ticketCreatedAt])
   @@map("ticket_reporting_facts")
+  @@schema("service_desk")
+}
+
+model OperationalEvent {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  severity       String
+  component      String
+  eventType      String       @map("event_type")
+  errorCode      String?      @map("error_code")
+  correlationId  String       @map("correlation_id") @db.Uuid
+  entityType     String?      @map("entity_type")
+  entityId       String?      @map("entity_id")
+  safeContext    Json         @default("{}") @map("safe_context")
+  occurredAt     DateTime     @map("occurred_at") @db.Timestamptz(6)
+  resolvedAt     DateTime?    @map("resolved_at") @db.Timestamptz(6)
+  resolutionNote String?      @map("resolution_note")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([id, organizationId])
+  @@index([organizationId, resolvedAt, occurredAt])
+  @@index([organizationId, component, eventType, occurredAt])
+  @@index([correlationId])
+  @@map("operational_events")
+  @@schema("service_desk")
+}
+
+model WorkerHeartbeat {
+  instanceId  String   @id @map("instance_id")
+  component   String   @default("background-worker")
+  status      String   @default("healthy")
+  safeContext Json     @default("{}") @map("safe_context")
+  startedAt   DateTime @map("started_at") @db.Timestamptz(6)
+  lastSeenAt  DateTime @map("last_seen_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([component, lastSeenAt])
+  @@map("worker_heartbeats")
   @@schema("service_desk")
 }
 
