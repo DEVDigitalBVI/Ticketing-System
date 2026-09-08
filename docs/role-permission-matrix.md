@@ -1,7 +1,7 @@
 # Role-permission matrix
 
 Last verified: 2026-09-08
-Status: Step 26 authorization contract
+Status: Step 27 authorization contract
 
 `Allow` means the server policy may authorize the operation after its object boundary also passes. A blank cell is an explicit deny. UI visibility is not an authorization control.
 

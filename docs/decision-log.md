@@ -43,17 +43,6 @@ Allowed statuses: `Proposed`, `Accepted`, `Superseded`, `Rejected`.
 - **Evidence:** Repository inspection in `docs/implementation-status.md`; owner-provided repository and Supabase project names. Blueprint evidence is missing.
 - **Supersedes:** None.
 
-## ADR-021: Keep service reporting reproducible inside PostgreSQL
-
-- **Status:** Accepted
-- **Date:** 2026-09-08
-- **Owners:** Product / Engineering
-- **Context:** Managers need stable service measures, while operational labels, assignments, asset locations, and SLA policies can change after a ticket is handled. Independent dashboard and export queries would allow definitions to drift and could expose ticket-level personal data.
-- **Decision:** Maintain one private reporting fact per ticket with captured dimensional labels, lifecycle timestamps, waiting and reopen evidence, alert origin, and the ticket’s SLA policy snapshot. Refresh a dimension only when the ticket deliberately changes that dimension; do not react to later reference-data renames or asset moves. Build every dashboard and export from one bounded reporting service and a documented KPI catalogue. Restrict results by property-scoped `report.read`, export aggregates only, and retain accessible tables beside visual charts.
-- **Consequences:** The same synthetic facts reproduce the same KPI and export. Existing tickets receive a migration-time baseline because labels before that boundary were not previously snapshotted. Interactive reports are limited to 366 days and 50,000 candidate facts. A future summary or warehouse requires a separate approval.
-- **Evidence:** Migration `20260908220000_step_27_reporting_facts`, `docs/reporting/kpi-catalogue.md`, the reporting service and `/reports` interface, aggregate CSV route, and focused Step 27 tests.
-- **Supersedes:** None.
-
 ## ADR-002: Application foundation and quality gates
 
 - **Status:** Accepted
@@ -267,4 +256,15 @@ The baseline was reverified at commit `ba8e67a` on 2026-08-31. All automated qua
 - **Decision:** Store knowledge in the private application schema with explicit Draft, In Review, Published, and Retired states; staff and technician audiences; independent review before publication; immutable content versions; per-version feedback; review dates; and controlled ticket-category, asset, and ticket links. Enforce audience and workflow visibility in server queries for both search and direct reads. Render a small text-markup subset as React elements without raw HTML. Resolution proposals begin blank and retain only the source ticket identity after authorized state and property checks.
 - **Consequences:** Requesters cannot retrieve technician content by search or identifier. Technicians can author and submit, while IT Managers and System Administrators publish or retire. Publishing requires an independent reviewer and review date. Staff-audience ticket links may be requester-visible, technician links remain internal, and stale guidance stays visible with an overdue label until reviewed or retired.
 - **Evidence:** Migration `20260908210000_step_26_knowledge_base`, knowledge policy/service and screens, `docs/knowledge-base.md`, updated permission matrix, safe renderer, and focused Step 26 tests.
+- **Supersedes:** None.
+
+## ADR-021: Keep service reporting reproducible inside PostgreSQL
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Owners:** Product / Engineering
+- **Context:** Managers need stable service measures, while operational labels, assignments, asset locations, and SLA policies can change after a ticket is handled. Independent dashboard and export queries would allow definitions to drift and could expose ticket-level personal data.
+- **Decision:** Maintain one private reporting fact per ticket with captured dimensional labels, lifecycle timestamps, waiting and reopen evidence, alert origin, and the ticket’s SLA policy snapshot. Refresh a dimension only when the ticket deliberately changes that dimension; do not react to later reference-data renames or asset moves. Build every dashboard and export from one bounded reporting service and a documented KPI catalogue. Restrict results by property-scoped `report.read`, export aggregates only, and retain accessible tables beside visual charts.
+- **Consequences:** The same synthetic facts reproduce the same KPI and export. Existing tickets receive a migration-time baseline because labels before that boundary were not previously snapshotted. Interactive reports are limited to 366 days and 50,000 candidate facts. A future summary or warehouse requires a separate approval.
+- **Evidence:** Migration `20260908220000_step_27_reporting_facts`, `docs/reporting/kpi-catalogue.md`, the reporting service and `/reports` interface, aggregate CSV route, and focused Step 27 tests.
 - **Supersedes:** None.
