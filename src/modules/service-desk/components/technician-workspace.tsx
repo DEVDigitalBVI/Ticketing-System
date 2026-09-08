@@ -277,6 +277,23 @@ function DetailPanel({
           {ticket.resolutionCode ? <small>Code: {ticket.resolutionCode}</small> : null}
         </div>
       ) : null}
+      <div className="ticket-inline-form knowledge-ticket-actions">
+        <h3>Reusable guidance</h3>
+        <p>
+          Link a reviewed article, or turn a completed resolution into a clean draft without copying
+          ticket details.
+        </p>
+        <div className="tech-actions">
+          <Link className="secondary-button" href={`/knowledge?ticket=${ticket.ticketId}`}>
+            Find an article
+          </Link>
+          {["resolved", "closed"].includes(ticket.canonicalStatus) ? (
+            <Link className="secondary-button" href={`/knowledge/new?ticket=${ticket.ticketId}`}>
+              Propose an article
+            </Link>
+          ) : null}
+        </div>
+      </div>
       <form className="ticket-inline-form" action="/auth/technician-ticket" method="post">
         <input type="hidden" name="intent" value="assign" />
         <input type="hidden" name="ticketId" value={ticket.ticketId} />

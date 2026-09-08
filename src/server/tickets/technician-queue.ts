@@ -359,6 +359,7 @@ function historyTitleForActivity(
   if (activityType === "assignment_recorded")
     return actorName ? `Assignment updated by ${actorName}` : "Assignment updated";
   if (activityType === "internal_note_added") return "Internal note added";
+  if (activityType === "knowledge_linked") return "Knowledge article linked";
   if (activityType === "comment_added")
     return actorName ? `Requester-visible reply from ${actorName}` : "Requester-visible reply";
   if (toStatus) return `Status changed to ${staffStatusFor(toStatus as TicketStatus)}`;

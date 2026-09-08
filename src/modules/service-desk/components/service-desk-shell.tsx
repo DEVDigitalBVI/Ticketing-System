@@ -18,6 +18,8 @@ const navigation = [
     permission: "ticket.queue.read",
   },
   { href: "/assets", label: "Assets", symbol: "▦", permission: "asset.read" },
+  { href: "/knowledge", label: "Knowledge", symbol: "◇", permission: "knowledge.read" },
+  { href: "/reports", label: "Reports", symbol: "▥", permission: "report.read" },
 ] as const;
 
 export function ServiceDeskShell({

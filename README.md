@@ -66,6 +66,7 @@ Step 21 synchronizes a curated read-only Level device snapshot, associates it to
 - `/new-ticket`: guided request form connected to authenticated ticket creation with controlled reference data and real ticket-number confirmation.
 - `/my-tickets`: requester-authorized ticket workspace with server-side filters, search, pagination, public history, replies, and resolution confirmation.
 - `/technician`: live technician queue with server-side views, pagination, assignment controls, conflict protection, precise SLA timing, and a real ticket detail panel. Level.io remains an explicit unavailable state.
+- `/knowledge`: audience-safe staff and technician knowledge search, reviewed article reading, versioned authoring, stale-content reporting, feedback, and ticket linking.
 - `/health`: application-boundary health status.
 
 ## Quality gates

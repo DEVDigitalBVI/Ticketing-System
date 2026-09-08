@@ -27,12 +27,17 @@ export const permissions = [
   "configuration.manage",
   "job.read",
   "job.replay",
+  "knowledge.read",
+  "knowledge.read.technician",
+  "knowledge.author",
+  "knowledge.publish",
+  "knowledge.link",
 ] as const;
 
 export type Permission = (typeof permissions)[number];
 
 export const rolePermissionMatrix = {
-  requester: ["ticket.submit", "ticket.read.own"],
+  requester: ["ticket.submit", "ticket.read.own", "knowledge.read"],
   technician: [
     "ticket.submit",
     "ticket.read.own",
@@ -42,6 +47,10 @@ export const rolePermissionMatrix = {
     "ticket.transition",
     "asset.read",
     "level.context.read",
+    "knowledge.read",
+    "knowledge.read.technician",
+    "knowledge.author",
+    "knowledge.link",
   ],
   it_manager: [
     "ticket.submit",
@@ -56,10 +65,20 @@ export const rolePermissionMatrix = {
     "level.action.execute",
     "report.read",
     "job.read",
+    "knowledge.read",
+    "knowledge.read.technician",
+    "knowledge.author",
+    "knowledge.publish",
+    "knowledge.link",
   ],
   system_administrator: permissions,
   report_viewer: ["report.read", "audit.read", "job.read"],
-  department_approver: ["ticket.submit", "ticket.read.own", "ticket.department.approve"],
+  department_approver: [
+    "ticket.submit",
+    "ticket.read.own",
+    "ticket.department.approve",
+    "knowledge.read",
+  ],
 } as const satisfies Record<RoleKey, readonly Permission[]>;
 
 export type AuthorizationSubject = {

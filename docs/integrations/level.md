@@ -1,7 +1,7 @@
 # Level.io integration boundary
 
 Last verified: 2026-09-08
-Status: Step 24 approved alert-to-incident automation
+Status: Step 25 action launch blocked by an empty tenant trigger catalogue and missing action approval
 
 ## Official sources
 
@@ -14,6 +14,9 @@ The following current Level-owned sources were reviewed before implementation:
 - [Webhook Settings](https://docs.level.io/en/articles/13909290-webhook-settings)
 - [Device Listing](https://docs.level.io/en/articles/9926476-device-listing)
 - [Device Overview](https://docs.level.io/en/articles/13928697-device-overview)
+- [List automation webhooks](https://developers.level.io/reference/listautomationwebhooks)
+- [Trigger webhook](https://developers.level.io/reference/triggerwebhook)
+- [Webhook Trigger](https://docs.level.io/en/articles/13909069-webhook-trigger)
 
 ## Confirmed API contract
 
@@ -151,3 +154,25 @@ Live rule matches render subject and description from an allowlist of placeholde
 Correlation uses SHA-256 over organisation, alert ID, Level device ID, rule ID, and a deterministic time bucket. A transaction-scoped advisory lock serializes concurrent deliveries for the same alert-device-rule tuple. An existing active correlation inside the rule window receives the delivery instead of another ticket. A recently resolved correlation inside the suppression window is recorded as a suppressed flap. After suppression expires, a recurrence still inside the correlation window reuses and, when necessary, reopens the existing incident rather than colliding with or duplicating its deterministic key. Receipt event ID uniqueness, decision uniqueness, correlation uniqueness, and the lock make duplicate delivery, worker retry, and alert storms safe.
 
 Resolved events update the correlation and add an internal ticket activity. The default policy never resolves the ticket. The optional `if_unstarted` policy can resolve only a ticket in `new`, `triage`, or `assigned` with no technician start timestamp. In-progress and waiting tickets remain open with an explicit `human_work_preserved` decision. Older events are ignored when a newer event for the same alert is already present.
+
+## Step 25 Level action activation gate
+
+Level documents two relevant endpoints. `GET /v2/automations/webhooks` returns trigger URLs and accepted parameters for non-archived automation webhook triggers. `POST /v2/automations/webhooks/{token}` starts one configured trigger and accepts a `device_ids` array. A trigger configured to require authorization needs a write-enabled API key. The trigger URL contains a persistent secret token and must never be accepted from, returned to, or logged by the browser.
+
+The Level-owned Webhook Trigger guide says that the trigger must first be created and saved in Level, at which point Level generates its unique URL. It also recommends requiring the authorization header for public endpoints. Repeated delivery is not a substitute for service-desk idempotency: Level ignores a device only while that same trigger already has an active run, so a later duplicate could start a second run.
+
+On 2026-09-08, the server-only tenant credential successfully listed the complete automation webhook catalogue. The result was HTTP 200 with `has_more: false` and zero entries. No trigger token, URL, provider payload, or credential was retained. Consequently, there is no tenant-available automation that can satisfy the requested allowlist, and no action can be launched from a ticket.
+
+The separate deep-link path is also unavailable. Current Level device guides explain navigation inside the Level interface but do not publish a stable device-ID URL contract. The existing allowlist therefore remains empty and the application does not construct a guessed Level URL.
+
+Step 25 remains fail-closed under ADR-019. The application has no Level write key, action endpoint, client write method, action catalogue, execution form, action ledger, or worker handler. Browser requests cannot supply commands, scripts, device IDs, webhook destinations, trigger tokens, or provider URLs because no such request surface exists.
+
+### Requirements before activation
+
+1. A Level administrator creates a narrowly scoped predefined automation with a webhook trigger, restricts its device conditions, enables the authorization-header requirement, and confirms it appears in `GET /v2/automations/webhooks`.
+2. Product and IT Security add the exact trigger and purpose to the decision log. The decision identifies eligible roles, a risk tier, required reason and confirmation text, and whether AAL2 step-up or manager approval is mandatory.
+3. Operations provisions a dedicated server-only write-enabled API key separately from `LEVEL_API_KEY`. The trigger token and key are stored only in the deployment secret manager and are never copied into application tables or client configuration.
+4. Engineering implements a fixed server-side catalogue keyed by an application action ID. Execution re-resolves the ticket's current linked device, refuses replacement or missing links, sends only that device ID, and never accepts a token or provider URL from the browser.
+5. The action request and transactional outbox commit together with a unique submission key. Provider timeouts become an explicit unknown result rather than a blind POST retry. A reconciliation read uses the returned automation-run reference when the documented response supplies one.
+6. Ticket activity and audit history retain only the actor, ticket, linked device, approved action ID, reason, confirmation and approval evidence, safe provider request or run reference, timestamps, result, and controlled error summary.
+7. Focused tests cover permission denial, exact allowlisting, repeated submission, timeout and unknown result, replacement devices, confirmation and step-up or approval enforcement, provider reconciliation, and audit completeness before the control becomes visible.

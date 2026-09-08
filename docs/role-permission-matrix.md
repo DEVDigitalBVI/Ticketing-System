@@ -1,7 +1,7 @@
 # Role-permission matrix
 
-Last verified: 2026-09-04
-Status: Step 17 authorization contract
+Last verified: 2026-09-08
+Status: Step 26 authorization contract
 
 `Allow` means the server policy may authorize the operation after its object boundary also passes. A blank cell is an explicit deny. UI visibility is not an authorization control.
 
@@ -24,6 +24,11 @@ Status: Step 17 authorization contract
 | Manage configuration — `configuration.manage`           |           |            |            |        Allow         |                         |                     |
 | Inspect background jobs — `job.read`                    |           |            |   Allow    |        Allow         |          Allow          |                     |
 | Replay failed jobs — `job.replay`                       |           |            |            |        Allow         |                         |                     |
+| Read staff knowledge — `knowledge.read`                 |   Allow   |   Allow    |   Allow    |        Allow         |                         |        Allow        |
+| Read technician knowledge — `knowledge.read.technician` |           |   Allow    |   Allow    |        Allow         |                         |                     |
+| Author knowledge — `knowledge.author`                   |           |   Allow    |   Allow    |        Allow         |                         |                     |
+| Publish knowledge — `knowledge.publish`                 |           |            |   Allow    |        Allow         |                         |                     |
+| Link knowledge to tickets — `knowledge.link`            |           |   Allow    |   Allow    |        Allow         |                         |                     |
 
 ## Object boundaries
 
@@ -34,5 +39,6 @@ Status: Step 17 authorization contract
 - Multiple assigned roles are additive, but all tenant, property, ownership, and department checks still apply.
 - The audit RPC independently repeats authenticated-user, active-profile, organisation, and role checks in PostgreSQL. Direct audit-table access remains denied.
 - Job operations are always organisation-scoped. Inspect permission never implies replay permission, and replay records an audit event.
+- Staff knowledge reads are restricted to published `staff` articles. Technician-audience content requires the separate technician read permission. Draft, review, and retired content additionally requires an author relationship or publishing authority; direct URLs repeat the same checks.
 
 The executable source of truth is `src/modules/auth/authorization.ts`; tests enumerate every role against every permission and exercise the organisation, property, ownership, and department boundaries.

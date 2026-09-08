@@ -10,11 +10,11 @@ datasource db {
 }
 
 model Organization {
-  id                     String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  slug                   String                  @unique
+  id                     String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug                   String                    @unique
   name                   String
-  createdAt              DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt              DateTime                @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdAt              DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime                  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   properties             Property[]
   ticketCategories       TicketCategory[]
   tickets                Ticket[]
@@ -44,6 +44,12 @@ model Organization {
   levelAlertRules        LevelAlertRule[]
   levelAlertCorrelations LevelAlertCorrelation[]
   levelAlertDecisions    LevelAlertDecision[]
+  knowledgeArticles      KnowledgeArticle[]
+  knowledgeVersions      KnowledgeArticleVersion[]
+  knowledgeFeedback      KnowledgeFeedback[]
+  knowledgeTicketLinks   KnowledgeTicketLink[]
+  knowledgeAssetLinks    KnowledgeArticleAsset[]
+  ticketReportingFacts   TicketReportingFact[]
 
   @@map("organizations")
   @@schema("service_desk")
@@ -178,16 +184,17 @@ model SupportTeam {
 }
 
 model TicketCategory {
-  id             String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String              @map("organization_id") @db.Uuid
-  code           String
-  name           String
-  isActive       Boolean             @default(true) @map("is_active")
-  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  subcategories  TicketSubcategory[]
-  tickets        Ticket[]
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId    String              @map("organization_id") @db.Uuid
+  code              String
+  name              String
+  isActive          Boolean             @default(true) @map("is_active")
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization      Organization        @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  subcategories     TicketSubcategory[]
+  tickets           Ticket[]
+  knowledgeArticles KnowledgeArticle[]
 
   @@unique([id, organizationId])
   @@index([organizationId])
@@ -216,30 +223,35 @@ model TicketSubcategory {
 }
 
 model User {
-  id                        String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  authUserId                String?                @unique @map("auth_user_id") @db.Uuid
-  organizationId            String                 @map("organization_id") @db.Uuid
+  id                        String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authUserId                String?                   @unique @map("auth_user_id") @db.Uuid
+  organizationId            String                    @map("organization_id") @db.Uuid
   email                     String
-  displayName               String                 @map("display_name")
-  isActive                  Boolean                @default(true) @map("is_active")
-  mustChangePassword        Boolean                @default(true) @map("must_change_password")
-  createdAt                 DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt                 DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  organization              Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  displayName               String                    @map("display_name")
+  isActive                  Boolean                   @default(true) @map("is_active")
+  mustChangePassword        Boolean                   @default(true) @map("must_change_password")
+  createdAt                 DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                 DateTime                  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization              Organization              @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   roles                     UserRole[]
   auditEvents               AuditEvent[]
-  requestedTickets          Ticket[]               @relation("TicketRequester")
-  affectedTickets           Ticket[]               @relation("TicketAffectedUser")
-  assignedTickets           Ticket[]               @relation("TicketAssignee")
-  ticketActivities          TicketActivity[]       @relation("TicketActivityActor")
-  ticketComments            TicketComment[]        @relation("TicketCommentAuthor")
-  ticketAssignmentsMade     TicketAssignment[]     @relation("TicketAssignmentActor")
-  ticketAssignmentsReceived TicketAssignment[]     @relation("TicketAssignmentAssignee")
-  attachmentMetadata        AttachmentMetadata[]   @relation("AttachmentUploader")
-  custodiedAssets           Asset[]                @relation("AssetCustodian")
-  assetAssignmentsReceived  AssetAssignment[]      @relation("AssetAssignmentCustodian")
-  assetAssignmentsMade      AssetAssignment[]      @relation("AssetAssignmentActor")
-  assetMovesMade            AssetLocationHistory[] @relation("AssetMoveActor")
+  requestedTickets          Ticket[]                  @relation("TicketRequester")
+  affectedTickets           Ticket[]                  @relation("TicketAffectedUser")
+  assignedTickets           Ticket[]                  @relation("TicketAssignee")
+  ticketActivities          TicketActivity[]          @relation("TicketActivityActor")
+  ticketComments            TicketComment[]           @relation("TicketCommentAuthor")
+  ticketAssignmentsMade     TicketAssignment[]        @relation("TicketAssignmentActor")
+  ticketAssignmentsReceived TicketAssignment[]        @relation("TicketAssignmentAssignee")
+  attachmentMetadata        AttachmentMetadata[]      @relation("AttachmentUploader")
+  custodiedAssets           Asset[]                   @relation("AssetCustodian")
+  assetAssignmentsReceived  AssetAssignment[]         @relation("AssetAssignmentCustodian")
+  assetAssignmentsMade      AssetAssignment[]         @relation("AssetAssignmentActor")
+  assetMovesMade            AssetLocationHistory[]    @relation("AssetMoveActor")
+  knowledgeOwned            KnowledgeArticle[]        @relation("KnowledgeOwner")
+  knowledgeReviewed         KnowledgeArticle[]        @relation("KnowledgeReviewer")
+  knowledgeVersionsCreated  KnowledgeArticleVersion[] @relation("KnowledgeVersionCreator")
+  knowledgeFeedback         KnowledgeFeedback[]
+  knowledgeTicketLinks      KnowledgeTicketLink[]
 
   @@unique([id, organizationId])
   @@unique([organizationId, email])
@@ -313,62 +325,65 @@ model AuditEvent {
 }
 
 model Ticket {
-  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId     String               @map("organization_id") @db.Uuid
-  numberSequence     BigInt               @default(dbgenerated("nextval('service_desk.ticket_number_seq'::regclass)")) @map("number_sequence")
-  ticketNumber       String               @map("ticket_number")
-  summary            String
-  description        String
-  requesterUserId    String               @map("requester_user_id") @db.Uuid
-  affectedUserId     String?              @map("affected_user_id") @db.Uuid
-  propertyId         String               @map("property_id") @db.Uuid
-  serviceLocationId  String?              @map("service_location_id") @db.Uuid
-  departmentId       String?              @map("department_id") @db.Uuid
-  categoryId         String               @map("category_id") @db.Uuid
-  subcategoryId      String?              @map("subcategory_id") @db.Uuid
-  primaryAssetId     String?              @map("primary_asset_id") @db.Uuid
-  impact             String
-  urgency            String
-  priority           String               @default("P3")
-  supportTeamId      String?              @map("support_team_id") @db.Uuid
-  assigneeUserId     String?              @map("assignee_user_id") @db.Uuid
-  source             String               @default("portal")
-  status             String               @default("new")
-  resolutionCode     String?              @map("resolution_code")
-  resolutionSummary  String?              @map("resolution_summary")
-  closureDetails     String?              @map("closure_details")
-  slaPolicyId        String?              @map("sla_policy_id") @db.Uuid
-  slaPolicyVersion   Int?                 @map("sla_policy_version")
-  slaPolicySnapshot  Json?                @map("sla_policy_snapshot")
-  slaResponseDueAt   DateTime?            @map("sla_response_due_at") @db.Timestamptz(6)
-  slaRespondedAt     DateTime?            @map("sla_responded_at") @db.Timestamptz(6)
-  slaResolutionDueAt DateTime?            @map("sla_resolution_due_at") @db.Timestamptz(6)
-  slaWaitingAt       DateTime?            @map("sla_waiting_at") @db.Timestamptz(6)
-  slaPausedSeconds   Int                  @default(0) @map("sla_paused_seconds")
-  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  triagedAt          DateTime?            @map("triaged_at") @db.Timestamptz(6)
-  assignedAt         DateTime?            @map("assigned_at") @db.Timestamptz(6)
-  startedAt          DateTime?            @map("started_at") @db.Timestamptz(6)
-  resolvedAt         DateTime?            @map("resolved_at") @db.Timestamptz(6)
-  closedAt           DateTime?            @map("closed_at") @db.Timestamptz(6)
-  cancelledAt        DateTime?            @map("cancelled_at") @db.Timestamptz(6)
-  organization       Organization         @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  requester          User                 @relation("TicketRequester", fields: [requesterUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  affectedUser       User?                @relation("TicketAffectedUser", fields: [affectedUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  property           Property             @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  serviceLocation    ServiceLocation?     @relation(fields: [serviceLocationId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  department         Department?          @relation(fields: [departmentId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  category           TicketCategory       @relation(fields: [categoryId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  subcategory        TicketSubcategory?   @relation(fields: [subcategoryId, categoryId, organizationId], references: [id, categoryId, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  primaryAsset       Asset?               @relation(fields: [primaryAssetId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  supportTeam        SupportTeam?         @relation(fields: [supportTeamId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  assignee           User?                @relation("TicketAssignee", fields: [assigneeUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  activities         TicketActivity[]
-  comments           TicketComment[]
-  assignments        TicketAssignment[]
-  attachments        AttachmentMetadata[]
-  slaPolicy          TicketSlaPolicy?     @relation(fields: [slaPolicyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  id                      String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId          String                @map("organization_id") @db.Uuid
+  numberSequence          BigInt                @default(dbgenerated("nextval('service_desk.ticket_number_seq'::regclass)")) @map("number_sequence")
+  ticketNumber            String                @map("ticket_number")
+  summary                 String
+  description             String
+  requesterUserId         String                @map("requester_user_id") @db.Uuid
+  affectedUserId          String?               @map("affected_user_id") @db.Uuid
+  propertyId              String                @map("property_id") @db.Uuid
+  serviceLocationId       String?               @map("service_location_id") @db.Uuid
+  departmentId            String?               @map("department_id") @db.Uuid
+  categoryId              String                @map("category_id") @db.Uuid
+  subcategoryId           String?               @map("subcategory_id") @db.Uuid
+  primaryAssetId          String?               @map("primary_asset_id") @db.Uuid
+  impact                  String
+  urgency                 String
+  priority                String                @default("P3")
+  supportTeamId           String?               @map("support_team_id") @db.Uuid
+  assigneeUserId          String?               @map("assignee_user_id") @db.Uuid
+  source                  String                @default("portal")
+  status                  String                @default("new")
+  resolutionCode          String?               @map("resolution_code")
+  resolutionSummary       String?               @map("resolution_summary")
+  closureDetails          String?               @map("closure_details")
+  slaPolicyId             String?               @map("sla_policy_id") @db.Uuid
+  slaPolicyVersion        Int?                  @map("sla_policy_version")
+  slaPolicySnapshot       Json?                 @map("sla_policy_snapshot")
+  slaResponseDueAt        DateTime?             @map("sla_response_due_at") @db.Timestamptz(6)
+  slaRespondedAt          DateTime?             @map("sla_responded_at") @db.Timestamptz(6)
+  slaResolutionDueAt      DateTime?             @map("sla_resolution_due_at") @db.Timestamptz(6)
+  slaWaitingAt            DateTime?             @map("sla_waiting_at") @db.Timestamptz(6)
+  slaPausedSeconds        Int                   @default(0) @map("sla_paused_seconds")
+  createdAt               DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  triagedAt               DateTime?             @map("triaged_at") @db.Timestamptz(6)
+  assignedAt              DateTime?             @map("assigned_at") @db.Timestamptz(6)
+  startedAt               DateTime?             @map("started_at") @db.Timestamptz(6)
+  resolvedAt              DateTime?             @map("resolved_at") @db.Timestamptz(6)
+  closedAt                DateTime?             @map("closed_at") @db.Timestamptz(6)
+  cancelledAt             DateTime?             @map("cancelled_at") @db.Timestamptz(6)
+  organization            Organization          @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  requester               User                  @relation("TicketRequester", fields: [requesterUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  affectedUser            User?                 @relation("TicketAffectedUser", fields: [affectedUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  property                Property              @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  serviceLocation         ServiceLocation?      @relation(fields: [serviceLocationId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  department              Department?           @relation(fields: [departmentId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  category                TicketCategory        @relation(fields: [categoryId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  subcategory             TicketSubcategory?    @relation(fields: [subcategoryId, categoryId, organizationId], references: [id, categoryId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  primaryAsset            Asset?                @relation(fields: [primaryAssetId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  supportTeam             SupportTeam?          @relation(fields: [supportTeamId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  assignee                User?                 @relation("TicketAssignee", fields: [assigneeUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  activities              TicketActivity[]
+  comments                TicketComment[]
+  assignments             TicketAssignment[]
+  attachments             AttachmentMetadata[]
+  slaPolicy               TicketSlaPolicy?      @relation(fields: [slaPolicyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  knowledgeSourceArticles KnowledgeArticle[]    @relation("KnowledgeSourceTicket")
+  knowledgeLinks          KnowledgeTicketLink[]
+  reportingFact           TicketReportingFact?
 
   @@unique([id, organizationId])
   @@unique([ticketNumber])
@@ -379,6 +394,52 @@ model Ticket {
   @@index([assigneeUserId, organizationId, updatedAt])
   @@index([primaryAssetId, organizationId])
   @@map("tickets")
+  @@schema("service_desk")
+}
+
+model TicketReportingFact {
+  ticketId                     String       @id @map("ticket_id") @db.Uuid
+  organizationId               String       @map("organization_id") @db.Uuid
+  propertyId                   String       @map("property_id") @db.Uuid
+  propertyName                 String       @map("property_name")
+  reportingTimezone            String       @map("reporting_timezone")
+  departmentId                 String?      @map("department_id") @db.Uuid
+  departmentName               String?      @map("department_name")
+  categoryId                   String       @map("category_id") @db.Uuid
+  categoryName                 String       @map("category_name")
+  primaryAssetId               String?      @map("primary_asset_id") @db.Uuid
+  assetTag                     String?      @map("asset_tag")
+  assetName                    String?      @map("asset_name")
+  assetLocationName            String?      @map("asset_location_name")
+  assigneeUserId               String?      @map("assignee_user_id") @db.Uuid
+  assigneeDisplayName          String?      @map("assignee_display_name")
+  source                       String
+  priority                     String
+  status                       String
+  ticketCreatedAt              DateTime     @map("ticket_created_at") @db.Timestamptz(6)
+  firstRespondedAt             DateTime?    @map("first_responded_at") @db.Timestamptz(6)
+  resolvedAt                   DateTime?    @map("resolved_at") @db.Timestamptz(6)
+  closedAt                     DateTime?    @map("closed_at") @db.Timestamptz(6)
+  cancelledAt                  DateTime?    @map("cancelled_at") @db.Timestamptz(6)
+  requesterWaitingSeconds      Int          @default(0) @map("requester_waiting_seconds")
+  requesterWaitingSince        DateTime?    @map("requester_waiting_since") @db.Timestamptz(6)
+  reopenCount                  Int          @default(0) @map("reopen_count")
+  slaPolicySnapshot            Json?        @map("sla_policy_snapshot")
+  slaResponseDueAt             DateTime?    @map("sla_response_due_at") @db.Timestamptz(6)
+  slaResolutionDueAt           DateTime?    @map("sla_resolution_due_at") @db.Timestamptz(6)
+  isAlertGenerated             Boolean      @default(false) @map("is_alert_generated")
+  capturedAt                   DateTime     @default(now()) @map("captured_at") @db.Timestamptz(6)
+  updatedAt                    DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization                Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  ticket                      Ticket       @relation(fields: [ticketId, organizationId], references: [id, organizationId], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([organizationId, ticketCreatedAt])
+  @@index([organizationId, propertyId, ticketCreatedAt])
+  @@index([organizationId, status, ticketCreatedAt])
+  @@index([organizationId, categoryId, ticketCreatedAt])
+  @@index([organizationId, assigneeUserId, status])
+  @@index([organizationId, primaryAssetId, ticketCreatedAt])
+  @@map("ticket_reporting_facts")
   @@schema("service_desk")
 }
 
@@ -547,40 +608,41 @@ model AssetStatus {
 }
 
 model Asset {
-  id                String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId    String                 @map("organization_id") @db.Uuid
-  assetTag          String                 @map("asset_tag")
-  serialNumber      String?                @map("serial_number")
+  id                String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId    String                  @map("organization_id") @db.Uuid
+  assetTag          String                  @map("asset_tag")
+  serialNumber      String?                 @map("serial_number")
   name              String
   description       String?
-  assetTypeId       String                 @map("asset_type_id") @db.Uuid
-  assetStatusId     String                 @map("asset_status_id") @db.Uuid
-  propertyId        String                 @map("property_id") @db.Uuid
-  buildingAreaId    String?                @map("building_area_id") @db.Uuid
-  serviceLocationId String?                @map("service_location_id") @db.Uuid
-  departmentId      String?                @map("department_id") @db.Uuid
-  custodianUserId   String?                @map("custodian_user_id") @db.Uuid
-  criticality       String                 @default("standard")
+  assetTypeId       String                  @map("asset_type_id") @db.Uuid
+  assetStatusId     String                  @map("asset_status_id") @db.Uuid
+  propertyId        String                  @map("property_id") @db.Uuid
+  buildingAreaId    String?                 @map("building_area_id") @db.Uuid
+  serviceLocationId String?                 @map("service_location_id") @db.Uuid
+  departmentId      String?                 @map("department_id") @db.Uuid
+  custodianUserId   String?                 @map("custodian_user_id") @db.Uuid
+  criticality       String                  @default("standard")
   manufacturer      String?
   model             String?
-  acquiredAt        DateTime?              @map("acquired_at") @db.Date
-  retiredAt         DateTime?              @map("retired_at") @db.Timestamptz(6)
-  retirementReason  String?                @map("retirement_reason")
-  createdAt         DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  organization      Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  assetType         AssetType              @relation(fields: [assetTypeId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  assetStatus       AssetStatus            @relation(fields: [assetStatusId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  property          Property               @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  buildingArea      BuildingArea?          @relation(fields: [buildingAreaId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  serviceLocation   ServiceLocation?       @relation(fields: [serviceLocationId, buildingAreaId, propertyId, organizationId], references: [id, buildingAreaId, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  department        Department?            @relation(fields: [departmentId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
-  custodian         User?                  @relation("AssetCustodian", fields: [custodianUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  acquiredAt        DateTime?               @map("acquired_at") @db.Date
+  retiredAt         DateTime?               @map("retired_at") @db.Timestamptz(6)
+  retirementReason  String?                 @map("retirement_reason")
+  createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization      Organization            @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  assetType         AssetType               @relation(fields: [assetTypeId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  assetStatus       AssetStatus             @relation(fields: [assetStatusId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  property          Property                @relation(fields: [propertyId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  buildingArea      BuildingArea?           @relation(fields: [buildingAreaId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  serviceLocation   ServiceLocation?        @relation(fields: [serviceLocationId, buildingAreaId, propertyId, organizationId], references: [id, buildingAreaId, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  department        Department?             @relation(fields: [departmentId, propertyId, organizationId], references: [id, propertyId, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  custodian         User?                   @relation("AssetCustodian", fields: [custodianUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
   assignments       AssetAssignment[]
   locationHistory   AssetLocationHistory[]
   procurement       ProcurementMetadata?
   externalLinks     ExternalSystemLink[]
   tickets           Ticket[]
+  knowledgeLinks    KnowledgeArticleAsset[]
 
   @@unique([id, organizationId])
   @@index([organizationId, assetTag])
@@ -1000,5 +1062,124 @@ model BackgroundJobEffect {
   @@unique([organizationId, effectKey])
   @@index([jobId, organizationId])
   @@map("background_job_effects")
+  @@schema("service_desk")
+}
+
+model KnowledgeArticle {
+  id             String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String                    @map("organization_id") @db.Uuid
+  title          String
+  summary        String
+  body           String
+  audience       String                    @default("staff")
+  state          String                    @default("draft")
+  categoryId     String?                   @map("category_id") @db.Uuid
+  ownerUserId    String                    @map("owner_user_id") @db.Uuid
+  reviewerUserId String?                   @map("reviewer_user_id") @db.Uuid
+  sourceTicketId String?                   @map("source_ticket_id") @db.Uuid
+  currentVersion Int                       @default(1) @map("current_version")
+  reviewDate     DateTime?                 @map("review_date") @db.Date
+  publishedAt    DateTime?                 @map("published_at") @db.Timestamptz(6)
+  retiredAt      DateTime?                 @map("retired_at") @db.Timestamptz(6)
+  createdAt      DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime                  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization              @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  category       TicketCategory?           @relation(fields: [categoryId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  owner          User                      @relation("KnowledgeOwner", fields: [ownerUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  reviewer       User?                     @relation("KnowledgeReviewer", fields: [reviewerUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  sourceTicket   Ticket?                   @relation("KnowledgeSourceTicket", fields: [sourceTicketId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  versions       KnowledgeArticleVersion[]
+  feedback       KnowledgeFeedback[]
+  ticketLinks    KnowledgeTicketLink[]
+  assetLinks     KnowledgeArticleAsset[]
+
+  @@unique([id, organizationId])
+  @@index([organizationId, state, audience, updatedAt])
+  @@index([organizationId, reviewDate])
+  @@index([ownerUserId, organizationId])
+  @@index([reviewerUserId, organizationId])
+  @@index([categoryId, organizationId])
+  @@index([sourceTicketId, organizationId])
+  @@map("knowledge_articles")
+  @@schema("service_desk")
+}
+
+model KnowledgeArticleVersion {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId  String           @map("organization_id") @db.Uuid
+  articleId       String           @map("article_id") @db.Uuid
+  version         Int
+  title           String
+  summary         String
+  body            String
+  audience        String
+  categoryId      String?          @map("category_id") @db.Uuid
+  changeSummary   String           @map("change_summary")
+  createdByUserId String           @map("created_by_user_id") @db.Uuid
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  article         KnowledgeArticle @relation(fields: [articleId, organizationId], references: [id, organizationId], onDelete: Cascade, onUpdate: Cascade)
+  createdBy       User             @relation("KnowledgeVersionCreator", fields: [createdByUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([articleId, version])
+  @@index([organizationId, createdAt])
+  @@index([articleId, organizationId, version])
+  @@index([createdByUserId, organizationId])
+  @@map("knowledge_article_versions")
+  @@schema("service_desk")
+}
+
+model KnowledgeFeedback {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String           @map("organization_id") @db.Uuid
+  articleId      String           @map("article_id") @db.Uuid
+  articleVersion Int              @map("article_version")
+  userId         String           @map("user_id") @db.Uuid
+  helpful        Boolean
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  article        KnowledgeArticle @relation(fields: [articleId, organizationId], references: [id, organizationId], onDelete: Cascade, onUpdate: Cascade)
+  user           User             @relation(fields: [userId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([articleId, articleVersion, userId])
+  @@index([organizationId, articleId, articleVersion])
+  @@index([userId, organizationId])
+  @@map("knowledge_feedback")
+  @@schema("service_desk")
+}
+
+model KnowledgeTicketLink {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String           @map("organization_id") @db.Uuid
+  articleId      String           @map("article_id") @db.Uuid
+  ticketId       String           @map("ticket_id") @db.Uuid
+  linkedByUserId String           @map("linked_by_user_id") @db.Uuid
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  article        KnowledgeArticle @relation(fields: [articleId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+  ticket         Ticket           @relation(fields: [ticketId, organizationId], references: [id, organizationId], onDelete: Cascade, onUpdate: Cascade)
+  linkedBy       User             @relation(fields: [linkedByUserId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([articleId, ticketId])
+  @@index([organizationId, ticketId, createdAt])
+  @@index([linkedByUserId, organizationId])
+  @@map("knowledge_ticket_links")
+  @@schema("service_desk")
+}
+
+model KnowledgeArticleAsset {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String           @map("organization_id") @db.Uuid
+  articleId      String           @map("article_id") @db.Uuid
+  assetId        String           @map("asset_id") @db.Uuid
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  article        KnowledgeArticle @relation(fields: [articleId, organizationId], references: [id, organizationId], onDelete: Cascade, onUpdate: Cascade)
+  asset          Asset            @relation(fields: [assetId, organizationId], references: [id, organizationId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([articleId, assetId])
+  @@index([organizationId, assetId])
+  @@map("knowledge_article_assets")
   @@schema("service_desk")
 }

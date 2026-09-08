@@ -215,15 +215,17 @@ function mapThreadEntry(
   const title =
     entry.activityType === "ticket_created"
       ? "Request submitted"
-      : entry.toStatus === "resolved"
-        ? "IT marked this request resolved"
-        : entry.toStatus === "closed"
-          ? "Resolution confirmed"
-          : entry.toStatus === "cancelled"
-            ? "Request cancelled"
-            : entry.toStatus === "waiting_for_requester"
-              ? "IT needs more information from you"
-              : "Status updated";
+      : entry.activityType === "knowledge_linked"
+        ? "Helpful article linked"
+        : entry.toStatus === "resolved"
+          ? "IT marked this request resolved"
+          : entry.toStatus === "closed"
+            ? "Resolution confirmed"
+            : entry.toStatus === "cancelled"
+              ? "Request cancelled"
+              : entry.toStatus === "waiting_for_requester"
+                ? "IT needs more information from you"
+                : "Status updated";
 
   return {
     id: entry.id,
