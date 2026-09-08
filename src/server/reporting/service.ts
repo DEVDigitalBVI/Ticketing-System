@@ -69,7 +69,10 @@ export async function getManagerReport(access: AccessProfile, rawFilters: unknow
   try {
     range = parseReportRange(filters.from, filters.to, filters.timezone);
   } catch (error) {
-    throw new ReportingError(error instanceof Error ? error.message : "Invalid report range.", "invalid");
+    throw new ReportingError(
+      error instanceof Error ? error.message : "Invalid report range.",
+      "invalid",
+    );
   }
 
   const scopedProperties = filters.propertyId ? [filters.propertyId] : allowedProperties;
@@ -116,7 +119,13 @@ export async function getManagerReport(access: AccessProfile, rawFilters: unknow
       slaResponseDueAt: true,
       slaResolutionDueAt: true,
       isAlertGenerated: true,
-      ticket: { select: { _count: { select: { knowledgeLinks: true } } } },
+      ticket: {
+        select: {
+          _count: {
+            select: { knowledgeLinks: { where: { createdAt: { lt: range.end } } } },
+          },
+        },
+      },
     },
     orderBy: { ticketCreatedAt: "asc" },
     take: MAX_REPORT_FACTS + 1,

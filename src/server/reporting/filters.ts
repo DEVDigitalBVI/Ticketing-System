@@ -36,7 +36,14 @@ function utcForLocalDate(date: string, timezone: string) {
     const actual = localParts(new Date(candidate), timezone);
     candidate +=
       target -
-      Date.UTC(actual.year!, actual.month! - 1, actual.day!, actual.hour!, actual.minute!, actual.second!);
+      Date.UTC(
+        actual.year!,
+        actual.month! - 1,
+        actual.day!,
+        actual.hour!,
+        actual.minute!,
+        actual.second!,
+      );
   }
   return new Date(candidate);
 }

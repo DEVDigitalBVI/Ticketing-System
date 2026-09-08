@@ -99,10 +99,19 @@ function breakdown(entries: Array<{ key: string; label: string }>, denominator: 
     .sort((left, right) => right.value - left.value || left.label.localeCompare(right.label));
 }
 
-function supportMinutes(start: Date, end: Date, snapshot: unknown) {
+function supportMinutes(
+  start: Date,
+  end: Date,
+  snapshot: unknown,
+  cache: Map<string, number | null>,
+) {
   const policy = parseSlaPolicySnapshot(snapshot);
   if (!policy) return null;
-  return supportMillisecondsBetween(start, end, policy) / 60_000;
+  const key = `${policy.policyId}:${policy.version}:${start.getTime()}:${end.getTime()}`;
+  if (cache.has(key)) return cache.get(key)!;
+  const value = supportMillisecondsBetween(start, end, policy) / 60_000;
+  cache.set(key, value);
+  return value;
 }
 
 function isCreatedInRange(fact: ReportingFact, range: ReportRange) {
@@ -115,7 +124,10 @@ function isResolvedInRange(fact: ReportingFact, range: ReportRange) {
 
 function backlogAtEnd(fact: ReportingFact, end: Date) {
   if (fact.ticketCreatedAt >= end) return false;
-  const terminalAt = fact.cancelledAt ?? fact.closedAt ?? fact.resolvedAt;
+  const terminalTimes = [fact.cancelledAt, fact.resolvedAt, fact.closedAt]
+    .filter((value): value is Date => Boolean(value))
+    .map((value) => value.getTime());
+  const terminalAt = terminalTimes.length ? new Date(Math.min(...terminalTimes)) : null;
   return !terminalAt || terminalAt >= end;
 }
 
@@ -127,21 +139,33 @@ function ageBand(hours: number) {
 }
 
 export function buildManagerReport(facts: ReportingFact[], range: ReportRange): ManagerReport {
+  const durationCache = new Map<string, number | null>();
   const created = facts.filter((fact) => isCreatedInRange(fact, range));
+  const responseEligibleCreated = created.filter((fact) => fact.status !== "cancelled");
   const resolved = facts.filter((fact) => isResolvedInRange(fact, range));
   const backlog = facts.filter((fact) => backlogAtEnd(fact, range.end));
-  const responses = created.flatMap((fact) => {
+  const responses = responseEligibleCreated.flatMap((fact) => {
     if (!fact.firstRespondedAt) return [];
-    const minutes = supportMinutes(fact.ticketCreatedAt, fact.firstRespondedAt, fact.slaPolicySnapshot);
+    const minutes = supportMinutes(
+      fact.ticketCreatedAt,
+      fact.firstRespondedAt,
+      fact.slaPolicySnapshot,
+      durationCache,
+    );
     return minutes === null ? [] : [minutes];
   });
   const resolutions = resolved.flatMap((fact) => {
     if (!fact.resolvedAt) return [];
-    const minutes = supportMinutes(fact.ticketCreatedAt, fact.resolvedAt, fact.slaPolicySnapshot);
+    const minutes = supportMinutes(
+      fact.ticketCreatedAt,
+      fact.resolvedAt,
+      fact.slaPolicySnapshot,
+      durationCache,
+    );
     return minutes === null ? [] : [minutes];
   });
-  const responsePopulation = created.filter(
-    (fact) => fact.firstRespondedAt && fact.slaResponseDueAt,
+  const responsePopulation = responseEligibleCreated.filter(
+    (fact) => fact.slaResponseDueAt && (fact.firstRespondedAt || fact.slaResponseDueAt < range.end),
   );
   const resolutionPopulation = resolved.filter(
     (fact) => fact.resolvedAt && fact.slaResolutionDueAt,
@@ -167,9 +191,8 @@ export function buildManagerReport(facts: ReportingFact[], range: ReportRange): 
       averageFirstResponseMinutes: round(average(responses)),
       averageResolutionMinutes: round(average(resolutions)),
       responseSlaPercent: percent(
-        responsePopulation.filter(
-          (fact) => fact.firstRespondedAt! <= fact.slaResponseDueAt!,
-        ).length,
+        responsePopulation.filter((fact) => fact.firstRespondedAt! <= fact.slaResponseDueAt!)
+          .length,
         responsePopulation.length,
       ),
       resolutionSlaPercent: percent(

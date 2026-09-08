@@ -79,14 +79,14 @@ BEGIN
   WHERE id = NEW.department_id AND organization_id = NEW.organization_id;
   SELECT name INTO STRICT category_label FROM service_desk.ticket_categories
   WHERE id = NEW.category_id AND organization_id = NEW.organization_id;
-  SELECT a.asset_tag, a.name, concat_ws(' · ', p.name, b.name, l.name)
+  SELECT a.asset_tag, a.name, concat_ws(' · ', p.name, b.name, l.name) AS location_name
     INTO asset_row
   FROM service_desk.assets a
   JOIN service_desk.properties p ON p.id = a.property_id AND p.organization_id = a.organization_id
   LEFT JOIN service_desk.building_areas b ON b.id = a.building_area_id AND b.organization_id = a.organization_id
   LEFT JOIN service_desk.service_locations l ON l.id = a.service_location_id AND l.organization_id = a.organization_id
   WHERE a.id = NEW.primary_asset_id AND a.organization_id = NEW.organization_id;
-  asset_location := NULLIF(asset_row.concat_ws, '');
+  asset_location := NULLIF(asset_row.location_name, '');
   SELECT display_name INTO assignee_label FROM service_desk.users
   WHERE id = NEW.assignee_user_id AND organization_id = NEW.organization_id;
 

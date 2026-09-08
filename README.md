@@ -51,6 +51,8 @@ Step 17 adds the PostgreSQL transactional outbox, leased background worker, boun
 
 Step 21 synchronizes a curated read-only Level device snapshot, associates it to assets through deterministic identity rules, and sends unresolved devices to administrator reconciliation. See `docs/integrations/level.md`.
 
+Step 27 adds private historical reporting facts, authorized manager dashboards, and aggregate privacy-safe CSV exports. KPI definitions and reproduction rules are in `docs/reporting/kpi-catalogue.md`.
+
 ## Frontend routes
 
 - `/login`: responsive Supabase work-account sign-in with generic failure states.
@@ -67,6 +69,7 @@ Step 21 synchronizes a curated read-only Level device snapshot, associates it to
 - `/my-tickets`: requester-authorized ticket workspace with server-side filters, search, pagination, public history, replies, and resolution confirmation.
 - `/technician`: live technician queue with server-side views, pagination, assignment controls, conflict protection, precise SLA timing, and a real ticket detail panel. Level.io remains an explicit unavailable state.
 - `/knowledge`: audience-safe staff and technician knowledge search, reviewed article reading, versioned authoring, stale-content reporting, feedback, and ticket linking.
+- `/reports`: manager and report-viewer service quality dashboards with authorized scope filters, accessible chart-and-table pairs, and aggregate CSV export.
 - `/health`: application-boundary health status.
 
 ## Quality gates

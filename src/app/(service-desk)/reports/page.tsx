@@ -148,9 +148,11 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
           <label>
             Time zone
             <select name="timezone" defaultValue={timezone}>
-              {[...new Set(options.properties.map((property) => property.timezone))].map((value) => (
-                <option key={value}>{value}</option>
-              ))}
+              {[...new Set(options.properties.map((property) => property.timezone))].map(
+                (value) => (
+                  <option key={value}>{value}</option>
+                ),
+              )}
             </select>
           </label>
           <button className="primary-button" type="submit">
@@ -190,16 +192,48 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
               </article>
             ))}
           </div>
-          {report.population ? (
+          {report.population || report.cards.backlog ? (
             <div className="report-grid">
-              <ReportChart title="Tickets by priority" description="Created in the period." rows={report.breakdowns.priority} />
-              <ReportChart title="Tickets by category" description="Uses the captured category label." rows={report.breakdowns.category} />
-              <ReportChart title="Tickets by property" description="Uses the captured property label." rows={report.breakdowns.property} />
-              <ReportChart title="Tickets by department" description="Created demand by requesting department." rows={report.breakdowns.department} />
-              <ReportChart title="Tickets by source" description="Portal, email, technician, or system intake." rows={report.breakdowns.source} />
-              <ReportChart title="Backlog age" description="Open workload at the end of the period." rows={report.breakdowns.age} />
-              <ReportChart title="Technician workload" description="Open tickets by captured current assignee." rows={report.breakdowns.technicianWorkload} />
-              <ReportChart title="Recurring assets" description="Assets with more than one ticket in the period." rows={report.breakdowns.recurringAssets} />
+              <ReportChart
+                title="Tickets by priority"
+                description="Created in the period."
+                rows={report.breakdowns.priority}
+              />
+              <ReportChart
+                title="Tickets by category"
+                description="Uses the captured category label."
+                rows={report.breakdowns.category}
+              />
+              <ReportChart
+                title="Tickets by property"
+                description="Uses the captured property label."
+                rows={report.breakdowns.property}
+              />
+              <ReportChart
+                title="Tickets by department"
+                description="Created demand by requesting department."
+                rows={report.breakdowns.department}
+              />
+              <ReportChart
+                title="Tickets by source"
+                description="Portal, email, technician, or system intake."
+                rows={report.breakdowns.source}
+              />
+              <ReportChart
+                title="Backlog age"
+                description="Open workload at the end of the period."
+                rows={report.breakdowns.age}
+              />
+              <ReportChart
+                title="Technician workload"
+                description="Open tickets by captured current assignee."
+                rows={report.breakdowns.technicianWorkload}
+              />
+              <ReportChart
+                title="Recurring assets"
+                description="Assets with more than one ticket in the period."
+                rows={report.breakdowns.recurringAssets}
+              />
             </div>
           ) : (
             <div className="report-empty">

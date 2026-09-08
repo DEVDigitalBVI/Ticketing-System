@@ -398,41 +398,42 @@ model Ticket {
 }
 
 model TicketReportingFact {
-  ticketId                     String       @id @map("ticket_id") @db.Uuid
-  organizationId               String       @map("organization_id") @db.Uuid
-  propertyId                   String       @map("property_id") @db.Uuid
-  propertyName                 String       @map("property_name")
-  reportingTimezone            String       @map("reporting_timezone")
-  departmentId                 String?      @map("department_id") @db.Uuid
-  departmentName               String?      @map("department_name")
-  categoryId                   String       @map("category_id") @db.Uuid
-  categoryName                 String       @map("category_name")
-  primaryAssetId               String?      @map("primary_asset_id") @db.Uuid
-  assetTag                     String?      @map("asset_tag")
-  assetName                    String?      @map("asset_name")
-  assetLocationName            String?      @map("asset_location_name")
-  assigneeUserId               String?      @map("assignee_user_id") @db.Uuid
-  assigneeDisplayName          String?      @map("assignee_display_name")
-  source                       String
-  priority                     String
-  status                       String
-  ticketCreatedAt              DateTime     @map("ticket_created_at") @db.Timestamptz(6)
-  firstRespondedAt             DateTime?    @map("first_responded_at") @db.Timestamptz(6)
-  resolvedAt                   DateTime?    @map("resolved_at") @db.Timestamptz(6)
-  closedAt                     DateTime?    @map("closed_at") @db.Timestamptz(6)
-  cancelledAt                  DateTime?    @map("cancelled_at") @db.Timestamptz(6)
-  requesterWaitingSeconds      Int          @default(0) @map("requester_waiting_seconds")
-  requesterWaitingSince        DateTime?    @map("requester_waiting_since") @db.Timestamptz(6)
-  reopenCount                  Int          @default(0) @map("reopen_count")
-  slaPolicySnapshot            Json?        @map("sla_policy_snapshot")
-  slaResponseDueAt             DateTime?    @map("sla_response_due_at") @db.Timestamptz(6)
-  slaResolutionDueAt           DateTime?    @map("sla_resolution_due_at") @db.Timestamptz(6)
-  isAlertGenerated             Boolean      @default(false) @map("is_alert_generated")
-  capturedAt                   DateTime     @default(now()) @map("captured_at") @db.Timestamptz(6)
-  updatedAt                    DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  organization                Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  ticket                      Ticket       @relation(fields: [ticketId, organizationId], references: [id, organizationId], onDelete: Cascade, onUpdate: Cascade)
+  ticketId                String       @id @map("ticket_id") @db.Uuid
+  organizationId          String       @map("organization_id") @db.Uuid
+  propertyId              String       @map("property_id") @db.Uuid
+  propertyName            String       @map("property_name")
+  reportingTimezone       String       @map("reporting_timezone")
+  departmentId            String?      @map("department_id") @db.Uuid
+  departmentName          String?      @map("department_name")
+  categoryId              String       @map("category_id") @db.Uuid
+  categoryName            String       @map("category_name")
+  primaryAssetId          String?      @map("primary_asset_id") @db.Uuid
+  assetTag                String?      @map("asset_tag")
+  assetName               String?      @map("asset_name")
+  assetLocationName       String?      @map("asset_location_name")
+  assigneeUserId          String?      @map("assignee_user_id") @db.Uuid
+  assigneeDisplayName     String?      @map("assignee_display_name")
+  source                  String
+  priority                String
+  status                  String
+  ticketCreatedAt         DateTime     @map("ticket_created_at") @db.Timestamptz(6)
+  firstRespondedAt        DateTime?    @map("first_responded_at") @db.Timestamptz(6)
+  resolvedAt              DateTime?    @map("resolved_at") @db.Timestamptz(6)
+  closedAt                DateTime?    @map("closed_at") @db.Timestamptz(6)
+  cancelledAt             DateTime?    @map("cancelled_at") @db.Timestamptz(6)
+  requesterWaitingSeconds Int          @default(0) @map("requester_waiting_seconds")
+  requesterWaitingSince   DateTime?    @map("requester_waiting_since") @db.Timestamptz(6)
+  reopenCount             Int          @default(0) @map("reopen_count")
+  slaPolicySnapshot       Json?        @map("sla_policy_snapshot")
+  slaResponseDueAt        DateTime?    @map("sla_response_due_at") @db.Timestamptz(6)
+  slaResolutionDueAt      DateTime?    @map("sla_resolution_due_at") @db.Timestamptz(6)
+  isAlertGenerated        Boolean      @default(false) @map("is_alert_generated")
+  capturedAt              DateTime     @default(now()) @map("captured_at") @db.Timestamptz(6)
+  updatedAt               DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization            Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  ticket                  Ticket       @relation(fields: [ticketId, organizationId], references: [id, organizationId], onDelete: Cascade, onUpdate: Cascade)
 
+  @@unique([ticketId, organizationId])
   @@index([organizationId, ticketCreatedAt])
   @@index([organizationId, propertyId, ticketCreatedAt])
   @@index([organizationId, status, ticketCreatedAt])

@@ -43,6 +43,17 @@ Allowed statuses: `Proposed`, `Accepted`, `Superseded`, `Rejected`.
 - **Evidence:** Repository inspection in `docs/implementation-status.md`; owner-provided repository and Supabase project names. Blueprint evidence is missing.
 - **Supersedes:** None.
 
+## ADR-021: Keep service reporting reproducible inside PostgreSQL
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Owners:** Product / Engineering
+- **Context:** Managers need stable service measures, while operational labels, assignments, asset locations, and SLA policies can change after a ticket is handled. Independent dashboard and export queries would allow definitions to drift and could expose ticket-level personal data.
+- **Decision:** Maintain one private reporting fact per ticket with captured dimensional labels, lifecycle timestamps, waiting and reopen evidence, alert origin, and the ticket’s SLA policy snapshot. Refresh a dimension only when the ticket deliberately changes that dimension; do not react to later reference-data renames or asset moves. Build every dashboard and export from one bounded reporting service and a documented KPI catalogue. Restrict results by property-scoped `report.read`, export aggregates only, and retain accessible tables beside visual charts.
+- **Consequences:** The same synthetic facts reproduce the same KPI and export. Existing tickets receive a migration-time baseline because labels before that boundary were not previously snapshotted. Interactive reports are limited to 366 days and 50,000 candidate facts. A future summary or warehouse requires a separate approval.
+- **Evidence:** Migration `20260908220000_step_27_reporting_facts`, `docs/reporting/kpi-catalogue.md`, the reporting service and `/reports` interface, aggregate CSV route, and focused Step 27 tests.
+- **Supersedes:** None.
+
 ## ADR-002: Application foundation and quality gates
 
 - **Status:** Accepted
